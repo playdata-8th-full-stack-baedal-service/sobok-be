@@ -1,0 +1,6 @@
+# 개발 진행 중(로컬)일때는 dev
+# 배포 진행 중일때는 prod
+
+spring:
+  profiles:
+    default: dev
