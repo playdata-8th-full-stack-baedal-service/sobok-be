@@ -1,0 +1,73 @@
+## IDE ###
+.idea/
+*.iml
+*.iws
+*.ipr
+
+### Gradle ###
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+
+### Java 빌드 결과물 ###
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+### 임시/에디터 파일 ###
+*.tmp
+*.swp
+*~
+
+### 환경 설정 파일 ###
+.env
+.env.*
+
+### Application Config ###
+config-server/.env
+**/application-local.yml
+**/application-dev.yml
+**/application-prod.yml
+
+### Docker ###
+docker/*.env
+docker/logs/
+docker/data/
+docker/volumes/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Test ###
+test-output/
+coverage/
+jacoco.exec
+
+### Misc ###
+logs/
+nohup.out
+
+### VSCode (혹시 쓸 경우) ###
+.vscode/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
