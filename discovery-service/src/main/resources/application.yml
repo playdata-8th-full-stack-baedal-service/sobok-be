@@ -1,0 +1,16 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: discovery-service
+
+# fetch-registry : 레지스트리에 있는 정보 가져올지
+# register-with-eureka : 유레카 클라이언트 등록 (true 면 등록됨)
+# Self-preservation mode (자기보호모드) : 네트워크 장애가 발생하여 서비스와 통신이 되지 않아도 해당 서비스를 해제되는 것을 방지하는 모드 (운영 환경에서는 활성화, 개발시에는 비활성화)
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+#  server:
+#    enable-self-preservation: false
