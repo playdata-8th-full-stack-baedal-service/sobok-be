@@ -4,9 +4,9 @@
   "settings": {
     "width": 4000,
     "height": 4000,
-    "scrollTop": -1544.3697,
-    "scrollLeft": -1248.662,
-    "zoomLevel": 0.3,
+    "scrollTop": -146.7497,
+    "scrollLeft": -201.1893,
+    "zoomLevel": 0.9,
     "show": 495,
     "database": 4,
     "databaseName": "",
@@ -427,7 +427,8 @@
           "sQ_vQRguAkke7BUnrxyEs",
           "uFt8CrtvnZ2YhEdn1weIy",
           "7qAHkRPt9SyyOg5rng6RV",
-          "iFIpPoEAV14gb6tACB3FH"
+          "iFIpPoEAV14gb6tACB3FH",
+          "zBoVkc3royJ8piEysrLJK"
         ],
         "ui": {
           "x": 808.6529,
@@ -438,7 +439,7 @@
           "color": ""
         },
         "meta": {
-          "updateAt": 1750921923270,
+          "updateAt": 1750923632422,
           "createAt": 1750897850249
         }
       },
@@ -3977,6 +3978,26 @@
         "meta": {
           "updateAt": 1750921662250,
           "createAt": 1750921662250
+        }
+      },
+      "zBoVkc3royJ8piEysrLJK": {
+        "id": "zBoVkc3royJ8piEysrLJK",
+        "tableId": "x1vSpPwsNWy322LURSXCb",
+        "name": "",
+        "comment": "",
+        "dataType": "",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1750923619353,
+          "createAt": 1750923619353
         }
       }
     },
