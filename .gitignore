@@ -71,3 +71,5 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+sobok.erd.json
