@@ -39,7 +39,6 @@ spring:
       default-filters:
         # CORS 확인 필터
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
-        - name : AuthorizationFilter
 
       routes:
         # 라우팅 예시
@@ -49,4 +48,12 @@ spring:
             - Path=/user-service/user/**
           filters:
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth-service/auth/**
+          filters:
+            - RewritePath=/auth-service/(?<segment>.*), /$\{segment}
             - name: AuthorizationFilter
