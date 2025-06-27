@@ -44,6 +44,9 @@ dependencies {
 
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // coolSMS
+	implementation 'net.nurigo:sdk:4.3.0'
 }
 dependencyManagement {
     imports {
