@@ -1,7 +1,7 @@
 services:
   mysql:
     image: mysql:8.0
-    container_name: mysql
+    container_name: sobok-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -17,7 +17,7 @@ services:
 
   redis:
     image: redis:7.2
-    container_name: redis
+    container_name: sobok-redis
     restart: always
     ports:
       - "6379:6379"
@@ -26,7 +26,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
+    container_name: sobok-rabbitmq
     restart: always
     ports:
       - "5672:5672"
