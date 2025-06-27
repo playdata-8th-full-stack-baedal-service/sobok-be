@@ -10,6 +10,7 @@ import com.sobok.authservice.common.jwt.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,9 @@ public class AuthService {
     private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, String> redisStringTemplate;
 
-
+    private static final String RECOVERY_KEY = "recovery:";
 
     public AuthLoginResDto login(AuthLoginReqDto reqDto) throws EntityNotFoundException, IOException {
         // 회원 정보 가져오기
@@ -37,6 +39,7 @@ public class AuthService {
             if (auth.getRole() == Role.USER) {
                 // TODO : Redis에 올라가있는지 확인
                 // 복구 가능하다면 recoveryTarget = true로 넘겨주자
+                redisStringTemplate.hasKey(RECOVERY_KEY + auth.getId());
             } else {
                 log.error("비활성화 된 회원의 로그인 시도 발생");
                 throw new EntityNotFoundException("존재하지 않는 아이디입니다.");
