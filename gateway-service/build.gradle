@@ -25,6 +25,9 @@ dependencies {
     // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
+    // Config
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
