@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/sms")
 @Slf4j
 @RequiredArgsConstructor
 public class SmsController {
 
     private final SmsService smsService;
 
-    @PostMapping("/sms/send")
+    @PostMapping("/send")
     public ResponseEntity<?> SendSMS(@RequestBody String phoneNumber){
         log.info("문자 전송 시작");
         smsService.SendSms(phoneNumber);

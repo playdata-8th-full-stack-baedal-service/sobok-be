@@ -4,11 +4,9 @@ package com.sobok.authservice.auth.controller;
 import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.service.AuthService;
-import com.sobok.authservice.auth.service.UserService;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.auth.dto.AuthReqDto;
 import com.sobok.authservice.auth.dto.AuthResDto;
-import com.sobok.authservice.auth.dto.ResponseDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -35,15 +33,7 @@ public class AuthController {
         AuthResDto responseData =
                 new AuthResDto(savedUser.getId(), savedUser.getLoginId(), authReqDto.getNickname());
 
-
-        ResponseDto<AuthResDto> response = new ResponseDto<>(
-                true,
-                200,
-                "사용자 회원가입이 완료되었습니다.",
-                responseData
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ApiResponse.ok(responseData, "사용자 회원가입이 완료되었습니다."), HttpStatus.OK);
 
     }
   

@@ -1,7 +1,6 @@
 package com.sobok.authservice.auth.dto;
 
 
-import com.sobok.authservice.auth.entity.Role;
 import lombok.*;
 
 @Getter
