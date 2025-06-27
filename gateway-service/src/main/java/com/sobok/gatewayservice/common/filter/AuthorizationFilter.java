@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -35,7 +36,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
 
     // 허용 Path 설정
     private static final List<String> whiteList = List.of(
-            "/actuator"
+            "/actuator", "/auth/sms/send", "/auth/test"
     );
 
     /**
@@ -47,9 +48,25 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
 
-            // WhiteList에 등록된 Path는 검사하지 않고 통과
-            String path = request.getURI().getPath();
-            if(whiteList.stream().anyMatch(path::startsWith)) {
+
+//            // WhiteList에 등록된 Path는 검사하지 않고 통과
+//            String path = request.getURI().getPath();
+//            if(whiteList.stream().anyMatch(path::startsWith)) {
+//                return chain.filter(exchange);
+//            }
+
+            String path = exchange.getRequest().getURI().getPath();
+            log.info("요청 path: {}", path); // 추가
+            AntPathMatcher antPathMatcher = new AntPathMatcher();
+
+            // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
+            boolean isAllowed
+                    = whiteList.stream()
+                    .anyMatch(url -> antPathMatcher.match(url, path));
+            log.info("isAllowed:{}", isAllowed);
+
+            if (isAllowed || path.startsWith("/actuator")) {
+                log.info("gateway filter 통과!");
                 return chain.filter(exchange);
             }
 
@@ -102,7 +119,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
                     .getExpiration();
 
             // 토큰 유효하다면 통과
-            return expiration.before(new Date());
+            return expiration.after(new Date());
         } catch (Exception e) {
             log.error("토큰 파싱 과정에서 오류가 발생했습니다.");
             return false;
