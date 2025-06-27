@@ -10,7 +10,7 @@ public class ApiResponse<T> {
     private final boolean success;
     private final T data;
     private final String message;
-    private final int code;
+    private final int status;
 
     // ------------------------------------------ 성공 ---------------------------------------------------------
     public static <T> ApiResponse<T> ok(T data) {
@@ -25,7 +25,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .success(true)
                 .data(data)
-                .code(status.value())
+                .status(status.value())
                 .message("성공적으로 응답이 전송되었습니다.")
                 .build();
     }
@@ -44,7 +44,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .success(false)
                 .message("응답에 실패하였습니다.")
-                .code(status.value())
+                .status(status.value())
                 .build();
     }
 
@@ -52,7 +52,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .success(false)
                 .message(message)
-                .code(status.value())
+                .status(status.value())
                 .build();
     }
 
@@ -60,7 +60,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .success(false)
                 .message(message)
-                .code(status)
+                .status(status)
                 .build();
     }
 }
