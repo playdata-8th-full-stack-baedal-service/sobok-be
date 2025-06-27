@@ -3,7 +3,9 @@ package com.sobok.gatewayservice.common.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sobok.gatewayservice.common.response.ApiResponse;
 
+import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -15,12 +17,16 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 
 @Component
 @Slf4j
 public class AuthorizationFilter extends AbstractGatewayFilterFactory<AuthorizationFilter.Config> {
     private final ObjectMapper objectMapper;
+
+    @Value("${jwt.secretKey}")
+    private String accessTokenSecretKey;
 
     public AuthorizationFilter(ObjectMapper objectMapper) {
         super(Config.class);
@@ -66,8 +72,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             String token = raw.substring(7);
 
             // 토큰이 유효하지 않다면
-            boolean tokenValid = validateToken(token);
-            if(!tokenValid) {
+            if(!validateToken(token)) {
                 log.warn("토큰이 유효하지 않습니다.");
                 return onError(response);
             }
@@ -87,10 +92,21 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
      * @return
      */
     private boolean validateToken(String token) {
+        try {
+            // 만료 기간 가져오기
+            Date expiration = Jwts.parserBuilder()
+                    .setSigningKey(accessTokenSecretKey.getBytes(StandardCharsets.UTF_8))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
 
-
-        // 토큰이 유효하다면
-        return true;
+            // 토큰 유효하다면 통과
+            return expiration.before(new Date());
+        } catch (Exception e) {
+            log.error("토큰 파싱 과정에서 오류가 발생했습니다.");
+            return false;
+        }
     }
 
     /**
