@@ -1,5 +1,7 @@
 package com.sobok.authservice.auth.entity;
 
+import com.sobok.authservice.common.entity.BaseTimeEntity;
+import com.sobok.authservice.common.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,8 +19,7 @@ import java.time.LocalDateTime;
 @Entity
 @Builder
 @Table(name = "auth")
-@EntityListeners(AuditingEntityListener.class)
-public class Auth {
+public class Auth extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,12 +39,4 @@ public class Auth {
     @Builder.Default
     @Column(nullable = false)
     private String active = "Y";
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

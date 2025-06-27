@@ -133,7 +133,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     .getBody()
                     .getExpiration();
 
-            return expiration.before(new Date());
+            return expiration.after(new Date());
         } catch (Exception e) {
             log.error("토큰 검증 과정에서 문제가 발생했습니다.");
             return false;
