@@ -1,7 +1,7 @@
 package com.sobok.gatewayservice.common.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sobok.gatewayservice.common.response.ApiResponse;
+import com.sobok.gatewayservice.common.dto.ApiResponse;
 
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
@@ -47,13 +47,6 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
-
-
-//            // WhiteList에 등록된 Path는 검사하지 않고 통과
-//            String path = request.getURI().getPath();
-//            if(whiteList.stream().anyMatch(path::startsWith)) {
-//                return chain.filter(exchange);
-//            }
 
             String path = exchange.getRequest().getURI().getPath();
             log.info("요청 path: {}", path); // 추가

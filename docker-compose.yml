@@ -9,7 +9,7 @@ services:
       MYSQL_USER: sobok
       MYSQL_PASSWORD: sobok
     ports:
-      - "3306:3306"
+      - "3316:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -20,7 +20,7 @@ services:
     container_name: sobok-redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6389:6379"
     networks:
       - backend
 
@@ -29,8 +29,8 @@ services:
     container_name: sobok-rabbitmq
     restart: always
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5682:5672"
+      - "15682:15672"
     networks:
       - backend
 

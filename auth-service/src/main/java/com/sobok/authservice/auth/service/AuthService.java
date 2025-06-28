@@ -17,14 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import com.sobok.authservice.auth.dto.AuthReqDto;
-import com.sobok.authservice.auth.entity.Auth;
-import com.sobok.authservice.auth.entity.Role;
-import com.sobok.authservice.auth.repository.AuthRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import com.sobok.authservice.auth.dto.request.AuthReqDto;
 
 import java.util.Optional;
 

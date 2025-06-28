@@ -42,7 +42,15 @@ spring:
         - name: AuthorizationFilter
 
       routes:
-        # 라우팅 예시
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth-service/auth/**
+            - Path=/auth-service/sms/**
+          filters:
+            - RewritePath=/auth-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
@@ -51,14 +59,55 @@ spring:
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             - name: AuthorizationFilter
 
-        - id: auth-service
-          uri: lb://AUTH-SERVICE
+        - id: admin-service
+          uri: lb://ADMIN-SERVICE
           predicates:
-            - Path=/auth-service/**
+            - Path=/admin-service/admin/**
           filters:
-            - RewritePath=/auth-service/(?<segment>.*), /$\{segment}
+            - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
             - name: AuthorizationFilter
 
+
+        - id: cook-service
+          uri: lb://COOK-SERVICE
+          predicates:
+            - Path=/cook-service/cook/**
+          filters:
+            - RewritePath=/cook-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+
+
+        - id: delivery-service
+          uri: lb://DELIVERY-SERVICE
+          predicates:
+            - Path=/delivery-service/delivery/**
+          filters:
+            - RewritePath=/delivery-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/payment-service/payment/**
+          filters:
+            - RewritePath=/payment-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+
+        - id: post-service
+          uri: lb://POST-SERVICE
+          predicates:
+            - Path=/post-service/post/**
+          filters:
+            - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+
+        - id: shop-service
+          uri: lb://SHOP-SERVICE
+          predicates:
+            - Path=/shop-service/shop/**
+          filters:
+            - RewritePath=/shop-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
 
 eureka:
   client:

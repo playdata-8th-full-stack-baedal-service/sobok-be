@@ -19,6 +19,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -36,66 +37,67 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     List<String> whiteList = List.of(
-            "/auth/signup", "/auth/login", "/auth/test", "/auth/sms/send"
+            "/actuator/**", "/auth/signup", "/auth/login", "/sms/test", "/sms/send"
     );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        for (String path : whiteList) {
-            if(request.getRequestURI().equals(path)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
+        log.info("Auth Service에 요청이 발생했습니다.");
 
-        log.warn("JWT Filter에 돌고 있어요!");
+        // Path 점검
+        String path = request.getRequestURI();
+        AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-        String authHeader = request.getHeader("Authorization");
+        // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
+        boolean isAllowed = whiteList.stream()
+                .anyMatch(url -> antPathMatcher.match(url, path));
 
-        // 토큰이 존재하는 지 확인
-        if (authHeader == null || authHeader.isEmpty() ) {
-            log.warn("Authorization 헤더가 비어있습니다.");
-            onError(response);
+        // 허용 path라면 Filter 동작하지 않고 넘기기
+        if (isAllowed) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        // Bearer 토큰인지 확인
-        if (!authHeader.startsWith("Bearer ")) {
-            log.warn("Authorization 헤더가 Bearer 형식이 아닙니다.");
-            onError(response);
-            return;
-        }
-        String token = authHeader.replace("Bearer ", "");
-
-        // 토큰 유효성 검사
-        if (!validateToken(token)) {
-            onError(response);
-            return;
-        }
-
-        // 토큰에서 사용자 정보 추출
-        Claims claims = getClaims(token);
-        if(claims == null) {
-            onError(response);
-            return;
-        }
-
-        long id;
-        Role role;
+        // 필터 동작
         try {
-            id = Long.parseLong(claims.getSubject());
-            role = Role.from(claims.get("role", String.class));
+            // 토큰이 존재하는 지 확인
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || authHeader.isEmpty()) {
+                log.warn("Authorization 헤더가 비어있습니다.");
+                throw new Exception(); // TODO 추후 Exception에 의미를 전달하는 구조로 변경 가능
+            }
+
+            // Bearer 토큰인지 확인
+            if (!authHeader.startsWith("Bearer ")) {
+                log.warn("Authorization 헤더가 Bearer 형식이 아닙니다.");
+                throw new Exception();
+            }
+
+            // 토큰 유효성 검사
+            String token = authHeader.replace("Bearer ", "");
+            if (!validateToken(token)) {
+                log.warn("토큰이 만료되었습니다.");
+                throw new Exception();
+            }
+
+            // 토큰에서 사용자 정보 추출
+            Claims claims = getClaims(token);
+
+            // 토큰에서 정보 추출
+            long id = Long.parseLong(claims.getSubject());
+            Role role = Role.from(claims.get("role", String.class));
+
+            // @AuthenticationPrinciple, @PreAuthorize("hasRole('ADMIN')") 같은 로직을 사용하기 위한 로직
+            TokenUserInfo tokenUserInfo = TokenUserInfo.builder().id(id).role(role.name()).build();
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(tokenUserInfo, "", authorities);
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
         } catch (Exception e) {
             log.warn("토큰 정보가 유효하지 않습니다.");
             onError(response);
             return;
         }
-
-        // @AuthenticationPrinciple, @PreAuthorize("hasRole('ADMIN')") 같은 로직을 사용하기 위한 로직
-        TokenUserInfo tokenUserInfo = TokenUserInfo.builder().id(id).role(role.name()).build();
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(tokenUserInfo, "", authorities);
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
         // 문제 없다면 진행
         filterChain.doFilter(request, response);
@@ -103,6 +105,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * claim 꺼내기
+     *
      * @param token
      * @return
      */
@@ -115,12 +118,13 @@ public class JwtFilter extends OncePerRequestFilter {
                     .getBody();
         } catch (Exception e) {
             log.error("토큰에서 Claim을 꺼내는 과정에서 오류가 발생했습니다.");
-            return null;
+            throw e;
         }
     }
 
     /**
      * 토큰 유효기간 검증
+     *
      * @param token
      * @return
      */
@@ -136,12 +140,13 @@ public class JwtFilter extends OncePerRequestFilter {
             return expiration.after(new Date());
         } catch (Exception e) {
             log.error("토큰 검증 과정에서 문제가 발생했습니다.");
-            return false;
+            throw e;
         }
     }
 
     /**
      * 인증 통과하지 못하면(토큰에 문제가 있다면) 에러 응답 전송
+     *
      * @param response
      * @throws IOException
      */
