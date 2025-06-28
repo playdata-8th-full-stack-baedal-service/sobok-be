@@ -56,7 +56,7 @@ public class AuthService {
                             .refreshToken("")
                             .build();
                 } else {
-                    log.error("비활성화 된 회원의 로그인 시도 발생");
+                    log.warn("비활성화 사용자 로그인 시도 - ID: {}, 복구 대상 아님", auth.getId());
                     throw new EntityNotFoundException("존재하지 않는 아이디입니다.");
                 }
             } else {
@@ -125,7 +125,7 @@ public class AuthService {
 
     public String reissue(AuthReissueReqDto reqDto) throws EntityNotFoundException, CustomException {
         // redis에 refresh token이 있는 지 확인
-        Boolean hasRefreshToken = redisStringTemplate.hasKey(REFRESH_TOKEN_KEY + reqDto.getId().toString());
+        boolean hasRefreshToken = redisStringTemplate.hasKey(REFRESH_TOKEN_KEY + reqDto.getId().toString());
         if (hasRefreshToken) { // 토큰 검증 시작
             String storedToken = redisStringTemplate.opsForValue().get(REFRESH_TOKEN_KEY + reqDto.getId().toString());
             if (storedToken != null && storedToken.equals(reqDto.getRefreshToken())) {
