@@ -1,9 +1,9 @@
-package com.sobok.shopservice.common.security;
+package com.sobok.postservice.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sobok.shopservice.common.dto.ApiResponse;
-import com.sobok.shopservice.common.dto.TokenUserInfo;
-import com.sobok.shopservice.common.enums.Role;
+import com.sobok.postservice.common.dto.ApiResponse;
+import com.sobok.postservice.common.dto.TokenUserInfo;
+import com.sobok.postservice.common.enums.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
@@ -42,7 +42,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("Shop Service에 요청이 발생했습니다.");
+        log.info("Post Service에 요청이 발생했습니다.");
 
         // Path 점검
         String path = request.getRequestURI();
