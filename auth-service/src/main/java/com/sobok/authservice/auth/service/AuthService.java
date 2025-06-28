@@ -66,7 +66,7 @@ public class AuthService {
         }
 
         // 비밀번호 확인
-        boolean passwordCorrect = passwordEncoder.encode(reqDto.getPassword()).matches(auth.getPassword());
+        boolean passwordCorrect = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
         if(!passwordCorrect) {
             // 비밀번호 다르다면 -> 예외 터뜨리기
             log.error("비밀번호가 일치하지 않습니다.");
@@ -80,9 +80,6 @@ public class AuthService {
             log.error("토큰 생성 과정에서 오류가 발생했습니다.");
             throw new IOException("토큰 생성 과정에서 오류가 발생했습니다.");
         }
-
-        // refresh token redis 저장
-        redisStringTemplate.opsForValue().set(REFRESH_TOKEN_KEY + auth.getId().toString(), refreshToken);
 
         log.info("로그인 성공 : {}", auth.getId());
 
@@ -126,16 +123,25 @@ public class AuthService {
         log.info("{}번 사용자의 로그아웃 성공", userInfo.getId());
     }
 
-    public String reissue(AuthReissueReqDto reqDto) {
+    public String reissue(AuthReissueReqDto reqDto) throws EntityNotFoundException, CustomException {
         // redis에 refresh token이 있는 지 확인
         Boolean hasRefreshToken = redisStringTemplate.hasKey(REFRESH_TOKEN_KEY + reqDto.getId().toString());
-        if (hasRefreshToken) { // 재발급 가능
-            Auth auth = authRepository.findById(reqDto.getId()).orElseThrow(
-                    () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
-            );
+        if (hasRefreshToken) { // 토큰 검증 시작
+            String storedToken = redisStringTemplate.opsForValue().get(REFRESH_TOKEN_KEY + reqDto.getId().toString());
+            if (storedToken != null && storedToken.equals(reqDto.getRefreshToken())) {
+                // 토큰이 일치한다면
+                Auth auth = authRepository.findById(reqDto.getId()).orElseThrow(
+                        () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
+                );
 
-            log.info("{}번 유저 토큰 재발급", reqDto.getId());
-            return jwtTokenProvider.generateAccessToken(auth);
+                // access token 재발급
+                log.info("{}번 유저 토큰 재발급", reqDto.getId());
+                return jwtTokenProvider.generateAccessToken(auth);
+            } else {
+                // 토큰이 일치하지 않는다면
+                log.warn("refresh 토큰이 일치하지 않습니다.");
+                throw new CustomException("토큰이 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+            }
         } else { // 재발급 불가능
             log.warn("refresh 토큰이 redis에 존재하지 않습니다.");
             throw new CustomException("저장된 토큰을 찾을 수 없습니다. 다시 로그인해주세요.", HttpStatus.NOT_FOUND);

@@ -10,6 +10,8 @@ import com.sobok.authservice.auth.dto.request.AuthReqDto;
 import com.sobok.authservice.auth.dto.response.AuthResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.common.dto.TokenUserInfo;
+import com.sobok.authservice.common.exception.CustomException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 
 @RestController
@@ -36,9 +40,12 @@ public class AuthController {
         return new ResponseEntity<>(ApiResponse.ok(responseData, "사용자 회원가입이 완료되었습니다."), HttpStatus.OK);
 
     }
-  
+
+    /**
+     * 통합 로그인
+     */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthLoginReqDto reqDto) throws Exception {
+    public ResponseEntity<?> login(@RequestBody AuthLoginReqDto reqDto) throws EntityNotFoundException, IOException, CustomException {
         AuthLoginResDto resDto = authService.login(reqDto);
 
         // 복구 대상인지에 따라 다른 메세지 전달
@@ -46,14 +53,20 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, message));
     }
 
+    /**
+     * 통합 로그아웃
+     */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal TokenUserInfo userInfo) {
         authService.logout(userInfo);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(),"로그아웃에 성공하였습니다."));
     }
 
+    /**
+     * 토큰 재발급
+     */
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(@RequestBody AuthReissueReqDto reqDto) {
+    public ResponseEntity<?> reissue(@RequestBody AuthReissueReqDto reqDto) throws EntityNotFoundException, CustomException {
         String accessToken = authService.reissue(reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(accessToken, "토큰이 성공적으로 발급되었습니다."));
     }
