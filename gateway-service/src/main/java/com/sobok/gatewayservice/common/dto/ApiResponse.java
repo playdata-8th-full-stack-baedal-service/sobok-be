@@ -1,4 +1,4 @@
-package com.sobok.gatewayservice.common.response;
+package com.sobok.gatewayservice.common.dto;
 
 import lombok.Builder;
 import lombok.Getter;
