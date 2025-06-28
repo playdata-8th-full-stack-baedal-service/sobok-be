@@ -5,6 +5,7 @@ import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
+import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
 import com.sobok.authservice.common.exception.CustomException;
 import com.sobok.authservice.common.jwt.JwtTokenProvider;
@@ -30,9 +31,10 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisStringTemplate;
 
-    private static final String RECOVERY_KEY = "recovery:";
+    private static final String RECOVERY_KEY = "RECOVERY:";
+    private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
 
-    public AuthLoginResDto login(AuthLoginReqDto reqDto) throws EntityNotFoundException, IOException {
+    public AuthLoginResDto login(AuthLoginReqDto reqDto) throws EntityNotFoundException, IOException, CustomException {
         // 회원 정보 가져오기
         Auth auth = authRepository.findByLoginId(reqDto.getLoginId()).orElseThrow(
                 () -> new EntityNotFoundException("존재하지 않는 아이디입니다.")
@@ -40,10 +42,22 @@ public class AuthService {
 
         // 사용자이면서 활성화 상태가 아니라면 복구 가능한지 Redis 체크
         if (auth.getActive().equals("N")) {
+            // 복구 가능한 역할은 사용자만으로 제한
             if (auth.getRole() == Role.USER) {
-                // TODO : Redis에 올라가있는지 확인
                 // 복구 가능하다면 recoveryTarget = true로 넘겨주자
-                redisStringTemplate.hasKey(RECOVERY_KEY + auth.getId());
+                Boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + auth.getId());
+                if (isRecoveryTarget) {
+                    return AuthLoginResDto.builder()
+                            .id(auth.getId())
+                            .role(auth.getRole().toString())
+                            .recoveryTarget(true)
+                            .accessToken("")
+                            .refreshToken("")
+                            .build();
+                } else {
+                    log.error("비활성화 된 회원의 로그인 시도 발생");
+                    throw new EntityNotFoundException("존재하지 않는 아이디입니다.");
+                }
             } else {
                 log.error("비활성화 된 회원의 로그인 시도 발생");
                 throw new EntityNotFoundException("존재하지 않는 아이디입니다.");
@@ -66,6 +80,9 @@ public class AuthService {
             throw new IOException("토큰 생성 과정에서 오류가 발생했습니다.");
         }
 
+        // refresh token redis 저장
+        redisStringTemplate.opsForValue().set(REFRESH_TOKEN_KEY + auth.getId().toString(), refreshToken);
+
         log.info("로그인 성공 : {}", auth.getId());
 
         return AuthLoginResDto.builder()
@@ -76,6 +93,8 @@ public class AuthService {
                 .recoveryTarget(false)
                 .build();
     }
+
+
   
     public Auth userCreate(AuthReqDto authReqDto) {
         Optional<Auth> findId = authRepository.findByLoginId(authReqDto.getLoginId());
@@ -98,6 +117,12 @@ public class AuthService {
 
         return save;
 
+    }
+
+    public void logout(TokenUserInfo userInfo) {
+        // redis에 있는 refresh token 삭제
+        redisStringTemplate.delete(REFRESH_TOKEN_KEY + userInfo.getId());
+        log.info("{}번 사용자의 로그아웃 성공", userInfo.getId());
     }
 
 //    public void riderCreate(AuthReqDto authReqDto) {
