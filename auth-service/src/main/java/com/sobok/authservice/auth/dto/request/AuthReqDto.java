@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.dto;
+package com.sobok.authservice.auth.dto.request;
 
 
 import lombok.*;

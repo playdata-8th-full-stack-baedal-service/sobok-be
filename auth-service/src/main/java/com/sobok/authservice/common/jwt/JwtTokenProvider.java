@@ -32,8 +32,10 @@ public class JwtTokenProvider {
      */
     public String generateAccessToken(Auth auth) {
         try {
+            // 현재 시간
             Date now = new Date();
-            Date expiryDate = new Date(now.getTime() + expiration * 60 * 1000);
+            // ? 시간 * (60 분 / 1 시간) * (60 초 / 1 분) * (1000 ms / 1 초)
+            Date expiryDate = new Date(now.getTime() + expiration * 60 * 60 * 1000);
 
             return Jwts.builder()
                     .signWith(SignatureAlgorithm.HS256, secretKey.getBytes(StandardCharsets.UTF_8))

@@ -1,5 +1,6 @@
-package com.sobok.authservice.common;
+package com.sobok.authservice.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -10,9 +11,17 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+    @Value("${spring.data.redis.host}")
+    private String host;
+    @Value("${spring.data.redis.port}")
+    private int port;
+
+    /**
+     * Connection 객체 생성
+     */
     @Bean
-    public LettuceConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory();
+    public RedisConnectionFactory redisConnectionFactory() {
+        return new LettuceConnectionFactory(host, port);
     }
 
     /**
@@ -21,9 +30,11 @@ public class RedisConfig {
      */
     @Bean @Primary
     public RedisTemplate<String, String> redisStringTemplate(RedisConnectionFactory redisConnectionFactory) {
+        // 템플릿 생성
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
 
+        // 직렬화 도구 설정
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());
 

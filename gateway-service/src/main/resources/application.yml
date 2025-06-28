@@ -42,7 +42,15 @@ spring:
         - name: AuthorizationFilter
 
       routes:
-        # 라우팅 예시
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth-service/auth/**
+            - Path=/auth-service/sms/**
+          filters:
+            - RewritePath=/auth-service/(?<segment>.*), /$\{segment}
+            - name: AuthorizationFilter
+
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
@@ -50,15 +58,6 @@ spring:
           filters:
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             - name: AuthorizationFilter
-
-        - id: auth-service
-          uri: lb://AUTH-SERVICE
-          predicates:
-            - Path=/auth-service/**
-          filters:
-            - RewritePath=/auth-service/(?<segment>.*), /$\{segment}
-            - name: AuthorizationFilter
-
 
 eureka:
   client:

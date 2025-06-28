@@ -5,18 +5,14 @@ import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.service.AuthService;
 import com.sobok.authservice.common.dto.ApiResponse;
-import com.sobok.authservice.auth.dto.AuthReqDto;
-import com.sobok.authservice.auth.dto.AuthResDto;
+import com.sobok.authservice.auth.dto.request.AuthReqDto;
+import com.sobok.authservice.auth.dto.response.AuthResDto;
 import com.sobok.authservice.auth.entity.Auth;
-import com.sobok.authservice.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-
-import java.io.IOException;
 
 
 @RestController

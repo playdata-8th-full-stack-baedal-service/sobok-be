@@ -2,6 +2,7 @@ package com.sobok.authservice.auth.controller;
 
 
 import com.sobok.authservice.auth.service.SmsService;
+import com.sobok.authservice.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class SmsController {
     public ResponseEntity<?> SendSMS(@RequestBody String phoneNumber){
         log.info("문자 전송 시작");
         smsService.SendSms(phoneNumber);
-        return ResponseEntity.ok("문자를 전송했습니다.");
+        return ResponseEntity.ok(ApiResponse.ok("문자를 전송했습니다."));
     }
 
     @PostMapping("/test")
