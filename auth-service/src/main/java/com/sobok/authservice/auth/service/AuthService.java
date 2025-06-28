@@ -38,7 +38,7 @@ public class AuthService {
     public AuthLoginResDto login(AuthLoginReqDto reqDto) throws EntityNotFoundException, IOException, CustomException {
         // 회원 정보 가져오기
         Auth auth = authRepository.findByLoginId(reqDto.getLoginId()).orElseThrow(
-                () -> new EntityNotFoundException("존재하지 않는 아이디입니다.")
+                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
         );
 
         // 사용자이면서 활성화 상태가 아니라면 복구 가능한지 Redis 체크
