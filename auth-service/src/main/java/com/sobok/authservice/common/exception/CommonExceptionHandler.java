@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
+
 @RestControllerAdvice
 @Slf4j
 public class CommonExceptionHandler {
@@ -20,13 +22,20 @@ public class CommonExceptionHandler {
     public ResponseEntity<?> entityNotFoundHandler(EntityNotFoundException e) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
-        return new ResponseEntity<>(ApiResponse.fail(status, "엔티티를 찾을 수 없습니다."), status);
+        return new ResponseEntity<>(ApiResponse.fail(status, e.getMessage()), status);
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<?> handleIOException(IOException e) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        log.error("예외 발생! 메세지 : {}", e.getMessage());
+        return new ResponseEntity<>(ApiResponse.fail(status, "서버 내부 입출력 과정에서 오류가 발생했습니다."), status);
     }
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<?> customExceptionHandler(CustomException e) {
         HttpStatus status = e.status;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
-        return new ResponseEntity<>(ApiResponse.fail(status, "엔티티를 찾을 수 없습니다."), status);
+        return new ResponseEntity<>(ApiResponse.fail(status, e.getMessage()), status);
     }
 }

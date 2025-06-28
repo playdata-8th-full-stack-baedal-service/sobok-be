@@ -2,6 +2,7 @@ package com.sobok.authservice.auth.controller;
 
 
 import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
+import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.service.AuthService;
 import com.sobok.authservice.common.dto.ApiResponse;
@@ -49,6 +50,12 @@ public class AuthController {
     public ResponseEntity<?> logout(@AuthenticationPrincipal TokenUserInfo userInfo) {
         authService.logout(userInfo);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(),"로그아웃에 성공하였습니다."));
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissue(@RequestBody AuthReissueReqDto reqDto) {
+        String accessToken = authService.reissue(reqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(accessToken, "토큰이 성공적으로 발급되었습니다."));
     }
 
 //    @PostMapping("/rider-signup")

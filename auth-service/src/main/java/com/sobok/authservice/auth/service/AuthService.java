@@ -2,6 +2,7 @@ package com.sobok.authservice.auth.service;
 
 
 import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
+import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
@@ -45,7 +46,7 @@ public class AuthService {
             // 복구 가능한 역할은 사용자만으로 제한
             if (auth.getRole() == Role.USER) {
                 // 복구 가능하다면 recoveryTarget = true로 넘겨주자
-                Boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + auth.getId());
+                Boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + auth.getId().toString());
                 if (isRecoveryTarget) {
                     return AuthLoginResDto.builder()
                             .id(auth.getId())
@@ -121,8 +122,24 @@ public class AuthService {
 
     public void logout(TokenUserInfo userInfo) {
         // redis에 있는 refresh token 삭제
-        redisStringTemplate.delete(REFRESH_TOKEN_KEY + userInfo.getId());
+        redisStringTemplate.delete(REFRESH_TOKEN_KEY + userInfo.getId().toString());
         log.info("{}번 사용자의 로그아웃 성공", userInfo.getId());
+    }
+
+    public String reissue(AuthReissueReqDto reqDto) {
+        // redis에 refresh token이 있는 지 확인
+        Boolean hasRefreshToken = redisStringTemplate.hasKey(REFRESH_TOKEN_KEY + reqDto.getId().toString());
+        if (hasRefreshToken) { // 재발급 가능
+            Auth auth = authRepository.findById(reqDto.getId()).orElseThrow(
+                    () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
+            );
+
+            log.info("{}번 유저 토큰 재발급", reqDto.getId());
+            return jwtTokenProvider.generateAccessToken(auth);
+        } else { // 재발급 불가능
+            log.warn("refresh 토큰이 redis에 존재하지 않습니다.");
+            throw new CustomException("저장된 토큰을 찾을 수 없습니다. 다시 로그인해주세요.", HttpStatus.NOT_FOUND);
+        }
     }
 
 //    public void riderCreate(AuthReqDto authReqDto) {
