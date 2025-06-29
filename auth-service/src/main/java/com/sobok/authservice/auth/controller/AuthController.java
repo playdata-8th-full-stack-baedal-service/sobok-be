@@ -80,6 +80,16 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
     }
 
+    /**
+     * 사용자 복구
+     */
+    @PostMapping("/recover/{id}")
+    public ResponseEntity<?> recover(@PathVariable Long id) throws EntityNotFoundException, CustomException {
+        authService.recover(id);
+        return ResponseEntity.ok().body(ApiResponse.ok(id, id + " 회원이 정상적으로 복구되었습니다."));
+    }
+
+
 //    @PostMapping("/rider-signup")
 //    public ResponseEntity<?> createRider(@RequestBody AuthReqDto authReqDto) {
 //        Auth savedUser = authService.riderCreate(authReqDto);
