@@ -86,7 +86,7 @@ public class AuthController {
     @PostMapping("/recover/{id}")
     public ResponseEntity<?> recover(@PathVariable Long id) throws EntityNotFoundException, CustomException {
         authService.recover(id);
-        return ResponseEntity.ok().body(ApiResponse.ok(id, id + " 회원이 정상적으로 복구되었습니다."));
+        return ResponseEntity.ok().body(ApiResponse.ok(id, "사용자의 계정이 정상적으로 복구되었습니다."));
     }
 
 

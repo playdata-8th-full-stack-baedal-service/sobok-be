@@ -182,7 +182,6 @@ public class AuthService {
      *     2. 사용자의 active 상태를 N으로 변경
      * </pre>
      */
-    @Transactional
     public void delete(TokenUserInfo userInfo) throws EntityNotFoundException {
         // 사용자 정보 획득
         Auth auth = authRepository.findById(userInfo.getId()).orElseThrow(
@@ -200,6 +199,8 @@ public class AuthService {
 
         // DB 저장
         authRepository.save(auth);
+
+        log.info("{}번 사용자를 비활성화했습니다.", userInfo.getId());
     }
 
     /**
@@ -209,7 +210,6 @@ public class AuthService {
      *     2. 있다면 활성화 상태를 Y로 바꾸고 복구용 키 삭제
      * </pre>
      */
-    @Transactional
     public void recover(Long id) throws EntityNotFoundException, CustomException {
         // TODO : 인증 없이 복구하는 로직. 만약 복구하는 데 인증이 필요하다면 이전 단계에서 인증용 API를 먼저 호출하였는지 확인하는 작업이 필요함.
         // 복구 대상인지 확인
@@ -228,9 +228,11 @@ public class AuthService {
 
             // redis에 있는 복구용 key 삭제
             redisStringTemplate.delete(RECOVERY_KEY + id);
+
+            log.warn("{}번 사용자의 복구가 완료되었습니다.", id);
         } else {
             log.warn("{}번 사용자는 복구 대상이 아닙니다.", id);
-            throw new CustomException(id + "번 사용자는 복구 대상이 아닙니다.", HttpStatus.NOT_FOUND);
+            throw new CustomException("복구 대상이 아닌 계정입니다.", HttpStatus.NOT_FOUND);
         }
     }
 
