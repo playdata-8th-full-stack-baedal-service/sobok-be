@@ -71,6 +71,15 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(accessToken, "토큰이 성공적으로 발급되었습니다."));
     }
 
+    /**
+     * 사용자 비활성화
+     */
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo) throws EntityNotFoundException {
+        authService.delete(userInfo);
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
+    }
+
 //    @PostMapping("/rider-signup")
 //    public ResponseEntity<?> createRider(@RequestBody AuthReqDto authReqDto) {
 //        Auth savedUser = authService.riderCreate(authReqDto);

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import com.sobok.authservice.auth.dto.request.AuthReqDto;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Service
@@ -32,6 +33,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisStringTemplate;
 
+    private static final Long RECOVERY_DAY = 15L;
     private static final String RECOVERY_KEY = "RECOVERY:";
     private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
 
@@ -171,6 +173,33 @@ public class AuthService {
             throw new CustomException("저장된 토큰을 찾을 수 없습니다. 다시 로그인해주세요.", HttpStatus.NOT_FOUND);
         }
     }
+
+    /**
+     * <pre>
+     *     # 사용자 비활성화
+     *     1. 사용자의 role이 USER 라면 redis에 복구 대상임을 저장
+     *     2. 사용자의 active 상태를 N으로 변경
+     * </pre>
+     */
+    public void delete(TokenUserInfo userInfo) throws EntityNotFoundException {
+        // 사용자 정보 획득
+        Auth auth = authRepository.findById(userInfo.getId()).orElseThrow(
+                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
+        );
+
+        // 사용자의 role이 USER 라면 redis에 저장
+        if (auth.getRole() == Role.USER) {
+            // 회원 아이디 값으로 redis에 복구 대상임을 알 수 있는 정보 저장, value는 auth의 id 값
+           redisStringTemplate.opsForValue().set(RECOVERY_KEY + auth.getId().toString(), auth.getId().toString(), Duration.ofDays(RECOVERY_DAY));
+        }
+
+        // 활성화 상태 N으로 바꾸기
+        auth.changeActive(false);
+
+        // DB 저장
+        authRepository.save(auth);
+    }
+
 
 //    public void riderCreate(AuthReqDto authReqDto) {
 //        Optional<Auth> findId = authRepository.findByLoginId(authReqDto.getLoginId());
