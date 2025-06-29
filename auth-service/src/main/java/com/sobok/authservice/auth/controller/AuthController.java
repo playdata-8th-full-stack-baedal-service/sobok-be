@@ -45,7 +45,7 @@ public class AuthController {
      * 통합 로그인
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthLoginReqDto reqDto) throws EntityNotFoundException, IOException, CustomException {
+    public ResponseEntity<?> login(@RequestBody AuthLoginReqDto reqDto) throws EntityNotFoundException, CustomException {
         AuthLoginResDto resDto = authService.login(reqDto);
 
         // 복구 대상인지에 따라 다른 메세지 전달

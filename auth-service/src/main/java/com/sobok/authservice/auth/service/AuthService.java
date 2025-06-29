@@ -35,7 +35,16 @@ public class AuthService {
     private static final String RECOVERY_KEY = "RECOVERY:";
     private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
 
-    public AuthLoginResDto login(AuthLoginReqDto reqDto) throws EntityNotFoundException, IOException, CustomException {
+    /**
+     * <pre>
+     *  # 로그인  처리
+     *  1. 로그인 아이디를 통해 회원 정보 획득
+     *  2. 복구 가능 대상인지 확인 (Active 상태 확인 포함)
+     *  3. 비밀번호 확인
+     *  4. 토큰 발급
+     * </pre>
+     */
+    public AuthLoginResDto login(AuthLoginReqDto reqDto) throws EntityNotFoundException, CustomException {
         // 회원 정보 가져오기
         Auth auth = authRepository.findByLoginId(reqDto.getLoginId()).orElseThrow(
                 () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
@@ -60,7 +69,7 @@ public class AuthService {
                     throw new EntityNotFoundException("존재하지 않는 아이디입니다.");
                 }
             } else {
-                log.error("비활성화 된 회원의 로그인 시도 발생");
+                log.error("비활성화된 계정의 로그인 시도 발생");
                 throw new EntityNotFoundException("존재하지 않는 아이디입니다.");
             }
         }
@@ -76,10 +85,9 @@ public class AuthService {
         // 토큰 발급
         String accessToken = jwtTokenProvider.generateAccessToken(auth);
         String refreshToken = jwtTokenProvider.generateRefreshToken(auth);
-        if(accessToken.isBlank() || refreshToken.isBlank()) {
-            log.error("토큰 생성 과정에서 오류가 발생했습니다.");
-            throw new IOException("토큰 생성 과정에서 오류가 발생했습니다.");
-        }
+
+        // 토큰 저장
+        jwtTokenProvider.saveRefreshToken(auth, refreshToken);
 
         log.info("로그인 성공 : {}", auth.getId());
 
@@ -117,19 +125,35 @@ public class AuthService {
 
     }
 
+    /**
+     * <pre>
+     *     # 로그아웃
+     *     - redis 내에 있는 refresh token 삭제
+     * </pre>
+     * @param userInfo
+     */
     public void logout(TokenUserInfo userInfo) {
         // redis에 있는 refresh token 삭제
         redisStringTemplate.delete(REFRESH_TOKEN_KEY + userInfo.getId().toString());
         log.info("{}번 사용자의 로그아웃 성공", userInfo.getId());
     }
 
+    /**
+     * <pre>
+     *     # 토큰 재발급
+     *     1. redis에 refresh 토큰이 있는 지 확인
+     *     2. 있다면 토큰이 일치하는 지 확인
+     *     3. 일치하면 access 토큰 재발급
+     * </pre>
+     */
     public String reissue(AuthReissueReqDto reqDto) throws EntityNotFoundException, CustomException {
         // redis에 refresh token이 있는 지 확인
         boolean hasRefreshToken = redisStringTemplate.hasKey(REFRESH_TOKEN_KEY + reqDto.getId().toString());
-        if (hasRefreshToken) { // 토큰 검증 시작
+        if (hasRefreshToken) {
+            // 토큰 검증 시작 - 저장된 token 꺼내기
             String storedToken = redisStringTemplate.opsForValue().get(REFRESH_TOKEN_KEY + reqDto.getId().toString());
             if (storedToken != null && storedToken.equals(reqDto.getRefreshToken())) {
-                // 토큰이 일치한다면
+                // 토큰이 일치한다면 auth 정보 획득
                 Auth auth = authRepository.findById(reqDto.getId()).orElseThrow(
                         () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
                 );
