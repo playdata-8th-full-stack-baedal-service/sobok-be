@@ -6,13 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResDto {
+@Builder
+public class AuthShopResDto {
 
     private Long id;
-
-    private String nickname;
-
+    private String shopName;
 }
