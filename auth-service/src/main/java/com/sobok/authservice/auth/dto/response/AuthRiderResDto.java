@@ -6,13 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Builder
 @AllArgsConstructor
+@Builder
 @NoArgsConstructor
-public class AuthResDto {
+public class AuthRiderResDto {
 
     private Long id;
 
-    private String nickname;
-
+    private String name;
 }
