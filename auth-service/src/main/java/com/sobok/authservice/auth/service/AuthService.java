@@ -1,15 +1,13 @@
 package com.sobok.authservice.auth.service;
 
 
-import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
-import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
-import com.sobok.authservice.auth.dto.request.AuthRiderReqDto;
-import com.sobok.authservice.auth.dto.request.AuthShopReqDto;
+import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.dto.response.AuthResDto;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
 import com.sobok.authservice.auth.dto.response.AuthShopResDto;
 import com.sobok.authservice.auth.entity.Auth;
+import com.sobok.authservice.auth.feign.UserFeignClient;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
@@ -20,16 +18,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-import com.sobok.authservice.auth.dto.request.AuthReqDto;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.Optional;
+
+import static com.sobok.authservice.common.util.Constants.*;
 
 @Service
 @Slf4j
@@ -39,10 +40,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisStringTemplate;
-
-    private static final Long RECOVERY_DAY = 15L;
-    private static final String RECOVERY_KEY = "RECOVERY:";
-    private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
+    private final UserFeignClient userFeignClient;
 
     /**
      * <pre>
@@ -109,6 +107,7 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
     public AuthResDto userCreate(AuthReqDto authReqDto) {
         // 회원 아이디 가져오기
         Optional<Auth> findByLoginId = authRepository.findByLoginId(authReqDto.getLoginId());
@@ -126,6 +125,29 @@ public class AuthService {
                 .build();
 
         Auth saved = authRepository.save(userEntity); // DB에 저장
+
+
+        // 사용자 회원가입에 필요한 정보 전달 객체 생성
+        UserSignupReqDto messageDto = UserSignupReqDto.builder()
+                .authId(saved.getId())
+                .nickname(authReqDto.getNickname())
+                .email(authReqDto.getEmail())
+                .phone(authReqDto.getPhone())
+                .photo(authReqDto.getPhoto())
+                .roadFull(authReqDto.getRoadFull())
+                .addrDetail(authReqDto.getAddrDetail())
+                .build();
+
+        // 비동기로 user service에서 회원가입 진행
+//        rabbitTemplate.convertAndSend(AUTH_EXCHANGE, USER_SIGNUP_ROUTING_KEY, messageDto);
+
+
+        // feign으로 user한테 저장하라고 보내기
+        ResponseEntity<Object> response = userFeignClient.userSignup(messageDto);
+        if(response.getStatusCode().is4xxClientError() ||  response.getStatusCode().is5xxServerError()) {
+            log.error("사용자 정보 저장 실패");
+            throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         log.info("회원가입 성공: {}", saved);
 
