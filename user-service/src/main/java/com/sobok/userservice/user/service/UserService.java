@@ -15,6 +15,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserAddressService userAddressService;
 
+    /**
+     * <pre>
+     *     # 사용자 회원가입
+     *     1. 사용자 객체 생성 후 저장
+     *     2. 주소 값이 전달되었다면 사용자 주소도 저장
+     * </pre>
+     *
+     */
     public void signup(UserSignupReqDto reqDto) {
         log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
 
@@ -31,6 +39,7 @@ public class UserService {
         // user DB에 저장
         userRepository.save(user);
 
+        // 사용자 주소 저장
         if (reqDto.getRoadFull() != null) {
             UserAddressReqDto addrDto = UserAddressReqDto.builder()
                     .roadFull(reqDto.getRoadFull())
@@ -38,6 +47,7 @@ public class UserService {
                     .build();
 
             userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+            log.info("성공적으로 사용자의 주소를 저장했습니다.");
         }
 
         log.info("성공적으로 사용자 회원가입이 완료되었습니다.");

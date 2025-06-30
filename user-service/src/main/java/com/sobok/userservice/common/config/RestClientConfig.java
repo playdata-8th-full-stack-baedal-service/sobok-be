@@ -11,7 +11,8 @@ public class RestClientConfig {
     private final RestClient.Builder restClientBuilder;
 
     @Bean
-    public RestClient restClient() {
+    public RestClient kakaoRestClient() {
+        // 카카오 API 호출을 위한 REST Client 객체 생성
         return restClientBuilder
                 .baseUrl("https://dapi.kakao.com")
                 .build();
