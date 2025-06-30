@@ -18,6 +18,7 @@ import com.sobok.authservice.common.jwt.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,6 +42,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisStringTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     /**
      * <pre>
@@ -122,6 +124,9 @@ public class AuthService {
                 .build();
 
         Auth saved = authRepository.save(userEntity);
+
+        // 비동기로 user service에서 회원가입 진행
+        rabbitTemplate.convertAndSend(AUTH_EXCHANGE, USER_SIGNUP_ROUTING_KEY, authReqDto);
 
         log.info("회원가입 성공: {}", saved);
 

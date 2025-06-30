@@ -55,6 +55,10 @@ dependencies {
 
     // coolSMS
 	implementation 'net.nurigo:sdk:4.3.0'
+
+    // RabbitMQ
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    testImplementation 'org.springframework.amqp:spring-rabbit-test'
 }
 dependencyManagement {
     imports {
