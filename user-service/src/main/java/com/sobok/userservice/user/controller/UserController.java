@@ -31,4 +31,6 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "성공적으로 주소가 변경되었습니다."));
     }
 
+    // TODO : 이메일, 사진 추가 변경 가능해야 함.
+
 }
