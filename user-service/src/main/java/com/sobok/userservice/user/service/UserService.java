@@ -8,6 +8,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import com.sobok.userservice.common.exception.CustomException;
+import com.sobok.userservice.user.dto.response.UserResDto;
+import com.sobok.userservice.user.entity.User;
+import org.springframework.http.HttpStatus;
+
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -15,6 +22,24 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserAddressService userAddressService;
 
+  public UserResDto findByPhoneNumber(String phoneNumber) {
+        Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
+        if (byPhone.isPresent()) {
+            User user = byPhone.get();
+            log.info("전화번호로 얻어온 auth의 정보: {}", byPhone.toString());
+            return UserResDto.builder()
+                    .id(user.getId())
+                    .authId(user.getAuthId())
+                    .nickname(user.getNickname())
+                    .photo(user.getPhoto())
+                    .email(user.getEmail())
+                    .build();
+
+        }else {
+            throw new CustomException("해당 번호로 가입하신 정보가 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+  }
+  
     /**
      * <pre>
      *     # 사용자 회원가입
@@ -51,5 +76,6 @@ public class UserService {
         }
 
         log.info("성공적으로 사용자 회원가입이 완료되었습니다.");
+
     }
 }

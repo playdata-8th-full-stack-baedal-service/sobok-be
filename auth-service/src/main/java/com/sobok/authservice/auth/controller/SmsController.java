@@ -4,6 +4,7 @@ package com.sobok.authservice.auth.controller;
 import com.sobok.authservice.auth.dto.request.VerificationReqDto;
 import com.sobok.authservice.auth.service.SmsService;
 import com.sobok.authservice.common.dto.ApiResponse;
+import com.sobok.authservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,12 +29,6 @@ public class SmsController {
         return ResponseEntity.ok(ApiResponse.ok("문자를 전송했습니다."));
     }
 
-    @PostMapping("/test")
-    public ResponseEntity<?> test() {
-        log.info("테스트용");
-        return ResponseEntity.ok("test용.");
-    }
-
     @PostMapping("/verify")
     public ResponseEntity<?> verifyCode(@RequestBody VerificationReqDto request) {
         log.info("인증번호 검증 요청 phoneNumber: {}, inputCode: {}", request.getPhoneNumber(), request.getInputCode());
@@ -43,11 +38,8 @@ public class SmsController {
         if (isValid) {
             return ResponseEntity.ok(ApiResponse.ok("인증 성공"));
         } else {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail(401, "인증번호가 일치하지 않습니다."));
+            throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
-
     }
 
 
