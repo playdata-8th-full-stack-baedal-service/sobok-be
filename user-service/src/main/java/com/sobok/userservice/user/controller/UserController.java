@@ -1,7 +1,9 @@
 package com.sobok.userservice.user.controller;
 
 
+import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.common.dto.TokenUserInfo;
+import com.sobok.userservice.user.dto.request.UserAddressEditReqDto;
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
 import com.sobok.userservice.user.service.UserAddressService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,13 @@ public class UserController {
     @PostMapping("/addAddress")
     public ResponseEntity<?> addAddress(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserAddressReqDto reqDto) {
         userAddressService.addAddress(userInfo.getId(), reqDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "성공적으로 주소가 저장되었습니다."));
+    }
+
+    @PatchMapping("/editAddress")
+    public ResponseEntity<?> editAddress(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserAddressEditReqDto reqDto) {
+        userAddressService.editAddress(userInfo.getId(), reqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "성공적으로 주소가 변경되었습니다."));
     }
 
 }

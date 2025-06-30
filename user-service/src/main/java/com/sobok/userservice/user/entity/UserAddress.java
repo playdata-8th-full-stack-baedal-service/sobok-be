@@ -1,5 +1,7 @@
 package com.sobok.userservice.user.entity;
 
+import com.sobok.userservice.user.dto.request.UserAddressReqDto;
+import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,4 +33,15 @@ public class UserAddress {
 
     @Column(nullable = false)
     private Double longitude;
+
+    public void editAddress(UserAddressReqDto addressDto, UserLocationResDto locationDto) {
+        this.roadFull = addressDto.getRoadFull();
+        this.addrDetail = addressDto.getAddrDetail();
+        this.latitude = locationDto.getLatitude();
+        this.longitude = locationDto.getLongitude();
+    }
+
+    public void editDetail(String addrDetail) {
+        this.addrDetail = addrDetail;
+    }
 }
