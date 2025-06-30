@@ -1,6 +1,5 @@
 package com.sobok.authservice.auth.dto.request;
 
-
 import lombok.*;
 
 @Getter
@@ -9,15 +8,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuthReqDto {
+public class AuthRiderReqDto {
 
     private String loginId;
     private String password;
-    private String nickname;
+    private String name;
     private String phone;
-    private String email;
-    private String photo;
-//    private String roadFull;
-//    private String addrDetail;
-
+    private String permissionNumber;
 }
