@@ -38,6 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     List<String> whiteList = List.of(
             "/actuator/**", "/auth/signup", "/auth/login", "/auth/reissue", "/sms/send", "/auth/recover/**", "/sms/verify"
+            , "/auth/findId", "/auth/reset-password"
     );
 
     @Override

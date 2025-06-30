@@ -53,6 +53,9 @@ dependencies {
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    // FeignClient
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
     // coolSMS
 	implementation 'net.nurigo:sdk:4.3.0'
 }
