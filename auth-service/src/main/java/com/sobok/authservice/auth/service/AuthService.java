@@ -3,7 +3,12 @@ package com.sobok.authservice.auth.service;
 
 import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
 import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
+import com.sobok.authservice.auth.dto.request.AuthRiderReqDto;
+import com.sobok.authservice.auth.dto.request.AuthShopReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
+import com.sobok.authservice.auth.dto.response.AuthResDto;
+import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
+import com.sobok.authservice.auth.dto.response.AuthShopResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.TokenUserInfo;
@@ -19,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+
 import com.sobok.authservice.auth.dto.request.AuthReqDto;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,28 +109,28 @@ public class AuthService {
                 .build();
     }
 
+    public AuthResDto userCreate(AuthReqDto authReqDto) {
+        Optional<Auth> findByLoginId = authRepository.findByLoginId(authReqDto.getLoginId());
 
-  
-    public Auth userCreate(AuthReqDto authReqDto) {
-        Optional<Auth> findId = authRepository.findByLoginId(authReqDto.getLoginId());
-
-//        if (findId.isPresent()) { // 아이디 중복 체크
-//            // 예외처리
-//        }
+        if (findByLoginId.isPresent()) {
+            throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
+        }
 
         Auth userEntity = Auth.builder()
                 .loginId(authReqDto.getLoginId())
-//                .password(passwordEncoder.encode(authReqDto.getPassword()))
-                .password(authReqDto.getPassword())
-                .role(Role.valueOf(authReqDto.getRole().toUpperCase()))
+                .password(passwordEncoder.encode(authReqDto.getPassword()))
+                .role(Role.USER)
                 .active("Y")
                 .build();
 
-        Auth save = authRepository.save(userEntity);
+        Auth saved = authRepository.save(userEntity);
 
-        log.info("User created");
+        log.info("회원가입 성공: {}", saved);
 
-        return save;
+        return AuthResDto.builder()
+                .id(saved.getId())
+                .nickname(authReqDto.getNickname())
+                .build();
 
     }
 
@@ -243,4 +249,52 @@ public class AuthService {
 //        Auth.builder()
 //    }
 
+    public AuthRiderResDto riderCreate(AuthRiderReqDto authRiderReqDto) {
+        Optional<Auth> findByLoginId = authRepository.findByLoginId(authRiderReqDto.getLoginId());
+
+        if (findByLoginId.isPresent()) {
+            throw new CustomException("이미 존재하는 아이디", HttpStatus.BAD_REQUEST);
+        }
+
+        Auth riderEntity = Auth.builder()
+                .loginId(authRiderReqDto.getLoginId())
+                .password(passwordEncoder.encode(authRiderReqDto.getPassword()))
+                .role(Role.RIDER)
+                .active("N") // 라이더 기본값 N
+                .build();
+
+        Auth saved = authRepository.save(riderEntity);
+
+
+        log.info("라이더 회원가입 완료: {}", saved);
+
+        return AuthRiderResDto.builder()
+                .id(saved.getId())
+                .name(authRiderReqDto.getName())
+                .build();
+    }
+
+    public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto) {
+        Optional<Auth> findByLoginId = authRepository.findByLoginId(authShopReqDto.getLoginId());
+
+        if (findByLoginId.isPresent()) {
+            throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
+        }
+        Auth shopEntity = Auth.builder()
+                .loginId(authShopReqDto.getLoginId())
+                .password(passwordEncoder.encode(authShopReqDto.getPassword()))
+                .role(Role.HUB)
+                .active("Y")
+                .build();
+
+        Auth saved = authRepository.save(shopEntity);
+
+        log.info("가게 회원가입 완료: {}", saved);
+
+        return AuthShopResDto.builder()
+                .id(saved.getId())
+                .shopName(authShopReqDto.getShopName())
+                .build();
+
+    }
 }
