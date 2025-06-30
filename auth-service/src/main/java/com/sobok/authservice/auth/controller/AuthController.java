@@ -1,17 +1,11 @@
 package com.sobok.authservice.auth.controller;
 
 
-import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
-import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
-import com.sobok.authservice.auth.dto.request.AuthRiderReqDto;
-import com.sobok.authservice.auth.dto.request.AuthShopReqDto;
-import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
-import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
-import com.sobok.authservice.auth.dto.response.AuthShopResDto;
+import com.sobok.authservice.auth.client.UserServiceClient;
+import com.sobok.authservice.auth.dto.request.*;
+import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.service.AuthService;
 import com.sobok.authservice.common.dto.ApiResponse;
-import com.sobok.authservice.auth.dto.request.AuthReqDto;
-import com.sobok.authservice.auth.dto.response.AuthResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.exception.CustomException;
@@ -32,9 +26,14 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
+
     private final AuthService authService;
 
-    @PostMapping("/user-signup")
+    // feign client
+    private final UserServiceClient userServiceClient;
+
+
+    @PostMapping("/signup")
     public ResponseEntity<?> createAuth(@RequestBody AuthReqDto authReqDto) {
         AuthResDto userResDto = authService.userCreate(authReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userResDto, "회원가입 성공"));
@@ -101,4 +100,28 @@ public class AuthController {
         AuthShopResDto shopResDto = authService.shopCreate(authShopReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(shopResDto, "가게 회원가입 성공"));
     }
+
+    /**
+     * 통합 아이디 찾기
+     */
+    @GetMapping("/findId")
+    public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {
+        AuthFindIdResDto authFindIdResDto = authService.userFindId(authFindReqDto);
+
+        return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
+    }
+
+    /**
+     * 통합 비밀번호 찾기
+     */
+    @GetMapping("/reset-password")
+    public ResponseEntity<?> getFindUserPassword(@RequestBody AuthFindIdReqDto authFindReqDto) {
+        // 아직 구현 x
+        AuthFindIdResDto authFindIdResDto = authService.userFindId(authFindReqDto);
+
+        return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 비밀번호 재설정 성공"));
+    }
+
+
+
 }

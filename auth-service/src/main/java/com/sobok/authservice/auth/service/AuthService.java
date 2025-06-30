@@ -1,14 +1,9 @@
 package com.sobok.authservice.auth.service;
 
 
-import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
-import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
-import com.sobok.authservice.auth.dto.request.AuthRiderReqDto;
-import com.sobok.authservice.auth.dto.request.AuthShopReqDto;
-import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
-import com.sobok.authservice.auth.dto.response.AuthResDto;
-import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
-import com.sobok.authservice.auth.dto.response.AuthShopResDto;
+import com.sobok.authservice.auth.client.UserServiceClient;
+import com.sobok.authservice.auth.dto.request.*;
+import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.TokenUserInfo;
@@ -23,11 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
-import com.sobok.authservice.auth.dto.request.AuthReqDto;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.util.Optional;
 
@@ -39,6 +29,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisStringTemplate;
+    private final UserServiceClient userServiceClient;
+
 
     private static final Long RECOVERY_DAY = 15L;
     private static final String RECOVERY_KEY = "RECOVERY:";
@@ -85,7 +77,7 @@ public class AuthService {
 
         // 비밀번호 확인
         boolean passwordCorrect = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
-        if(!passwordCorrect) {
+        if (!passwordCorrect) {
             // 비밀번호 다르다면 -> 예외 터뜨리기
             log.error("비밀번호가 일치하지 않습니다.");
             throw new CustomException("비밀번호가 틀렸습니다.", HttpStatus.FORBIDDEN);
@@ -139,6 +131,7 @@ public class AuthService {
      *     # 로그아웃
      *     - redis 내에 있는 refresh token 삭제
      * </pre>
+     *
      * @param userInfo
      */
     public void logout(TokenUserInfo userInfo) {
@@ -197,7 +190,7 @@ public class AuthService {
         // 사용자의 role이 USER 라면 redis에 저장
         if (auth.getRole() == Role.USER) {
             // 회원 아이디 값으로 redis에 복구 대상임을 알 수 있는 정보 저장, value는 auth의 id 값
-           redisStringTemplate.opsForValue().set(RECOVERY_KEY + auth.getId().toString(), auth.getId().toString(), Duration.ofDays(RECOVERY_DAY));
+            redisStringTemplate.opsForValue().set(RECOVERY_KEY + auth.getId().toString(), auth.getId().toString(), Duration.ofDays(RECOVERY_DAY));
         }
 
         // 활성화 상태 N으로 바꾸기
@@ -295,6 +288,27 @@ public class AuthService {
                 .id(saved.getId())
                 .shopName(authShopReqDto.getShopName())
                 .build();
+
+    }
+
+
+    /**
+     * <pre>
+     *     # 사용자 Id 찾기
+     *     1. 사용자의 전화번호로 user 정보 조회
+     * </pre>
+     *
+     * @return
+     */
+    public AuthFindIdResDto userFindId(AuthFindIdReqDto authFindIdReqDto) {
+
+        UserResDto byPhone = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
+
+        log.info("user-service에서 받아온 user 정보: {}", byPhone);
+
+        Optional<Auth> authById = authRepository.findById(byPhone.getAuthId());
+
+        return AuthFindIdResDto.builder().loginId(authById.get().getLoginId()).build();
 
     }
 }
