@@ -81,7 +81,7 @@ spring:
         - id: delivery-service
           uri: lb://DELIVERY-SERVICE
           predicates:
-            - Path=/delivery-service/delivery/**
+            - Path=/delivery-service/**
           filters:
             - RewritePath=/delivery-service/(?<segment>.*), /$\{segment}
             - name: AuthorizationFilter
