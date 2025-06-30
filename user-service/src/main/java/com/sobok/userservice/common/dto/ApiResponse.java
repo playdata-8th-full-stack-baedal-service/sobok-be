@@ -16,6 +16,7 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> ok(T data) {
         return ApiResponse.<T>builder()
                 .success(true)
+                .status(HttpStatus.OK.value())
                 .data(data)
                 .message("성공적으로 응답이 전송되었습니다.")
                 .build();
@@ -35,6 +36,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .success(true)
                 .data(data)
+                .status(HttpStatus.OK.value())
                 .message(message)
                 .build();
     }
