@@ -39,4 +39,12 @@ public class Auth extends BaseTimeEntity {
     @Builder.Default
     @Column(nullable = false)
     private String active = "Y";
+
+    public void changeActive() {
+        this.active = this.active.equals("Y") ? "N" : "Y";
+    }
+
+    public void changeActive(boolean newActive) {
+        this.active = newActive ? "Y" : "N";
+    }
 }
