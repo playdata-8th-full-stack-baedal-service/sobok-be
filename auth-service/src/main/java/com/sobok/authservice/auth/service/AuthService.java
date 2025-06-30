@@ -1,10 +1,7 @@
 package com.sobok.authservice.auth.service;
 
 
-import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
-import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
-import com.sobok.authservice.auth.dto.request.AuthRiderReqDto;
-import com.sobok.authservice.auth.dto.request.AuthShopReqDto;
+import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.dto.response.AuthResDto;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
@@ -26,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-import com.sobok.authservice.auth.dto.request.AuthReqDto;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -125,8 +121,18 @@ public class AuthService {
 
         Auth saved = authRepository.save(userEntity);
 
+
+        // 사용자 회원가입에 필요한 정보 전달 객체 생성
+        UserSignupReqDto messageDto = UserSignupReqDto.builder()
+                .authId(saved.getId())
+                .nickname(authReqDto.getNickname())
+                .email(authReqDto.getEmail())
+                .phone(authReqDto.getPhone())
+                .photo(authReqDto.getPhoto())
+                .build();
+
         // 비동기로 user service에서 회원가입 진행
-        rabbitTemplate.convertAndSend(AUTH_EXCHANGE, USER_SIGNUP_ROUTING_KEY, authReqDto);
+        rabbitTemplate.convertAndSend(AUTH_EXCHANGE, USER_SIGNUP_ROUTING_KEY, messageDto);
 
         log.info("회원가입 성공: {}", saved);
 
