@@ -1,10 +1,8 @@
 package com.sobok.authservice.auth.service;
 
 
-import com.sobok.authservice.auth.dto.request.AuthLoginReqDto;
-import com.sobok.authservice.auth.dto.request.AuthReissueReqDto;
-import com.sobok.authservice.auth.dto.request.AuthRiderReqDto;
-import com.sobok.authservice.auth.dto.request.AuthShopReqDto;
+import com.sobok.authservice.auth.client.DeliveryClient;
+import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.dto.response.AuthResDto;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
@@ -25,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-import com.sobok.authservice.auth.dto.request.AuthReqDto;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -43,6 +40,8 @@ public class AuthService {
     private static final Long RECOVERY_DAY = 15L;
     private static final String RECOVERY_KEY = "RECOVERY:";
     private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
+
+    private final DeliveryClient deliveryClient;
 
     /**
      * <pre>
@@ -258,18 +257,29 @@ public class AuthService {
             throw new CustomException("이미 존재하는 아이디 입니다.", HttpStatus.BAD_REQUEST);
         }
 
+        // 인증 정보 저장
         Auth riderEntity = Auth.builder()
                 .loginId(authRiderReqDto.getLoginId())
                 .password(passwordEncoder.encode(authRiderReqDto.getPassword()))
                 .role(Role.RIDER)
-                .active("N") // 라이더 기본값 N
+                .active("N") // 기본 비활성
                 .build();
 
         Auth saved = authRepository.save(riderEntity);
 
+        // delivery-service에 rider 정보 전달
+        RiderReqDto riderDto = RiderReqDto.builder()
+                .authId(saved.getId())
+                .name(authRiderReqDto.getName())
+                .phone(authRiderReqDto.getPhone())
+                .permissionNumber(authRiderReqDto.getPermissionNumber())
+                .build();
 
-        log.info("라이더 회원가입 완료: {}", saved);
+        deliveryClient.registerRider(riderDto);
 
+        log.info("라이더 회원가입 완료 및 배달 정보 전송 완료: {}", saved);
+
+        // 응답 반환
         return AuthRiderResDto.builder()
                 .id(saved.getId())
                 .name(authRiderReqDto.getName())
