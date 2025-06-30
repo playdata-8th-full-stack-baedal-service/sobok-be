@@ -36,7 +36,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
 
     // 허용 Path 설정
     private static final List<String> whiteList = List.of(
-            "/actuator", "/auth/sms/send", "/auth/test"
+            "/actuator", "/sms/send", "/sms/verify"
     );
 
     /**
