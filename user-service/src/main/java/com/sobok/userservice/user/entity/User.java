@@ -16,16 +16,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "auth_id", nullable = false)
+    @Column(unique = true, nullable = false)
     private Long authId;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String nickname;
 
-    private String photo;
-
+    @Column(unique = true, nullable = true)
     private String email;
 
     @Column(nullable = false)
+    private String photo;
+
+    @Column(unique = true, nullable = false)
     private String phone;
 }

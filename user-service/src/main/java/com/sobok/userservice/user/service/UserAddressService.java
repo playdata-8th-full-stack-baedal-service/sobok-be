@@ -3,22 +3,16 @@ package com.sobok.userservice.user.service;
 import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.dto.request.UserAddressEditReqDto;
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
-import com.sobok.userservice.user.dto.response.KakaoLocDto;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
+import com.sobok.userservice.user.entity.User;
 import com.sobok.userservice.user.entity.UserAddress;
-import com.sobok.userservice.user.entity.Users;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +33,7 @@ public class UserAddressService {
     @Transactional
     public void addAddress(Long authId, UserAddressReqDto reqDto) throws CustomException, EntityNotFoundException {
         // 사용자가 존재하는 지 확인
-        Users user = userRepository.findByAuthId(authId).orElseThrow(
+        User user = userRepository.findByAuthId(authId).orElseThrow(
                 () -> new EntityNotFoundException("존재하는 사용자가 없습니다.")
         );
 
@@ -70,7 +64,7 @@ public class UserAddressService {
      */
     public void editAddress(Long authId, UserAddressEditReqDto reqDto) {
         // 사용자가 존재하는 지 확인
-        Users user = userRepository.findByAuthId(authId).orElseThrow(
+        User user = userRepository.findByAuthId(authId).orElseThrow(
                 () -> new EntityNotFoundException("존재하는 사용자가 없습니다.")
         );
 
