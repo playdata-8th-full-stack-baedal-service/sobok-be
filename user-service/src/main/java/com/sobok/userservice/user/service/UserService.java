@@ -2,7 +2,6 @@ package com.sobok.userservice.user.service;
 
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
-import com.sobok.userservice.user.entity.Users;
 import com.sobok.userservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +51,7 @@ public class UserService {
         log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
 
         // 유저 객체 생성
-        Users user = Users.builder()
+        User user = User.builder()
                 .authId(reqDto.getAuthId())
                 .nickname(reqDto.getNickname())
                 .phone(reqDto.getPhone())
