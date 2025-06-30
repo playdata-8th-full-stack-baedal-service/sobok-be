@@ -1,12 +1,15 @@
 package com.sobok.authservice.common.jwt;
 
 import com.sobok.authservice.auth.entity.Auth;
+import com.sobok.authservice.common.exception.CustomException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.InvalidKeyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -25,12 +28,16 @@ public class JwtTokenProvider {
     @Value("${jwt.refreshExpiration}")
     private Long refreshExpiration;
 
+    private final RedisTemplate<String, String> redisTemplate;
+
+    private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
+
     /**
      * Access Token 발급 (예외가 발생했다면 빈 문자열)
      * @param auth
      * @return
      */
-    public String generateAccessToken(Auth auth) {
+    public String generateAccessToken(Auth auth) throws CustomException{
         try {
             // 현재 시간
             Date now = new Date();
@@ -45,8 +52,8 @@ public class JwtTokenProvider {
                     .claim("role", auth.getRole().toString())
                     .compact();
         } catch (InvalidKeyException e) {
-            log.error("토큰 생성 중 문제가 발생했습니다.");
-            return "";
+            log.error("액세스 토큰 생성 중 문제가 발생했습니다.");
+            throw new CustomException("액세스 토큰 생성 중 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -55,10 +62,10 @@ public class JwtTokenProvider {
      * @param auth
      * @return
      */
-    public String generateRefreshToken(Auth auth) {
+    public String generateRefreshToken(Auth auth) throws CustomException {
         try {
             Date now = new Date();
-            Date expiryDate = new Date(now.getTime() + refreshExpiration * 60 * 1000);
+            Date expiryDate = new Date(now.getTime() + refreshExpiration * 60 * 60 * 1000);
 
             return Jwts.builder()
                     .signWith(SignatureAlgorithm.HS256, refreshSecretKey.getBytes(StandardCharsets.UTF_8))
@@ -68,9 +75,23 @@ public class JwtTokenProvider {
                     .claim("role", auth.getRole().toString())
                     .compact();
         } catch (InvalidKeyException e) {
-            log.error("토큰 생성 중 문제가 발생했습니다.");
-            return "";
+            log.error("리프레시 토큰 생성 중 문제가 발생했습니다.");
+            throw new CustomException("리프레시 토큰 생성 중 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * 리프레시 토큰 Redis 저장
+     * @param auth
+     * @param refreshToken
+     */
+    public void saveRefreshToken(Auth auth, String refreshToken) {
+        // refresh 토큰 발급 시 redis에 저장
+        redisTemplate.opsForValue().set(
+                REFRESH_TOKEN_KEY + auth.getId().toString(),
+                refreshToken,
+                refreshExpiration * 60 * 60 * 1000
+        );
     }
 
 
