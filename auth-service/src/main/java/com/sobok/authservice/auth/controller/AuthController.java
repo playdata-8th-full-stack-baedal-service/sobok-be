@@ -58,7 +58,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal TokenUserInfo userInfo) {
         authService.logout(userInfo);
-        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(),"로그아웃에 성공하였습니다."));
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "로그아웃에 성공하였습니다."));
     }
 
     /**
@@ -104,24 +104,21 @@ public class AuthController {
     /**
      * 통합 아이디 찾기
      */
-    @GetMapping("/findId")
+    @GetMapping("/findLoginId")
     public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {
         AuthFindIdResDto authFindIdResDto = authService.userFindId(authFindReqDto);
-
         return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
     }
 
     /**
      * 통합 비밀번호 찾기
      */
-    @GetMapping("/reset-password")
-    public ResponseEntity<?> getFindUserPassword(@RequestBody AuthFindIdReqDto authFindReqDto) {
-        // 아직 구현 x
-        AuthFindIdResDto authFindIdResDto = authService.userFindId(authFindReqDto);
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody AuthResetPwReqDto authResetPwReqDto) {
+        authService.resetPassword(authResetPwReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getLoginId(), "사용자의 비밀번호가 변경되었습니다."));
 
-        return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 비밀번호 재설정 성공"));
     }
-
 
 
 }

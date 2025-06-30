@@ -6,6 +6,7 @@ import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
+import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
 import com.sobok.authservice.common.exception.CustomException;
@@ -302,13 +303,44 @@ public class AuthService {
      */
     public AuthFindIdResDto userFindId(AuthFindIdReqDto authFindIdReqDto) {
 
-        UserResDto byPhone = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
+        ApiResponse<UserResDto> response = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
 
-        log.info("user-service에서 받아온 user 정보: {}", byPhone);
+        UserResDto byPhone = response.getData();
+
+        log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
 
         Optional<Auth> authById = authRepository.findById(byPhone.getAuthId());
 
         return AuthFindIdResDto.builder().loginId(authById.get().getLoginId()).build();
+
+    }
+
+    public void resetPassword(AuthResetPwReqDto authResetPwReqDto) {
+        // 전화번호로 user 정보 조회 (user-service)
+        ApiResponse<UserResDto> response = userServiceClient.findByPhone(authResetPwReqDto.getUserPhoneNumber());
+
+        UserResDto byPhone = response.getData();
+
+        log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
+
+        // user에서 authId 추출
+        Long authId = byPhone.getAuthId();
+
+        // auth 정보 조회
+        Auth auth = authRepository.findById(authId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 auth 사용자를 찾을 수 없습니다."));
+
+        // 로그인 ID 일치 확인
+        if (!auth.getLoginId().equals(authResetPwReqDto.getLoginId())) {
+            throw new CustomException("해당 ID를 가진 사용자가 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 새 비밀번호 암호화 후 저장
+        String encodedPassword = passwordEncoder.encode(authResetPwReqDto.getNewPassword());
+        auth.changePassword(encodedPassword);
+        authRepository.save(auth);
+
+        log.info("비밀번호 변경 완료: authId = {}", authId);
 
     }
 }

@@ -23,7 +23,7 @@ public class UserService {
         Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
         if (byPhone.isPresent()) {
             User user = byPhone.get();
-            log.info("전화번호로 얻어온 auth의 정보: {}", user);
+            log.info("전화번호로 얻어온 auth의 정보: {}", byPhone.toString());
             return UserResDto.builder()
                     .id(user.getId())
                     .authId(user.getAuthId())
