@@ -31,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.Optional;
 
+import static com.sobok.authservice.common.util.Constants.*;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -39,10 +41,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisStringTemplate;
-
-    private static final Long RECOVERY_DAY = 15L;
-    private static final String RECOVERY_KEY = "RECOVERY:";
-    private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN:";
 
     /**
      * <pre>
