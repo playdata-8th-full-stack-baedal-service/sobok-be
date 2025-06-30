@@ -295,7 +295,7 @@ public class AuthService {
 
         return AuthShopResDto.builder()
                 .id(saved.getId())
-//                .shopName(authShopReqDto.getShopName())
+                .shopName(authShopReqDto.getShopName())
                 .build();
 
     }
