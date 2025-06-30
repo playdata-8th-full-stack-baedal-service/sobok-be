@@ -38,8 +38,9 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
     private static final List<String> whiteList = List.of(
             "/actuator",
             "/sms/send", "/sms/verify", "/auth/recover/**", "/auth/login", "/auth/reissue",
-            "/auth/user-signup","/auth/rider-signup","/auth/shop-signup", "/auth-service/auth/rider-signup",
-            "/delivery-service/delivery/signup","/delivery/signup"
+            "/auth/user-signup","/auth/rider-signup","/auth/shop-signup", 
+            "/delivery/signup",
+            "/auth/findLoginId", "/auth/reset-password", "/user/findByPhoneNumber"
     );
 
     /**

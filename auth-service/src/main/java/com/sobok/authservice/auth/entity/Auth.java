@@ -47,4 +47,8 @@ public class Auth extends BaseTimeEntity {
     public void changeActive(boolean newActive) {
         this.active = newActive ? "Y" : "N";
     }
+
+     public void changePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }
