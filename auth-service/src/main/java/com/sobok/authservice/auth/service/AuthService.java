@@ -110,8 +110,10 @@ public class AuthService {
     }
 
     public AuthResDto userCreate(AuthReqDto authReqDto) {
+        // 회원 아이디 가져오기
         Optional<Auth> findByLoginId = authRepository.findByLoginId(authReqDto.getLoginId());
 
+        // 중복 체크
         if (findByLoginId.isPresent()) {
             throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
         }
@@ -123,7 +125,7 @@ public class AuthService {
                 .active("Y")
                 .build();
 
-        Auth saved = authRepository.save(userEntity);
+        Auth saved = authRepository.save(userEntity); // DB에 저장
 
         log.info("회원가입 성공: {}", saved);
 
@@ -253,7 +255,7 @@ public class AuthService {
         Optional<Auth> findByLoginId = authRepository.findByLoginId(authRiderReqDto.getLoginId());
 
         if (findByLoginId.isPresent()) {
-            throw new CustomException("이미 존재하는 아이디", HttpStatus.BAD_REQUEST);
+            throw new CustomException("이미 존재하는 아이디 입니다.", HttpStatus.BAD_REQUEST);
         }
 
         Auth riderEntity = Auth.builder()
@@ -293,7 +295,7 @@ public class AuthService {
 
         return AuthShopResDto.builder()
                 .id(saved.getId())
-                .shopName(authShopReqDto.getShopName())
+//                .shopName(authShopReqDto.getShopName())
                 .build();
 
     }
