@@ -37,7 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     List<String> whiteList = List.of(
-            "/actuator/**", "/user/findByPhoneNumber"
+            "/actuator/**", "/user/findByPhoneNumber", "/auth/findLoginId"
     );
 
     @Override
@@ -47,6 +47,8 @@ public class JwtFilter extends OncePerRequestFilter {
         // Path 점검
         String path = request.getRequestURI();
         AntPathMatcher antPathMatcher = new AntPathMatcher();
+
+        log.info("JwtFilter 요청 URI: {}", path);
 
         // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
         boolean isAllowed = whiteList.stream()

@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/actuator/**", "/auth/login", "/auth/signup", "/auth/reissue", "/sms/verify",
-                                "/sms/send", "/auth/recover/**", "/auth/findId", "/auth/reset-password"
+                                "/sms/send", "/auth/recover/**", "/auth/findLoginId", "/auth/reset-password"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
