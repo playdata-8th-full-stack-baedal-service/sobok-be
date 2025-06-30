@@ -109,8 +109,10 @@ public class AuthService {
 
     @Transactional
     public AuthResDto userCreate(AuthReqDto authReqDto) {
+        // 회원 아이디 가져오기
         Optional<Auth> findByLoginId = authRepository.findByLoginId(authReqDto.getLoginId());
 
+        // 중복 체크
         if (findByLoginId.isPresent()) {
             throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
         }
@@ -122,7 +124,7 @@ public class AuthService {
                 .active("Y")
                 .build();
 
-        Auth saved = authRepository.save(userEntity);
+        Auth saved = authRepository.save(userEntity); // DB에 저장
 
 
         // 사용자 회원가입에 필요한 정보 전달 객체 생성
@@ -275,7 +277,7 @@ public class AuthService {
         Optional<Auth> findByLoginId = authRepository.findByLoginId(authRiderReqDto.getLoginId());
 
         if (findByLoginId.isPresent()) {
-            throw new CustomException("이미 존재하는 아이디", HttpStatus.BAD_REQUEST);
+            throw new CustomException("이미 존재하는 아이디 입니다.", HttpStatus.BAD_REQUEST);
         }
 
         Auth riderEntity = Auth.builder()
