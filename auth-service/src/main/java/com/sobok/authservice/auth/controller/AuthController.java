@@ -16,6 +16,7 @@ import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.exception.CustomException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/user-signup")
-    public ResponseEntity<?> createAuth(@RequestBody AuthReqDto authReqDto) {
+    public ResponseEntity<?> createAuth(@Valid @RequestBody AuthReqDto authReqDto) {
         AuthResDto userResDto = authService.userCreate(authReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userResDto, "회원가입 성공"));
 
@@ -91,13 +92,13 @@ public class AuthController {
     }
 
     @PostMapping("/rider-signup")
-    public ResponseEntity<?> createRider(@RequestBody AuthRiderReqDto authRiderReqDto) {
+    public ResponseEntity<?> createRider(@Valid @RequestBody AuthRiderReqDto authRiderReqDto) {
         AuthRiderResDto riderResDto = authService.riderCreate(authRiderReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(riderResDto, "라이더 회원가입 성공"));
     }
 
     @PostMapping("/shop-signup")
-    public ResponseEntity<?> createShop(@RequestBody AuthShopReqDto authShopReqDto) {
+    public ResponseEntity<?> createShop(@Valid @RequestBody AuthShopReqDto authShopReqDto) {
         AuthShopResDto shopResDto = authService.shopCreate(authShopReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(shopResDto, "가게 회원가입 성공"));
     }
