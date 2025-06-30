@@ -15,4 +15,6 @@ public class UserSignupReqDto {
     private String phone;
     private String email;
     private String photo;
+    private String roadFull;
+    private String addrDetail;
 }

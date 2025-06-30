@@ -6,15 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class UserSignupReqDto {
-    private Long authId;
-    private String nickname;
-    private String phone;
-    private String email;
-    private String photo;
+public class UserAddressReqDto {
     private String roadFull;
     private String addrDetail;
 }

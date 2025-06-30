@@ -1,5 +1,6 @@
 package com.sobok.userservice.user.service;
 
+import com.sobok.userservice.user.dto.request.UserAddressReqDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.entity.Users;
 import com.sobok.userservice.user.repository.UserRepository;
@@ -12,24 +13,33 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final UserAddressService userAddressService;
 
     public void signup(UserSignupReqDto reqDto) {
-        // null safe 한 값 먼저 담기
-        Users.UsersBuilder userBuilder = Users.builder()
+        log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
+
+        // 유저 객체 생성
+        Users user = Users.builder()
                 .authId(reqDto.getAuthId())
                 .nickname(reqDto.getNickname())
                 .phone(reqDto.getPhone())
-                .photo(reqDto.getPhoto());
+                .photo(reqDto.getPhoto())
+                .email(reqDto.getEmail())
+                .build();
 
-        // 이메일이 null이 아니라면 email도 담기
-        if(reqDto.getEmail() != null) {
-            userBuilder.email(reqDto.getEmail());
-        }
-
-        // user 객체 생성
-        Users user = userBuilder.build();
 
         // user DB에 저장
         userRepository.save(user);
+
+        if (reqDto.getRoadFull() != null) {
+            UserAddressReqDto addrDto = UserAddressReqDto.builder()
+                    .roadFull(reqDto.getRoadFull())
+                    .addrDetail(reqDto.getAddrDetail())
+                    .build();
+
+            userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+        }
+
+        log.info("성공적으로 사용자 회원가입이 완료되었습니다.");
     }
 }

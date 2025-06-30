@@ -17,7 +17,7 @@ public class AuthReqDto {
     private String phone;
     private String email;
     private String photo;
-//    private String roadFull;
-//    private String addrDetail;
+    private String roadFull;
+    private String addrDetail;
 
 }
