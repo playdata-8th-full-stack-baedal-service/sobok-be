@@ -45,8 +45,9 @@ spring:
         - id: auth-service
           uri: lb://AUTH-SERVICE
           predicates:
-            - Path=/auth-service/auth/**
-            - Path=/auth-service/sms/**
+#            - Path=/auth-service/auth/**
+#            - Path=/auth-service/sms/**
+            - Path=/auth-service/**
           filters:
             - RewritePath=/auth-service/(?<segment>.*), /$\{segment}
             - name: AuthorizationFilter
