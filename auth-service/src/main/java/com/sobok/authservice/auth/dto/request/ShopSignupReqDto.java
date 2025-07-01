@@ -14,7 +14,5 @@ public class ShopSignupReqDto {
     private String shopName;
     private String ownerName;
     private String phone;
-//    private Double latitude;
-//    private Double longitude;
     private String roadFull;
 }

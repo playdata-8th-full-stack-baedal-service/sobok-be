@@ -2,7 +2,9 @@ package com.sobok.shopservice.shop.service;
 
 
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
+import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
+import com.sobok.shopservice.shop.dto.response.UserLocationResDto;
 import com.sobok.shopservice.shop.entity.Shop;
 import com.sobok.shopservice.shop.repository.ShopRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +18,26 @@ import org.springframework.stereotype.Service;
 public class ShopService {
 
     private final ShopRepository shopRepository;
+    private final ConvertAddressService convertAddressService;
 
 
     public AuthShopResDto createShop(ShopSignupReqDto shopSignupReqDto) {
 
-        // shopReqDto.getRoadFull()로 위도, 경도 받아오기
+        // ConvertAddressService로 요청 보내서 위도, 경도 받아오기
+        UserAddressReqDto reqDto = UserAddressReqDto.builder()
+                .roadFull(shopSignupReqDto.getRoadFull())
+                .build();
+
+        UserLocationResDto location = convertAddressService.getLocation(reqDto);
+
 
         Shop shop = Shop.builder()
                 .authId(shopSignupReqDto.getAuthId())
                 .ownerName(shopSignupReqDto.getOwnerName())
                 .shopName(shopSignupReqDto.getShopName())
                 .phone(shopSignupReqDto.getPhone())
-                .latitude(127.0)
-                .longitude(30.0)
+                .latitude(location.getLatitude())
+                .longitude(location.getLongitude())
                 .roadFull(shopSignupReqDto.getRoadFull())
                 .build();
 
