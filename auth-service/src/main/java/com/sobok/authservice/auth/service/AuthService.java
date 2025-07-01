@@ -352,9 +352,12 @@ public class AuthService {
 
         // feign으로 save 요청
         try {
-            shopServiceClient.shopSignup(shopDto);
-        } catch (FeignException e) {
-            log.error("Feign 요청 실패: {}", e.getMessage());
+            ApiResponse<AuthShopResDto> response = shopServiceClient.shopSignup(shopDto);
+        } catch (Exception e) {
+            if (e.getMessage().contains("409")) {
+                throw new CustomException("중복된 정보로 인해 가게 등록에 실패했습니다.", HttpStatus.CONFLICT);
+            }
+            log.error("shop-service 호출 중 예외 발생: {}", e.getMessage());
             throw new CustomException("shop-service와의 통신에 실패했습니다.", HttpStatus.SERVICE_UNAVAILABLE);
         }
 
