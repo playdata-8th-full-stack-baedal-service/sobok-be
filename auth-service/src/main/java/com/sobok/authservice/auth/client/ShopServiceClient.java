@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "shop-service", configuration = FeignConfig.class)
 public interface ShopServiceClient {
 
-    @PostMapping("/shop/register")
+    @PostMapping("/api/register")
     ApiResponse<AuthShopResDto> shopSignup(@RequestBody ShopSignupReqDto shopDto);
 
 }
