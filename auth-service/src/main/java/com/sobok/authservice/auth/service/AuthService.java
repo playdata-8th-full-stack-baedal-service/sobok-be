@@ -379,52 +379,69 @@ public class AuthService {
      */
     public AuthFindIdResDto userFindId(AuthFindIdReqDto authFindIdReqDto) {
 
-        ApiResponse<UserResDto> response = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
+        try {
+            ApiResponse<UserResDto> response = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
 
-        UserResDto byPhone = response.getData();
+            UserResDto byPhone = response.getData();
+            log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
 
-        log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
+            Optional<Auth> authById = authRepository.findById(byPhone.getAuthId());
 
-        Optional<Auth> authById = authRepository.findById(byPhone.getAuthId());
+            if (authById.isEmpty()) {
+                throw new CustomException("해당 AUTH 정보가 없습니다.", HttpStatus.NOT_FOUND);
+            }
 
-        return AuthFindIdResDto.builder().loginId(authById.get().getLoginId()).build();
+            return AuthFindIdResDto.builder()
+                    .loginId(authById.get().getLoginId())
+                    .build();
+
+        } catch (FeignException.BadRequest e) {
+            log.warn("user-service에서 사용자 조회 실패 (400): {}", e.contentUTF8());
+            throw new CustomException("입력하신 번호로 가입된 계정이 없습니다.", HttpStatus.NOT_FOUND);
+        } catch (FeignException e) {
+            log.error("user-service 호출 중 오류 발생: {}", e.getMessage());
+            throw new CustomException("회원 정보 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
     }
 
     public void resetPassword(AuthResetPwReqDto authResetPwReqDto) {
-        // 전화번호로 user 정보 조회 (user-service)
-        ApiResponse<UserResDto> response = userServiceClient.findByPhone(authResetPwReqDto.getUserPhoneNumber());
 
-        UserResDto byPhone = response.getData();
+        try {
+            // 전화번호로 user 정보 조회 (user-service)
+            ApiResponse<UserResDto> response = userServiceClient.findByPhone(authResetPwReqDto.getUserPhoneNumber());
 
-        log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
+            UserResDto byPhone = response.getData();
 
-        // user에서 authId 추출
-        Long authId = byPhone.getAuthId();
+            log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
 
-        // auth 정보 조회
-        Auth auth = authRepository.findById(authId)
-                .orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
+            // user에서 authId 추출
+            Long authId = byPhone.getAuthId();
 
-        // 로그인 ID 일치 확인
-        if (!auth.getLoginId().equals(authResetPwReqDto.getLoginId())) {
-            throw new CustomException("해당 ID를 가진 사용자가 없습니다.", HttpStatus.BAD_REQUEST);
+            // auth 정보 조회
+            Auth auth = authRepository.findById(authId)
+                    .orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
+
+            // 로그인 ID 일치 확인
+            if (!auth.getLoginId().equals(authResetPwReqDto.getLoginId())) {
+                throw new CustomException("해당 ID를 가진 사용자가 없습니다.", HttpStatus.BAD_REQUEST);
+            }
+
+            // 새 비밀번호 암호화 후 저장
+            String encodedPassword = passwordEncoder.encode(authResetPwReqDto.getNewPassword());
+            auth.changePassword(encodedPassword);
+            authRepository.save(auth);
+
+            log.info("비밀번호 변경 완료: authId = {}", authId);
+
+        } catch (FeignException.BadRequest e) {
+            log.warn("user-service에서 사용자 조회 실패 (400): {}", e.contentUTF8());
+            throw new CustomException("입력하신 번호로 가입된 계정이 없습니다.", HttpStatus.NOT_FOUND);
+        } catch (FeignException e) {
+            log.error("user-service 호출 중 오류 발생: {}", e.getMessage());
+            throw new CustomException("회원 정보 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        // 새 비밀번호 암호화 후 저장
-        String encodedPassword = passwordEncoder.encode(authResetPwReqDto.getNewPassword());
-        auth.changePassword(encodedPassword);
-        authRepository.save(auth);
-
-        log.info("비밀번호 변경 완료: authId = {}", authId);
-
     }
 
-    public Auth findAuth(Long id) {
-        Optional<Auth> byId = authRepository.findById(id);
-        Auth auth = byId.get();
-
-        log.info("authId로 조회한 정보: {}", auth);
-        return auth;
-    }
 }
