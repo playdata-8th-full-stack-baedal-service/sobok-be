@@ -1,6 +1,7 @@
 package com.sobok.authservice.auth.client;
 
 import com.sobok.authservice.auth.dto.request.UserSignupReqDto;
+import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,7 @@ import com.sobok.authservice.auth.dto.response.*;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
-@FeignClient(name = "user-service")
+@FeignClient(name = "user-service", configuration = FeignConfig.class)
 public interface UserServiceClient {
 
     @PostMapping("/api/findByPhoneNumber")
