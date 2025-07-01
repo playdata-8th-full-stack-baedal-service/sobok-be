@@ -76,8 +76,8 @@ public class AuthController {
      * 사용자 비활성화
      */
     @DeleteMapping("/delete")
-    public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo) throws EntityNotFoundException {
-        authService.delete(userInfo);
+    public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AuthPasswordReqDto reqDto) throws EntityNotFoundException {
+        authService.delete(userInfo, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
     }
 
