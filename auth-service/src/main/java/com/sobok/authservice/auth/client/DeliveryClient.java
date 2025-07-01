@@ -1,6 +1,8 @@
 package com.sobok.authservice.auth.client;
 
 import com.sobok.authservice.auth.dto.request.RiderReqDto;
+import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
+import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,5 +12,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface DeliveryClient {
 
     @PostMapping("/delivery/signup")
-    void registerRider(@RequestBody RiderReqDto dto);
+    ApiResponse<AuthRiderResDto> registerRider(@RequestBody RiderReqDto dto);
 }
