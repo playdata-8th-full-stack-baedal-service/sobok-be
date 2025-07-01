@@ -122,5 +122,15 @@ public class AuthController {
 
     }
 
+    /**
+     * 라이더 활성화
+     */
+    @PutMapping("/active-rider")
+    public ResponseEntity<Void> activeRider(@RequestParam Long authId) {
+        authService.activeRider(authId);
+        return ResponseEntity.ok().build();
+    }
+
+
 
 }
