@@ -451,4 +451,20 @@ public class AuthService {
 
     }
 
+    // 라이더 활성화 기능
+    @Transactional
+    public void activeRider(Long authId) {
+        // Id 검증
+        Auth auth = authRepository.findById(authId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 유저가 없습니다."));
+
+        // Role이 RIDER 인지 검증
+        if (auth.getRole() != Role.RIDER) {
+            throw new CustomException("배달원만 활성화 가능합니다.", HttpStatus.BAD_REQUEST);
+        }
+        // 라이더 active 활성화 상태로 변경
+        auth.changeActive(true);
+        authRepository.save(auth);
+    }
+
 }
