@@ -283,7 +283,7 @@ public class AuthService {
 //
 //        Auth.builder()
 //    }
-
+    @Transactional
     public AuthRiderResDto riderCreate(AuthRiderReqDto authRiderReqDto) {
         Optional<Auth> findByLoginId = authRepository.findByLoginId(authRiderReqDto.getLoginId());
 
@@ -358,7 +358,7 @@ public class AuthService {
                 throw new CustomException("중복된 정보로 인해 가게 등록에 실패했습니다.", HttpStatus.CONFLICT);
             }
             log.error("shop-service 호출 중 예외 발생: {}", e.getMessage());
-            throw new CustomException("shop-service와의 통신에 실패했습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+            throw new CustomException("shop-service와의 통신에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         log.info("가게 회원가입 완료: {}", saved);
