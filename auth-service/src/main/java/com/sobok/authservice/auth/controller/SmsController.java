@@ -1,6 +1,7 @@
 package com.sobok.authservice.auth.controller;
 
 
+import com.sobok.authservice.auth.dto.request.SmsReqDto;
 import com.sobok.authservice.auth.dto.request.VerificationReqDto;
 import com.sobok.authservice.auth.service.SmsService;
 import com.sobok.authservice.common.dto.ApiResponse;
@@ -23,9 +24,9 @@ public class SmsController {
     private final SmsService smsService;
 
     @PostMapping("/send")
-    public ResponseEntity<?> SendSMS(@RequestBody String phoneNumber) {
+    public ResponseEntity<?> SendSMS(@RequestBody SmsReqDto smsReqDto) {
         log.info("문자 전송 시작");
-        smsService.SendSms(phoneNumber);
+        smsService.SendSms(smsReqDto);
         return ResponseEntity.ok(ApiResponse.ok("문자를 전송했습니다."));
     }
 
