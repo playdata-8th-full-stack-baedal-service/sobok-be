@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "auth-service", configuration = FeignConfig.class)
 public interface AdminFeignClient {
 
-    @PutMapping("/auth/active-rider")
+    @PutMapping("/api/active-rider")
     void activeRider(@RequestParam("authId") Long authId);
 }

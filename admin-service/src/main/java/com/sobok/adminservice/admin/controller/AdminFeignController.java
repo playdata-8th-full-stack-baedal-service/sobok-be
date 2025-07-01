@@ -12,7 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 @Slf4j
 // 관리자 승인 요청 컨트롤러
@@ -20,7 +20,7 @@ public class AdminFeignController {
 
     private final AdminFeignClient adminFeignClient;
 
-    @PutMapping("/rider/active")
+    @PutMapping("/rider-active")
     // 데이터 응답이 null 이라 Void로 설정
     public ResponseEntity<ApiResponse<Void>> activeRider(
             @RequestParam Long authId,
