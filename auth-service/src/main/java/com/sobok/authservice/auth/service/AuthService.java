@@ -61,7 +61,7 @@ public class AuthService {
         );
 
         // 사용자이면서 활성화 상태가 아니라면 복구 가능한지 Redis 체크
-        if (auth.getActive().equals("N")) {
+        if ("N".equals(auth.getActive())) {
             // 복구 가능한 역할은 사용자만으로 제한
             if (auth.getRole() == Role.USER) {
                 // 복구 가능하다면 recoveryTarget = true로 넘겨주자
