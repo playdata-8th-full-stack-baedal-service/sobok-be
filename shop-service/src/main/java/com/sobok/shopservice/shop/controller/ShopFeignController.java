@@ -1,6 +1,5 @@
 package com.sobok.shopservice.shop.controller;
 
-
 import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
@@ -14,12 +13,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/shop")
+@RequestMapping("/api")
 @Slf4j
 @RequiredArgsConstructor
-public class ShopController {
+public class ShopFeignController {
 
+    private final ShopService shopService;
 
-
-
+    @PostMapping("/register")
+    public ResponseEntity<?> registerShop(@RequestBody ShopSignupReqDto shopSignupReqDto) {
+        AuthShopResDto shop = shopService.createShop(shopSignupReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(shop, "가게가 등록되었습니다."));
+    }
 }
