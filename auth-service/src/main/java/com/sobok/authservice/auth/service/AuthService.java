@@ -144,13 +144,14 @@ public class AuthService {
         // 비동기로 user service에서 회원가입 진행
 //        rabbitTemplate.convertAndSend(AUTH_EXCHANGE, USER_SIGNUP_ROUTING_KEY, messageDto);
 
-
-        // feign으로 user한테 저장하라고 보내기
-        ResponseEntity<Object> response = userServiceClient.userSignup(messageDto);
-        if (response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError()) {
+        try {
+            // feign으로 user한테 저장하라고 보내기
+            ResponseEntity<Object> response = userServiceClient.userSignup(messageDto);
+        } catch (FeignException e) {
             log.error("사용자 정보 저장 실패");
             throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
 
         log.info("회원가입 성공: {}", saved);
 
@@ -200,6 +201,7 @@ public class AuthService {
                 return jwtTokenProvider.generateAccessToken(auth);
             } else {
                 // 토큰이 일치하지 않는다면
+                log.info("refresh token : {}", storedToken);
                 log.warn("refresh 토큰이 일치하지 않습니다.");
                 throw new CustomException("토큰이 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
             }
@@ -242,6 +244,9 @@ public class AuthService {
         authRepository.save(auth);
 
         log.info("{}번 사용자를 비활성화했습니다.", userInfo.getId());
+
+        // 로그아웃 처리
+        logout(userInfo);
     }
 
     /**
@@ -252,7 +257,6 @@ public class AuthService {
      * </pre>
      */
     public void recover(Long id) throws EntityNotFoundException, CustomException {
-        // TODO : 인증 없이 복구하는 로직. 만약 복구하는 데 인증이 필요하다면 이전 단계에서 인증용 API를 먼저 호출하였는지 확인하는 작업이 필요함.
         // 복구 대상인지 확인
         boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + id);
         if (isRecoveryTarget) {
