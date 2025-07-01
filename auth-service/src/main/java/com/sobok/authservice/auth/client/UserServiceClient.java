@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "user-service")
 public interface UserServiceClient {
 
-    @PostMapping("/user/findByPhoneNumber")
+    @PostMapping("/api/findByPhoneNumber")
     ApiResponse<UserResDto> findByPhone(@RequestBody String phoneNumber);
 
     @PostMapping("/api/signup")
