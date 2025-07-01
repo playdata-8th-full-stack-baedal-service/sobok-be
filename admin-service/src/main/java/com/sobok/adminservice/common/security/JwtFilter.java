@@ -87,6 +87,12 @@ public class JwtFilter extends OncePerRequestFilter {
             long id = Long.parseLong(claims.getSubject());
             Role role = Role.from(claims.get("role", String.class));
 
+            if(role != Role.ADMIN) {
+                // 권한이 관리자가 아니라면 에러 발생
+                log.warn("권한이 없습니다.");
+                throw new Exception();
+            }
+
             // @AuthenticationPrinciple, @PreAuthorize("hasRole('ADMIN')") 같은 로직을 사용하기 위한 로직
             TokenUserInfo tokenUserInfo = TokenUserInfo.builder().id(id).role(role.name()).build();
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
