@@ -30,9 +30,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // feign client
-    private final UserServiceClient userServiceClient;
-
 
     @PostMapping("/user-signup")
     public ResponseEntity<?> createAuth(@Valid @RequestBody AuthReqDto authReqDto) {
