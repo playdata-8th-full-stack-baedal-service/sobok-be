@@ -13,4 +13,5 @@ public class AuthShopResDto {
 
     private Long id;
     private String shopName;
+    private String ownerName;
 }

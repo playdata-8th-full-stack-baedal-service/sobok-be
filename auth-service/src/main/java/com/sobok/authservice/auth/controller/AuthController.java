@@ -98,8 +98,8 @@ public class AuthController {
     }
 
     @PostMapping("/shop-signup")
-    public ResponseEntity<?> createShop(@Valid @RequestBody AuthShopReqDto authShopReqDto) {
-        AuthShopResDto shopResDto = authService.shopCreate(authShopReqDto);
+    public ResponseEntity<?> createShop(@Valid @RequestBody AuthShopReqDto authShopReqDto, @AuthenticationPrincipal TokenUserInfo userInfo) {
+        AuthShopResDto shopResDto = authService.shopCreate(authShopReqDto, userInfo);
         return ResponseEntity.ok().body(ApiResponse.ok(shopResDto, "가게 회원가입 성공"));
     }
 
@@ -120,6 +120,15 @@ public class AuthController {
         authService.resetPassword(authResetPwReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getLoginId(), "사용자의 비밀번호가 변경되었습니다."));
 
+    }
+
+    /**
+     * authId로 사용자 조회
+     */
+    @PostMapping("/findById")
+    public ResponseEntity<?> findById(@RequestBody Long id) {
+        Auth auth = authService.findAuth(id);
+        return ResponseEntity.ok().body(ApiResponse.ok(auth, "사용자 정보 조회 성공"));
     }
 
 

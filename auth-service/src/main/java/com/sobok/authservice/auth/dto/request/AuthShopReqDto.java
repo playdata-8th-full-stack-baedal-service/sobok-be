@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ToString
 public class AuthShopReqDto {
 
     @NotBlank(message = "아이디는 필수 입니다.")

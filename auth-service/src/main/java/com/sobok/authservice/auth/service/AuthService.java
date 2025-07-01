@@ -2,6 +2,7 @@ package com.sobok.authservice.auth.service;
 
 
 import com.sobok.authservice.auth.client.DeliveryClient;
+import com.sobok.authservice.auth.client.ShopServiceClient;
 import com.sobok.authservice.auth.client.UserServiceClient;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
@@ -13,17 +14,15 @@ import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
 import com.sobok.authservice.common.exception.CustomException;
 import com.sobok.authservice.common.jwt.JwtTokenProvider;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +40,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisStringTemplate;
     private final UserServiceClient userServiceClient;
+    private final ShopServiceClient shopServiceClient;
 
 
     private final DeliveryClient deliveryClient;
@@ -313,12 +313,16 @@ public class AuthService {
                 .build();
     }
 
-    public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto) {
+    public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto, TokenUserInfo userInfo) {
+        log.info("authShopReqDto: {}", authShopReqDto.toString());
+        log.info("userInfo: {}", userInfo);
+
         Optional<Auth> findByLoginId = authRepository.findByLoginId(authShopReqDto.getLoginId());
 
         if (findByLoginId.isPresent()) {
             throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
         }
+
         Auth shopEntity = Auth.builder()
                 .loginId(authShopReqDto.getLoginId())
                 .password(passwordEncoder.encode(authShopReqDto.getPassword()))
@@ -328,11 +332,30 @@ public class AuthService {
 
         Auth saved = authRepository.save(shopEntity);
 
+        // 사용자 회원가입에 필요한 정보 전달 객체 생성
+        ShopSignupReqDto shopDto = ShopSignupReqDto.builder()
+                .authId(saved.getId())
+                .shopName(authShopReqDto.getShopName())
+                .ownerName(authShopReqDto.getOwnerName())
+                .phone(authShopReqDto.getPhone())
+                .roadFull(authShopReqDto.getRoadFull())
+                .build();
+
+
+        // feign으로 save 요청
+        try {
+            shopServiceClient.shopSignup(shopDto);
+        } catch (FeignException e) {
+            log.error("Feign 요청 실패: {}", e.getMessage());
+            throw new CustomException("shop-service와의 통신에 실패했습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
         log.info("가게 회원가입 완료: {}", saved);
 
         return AuthShopResDto.builder()
                 .id(saved.getId())
                 .shopName(authShopReqDto.getShopName())
+                .ownerName(authShopReqDto.getOwnerName())
                 .build();
 
     }
@@ -387,5 +410,13 @@ public class AuthService {
 
         log.info("비밀번호 변경 완료: authId = {}", authId);
 
+    }
+
+    public Auth findAuth(Long id) {
+        Optional<Auth> byId = authRepository.findById(id);
+        Auth auth = byId.get();
+
+        log.info("authId로 조회한 정보: {}", auth);
+        return auth;
     }
 }
