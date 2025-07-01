@@ -39,6 +39,12 @@ public class AuthController {
 
     }
 
+    @GetMapping("/temp-token")
+    public ResponseEntity<?> getTempToken() {
+        String tempToken = authService.getTempToken();
+        return ResponseEntity.ok().body(ApiResponse.ok(tempToken, "임시 토큰이 발급되었습니다."));
+    }
+
     /**
      * 통합 로그인
      */
@@ -118,6 +124,5 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getLoginId(), "사용자의 비밀번호가 변경되었습니다."));
 
     }
-
 
 }

@@ -98,6 +98,13 @@ spring:
           filters:
             - RewritePath=/shop-service/(?<segment>.*), /$\{segment}
 
+        - id: api-service
+          uri: lb://API-SERVICE
+          predicates:
+            - Path=/api-service/**
+          filters:
+            - RewritePath=/api-service/(?<segment>.*), /$\{segment}
+
 eureka:
   client:
     register-with-eureka: true

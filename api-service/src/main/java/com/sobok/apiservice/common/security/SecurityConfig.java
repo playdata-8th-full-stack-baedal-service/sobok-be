@@ -1,4 +1,4 @@
-package com.sobok.authservice.common.security;
+package com.sobok.apiservice.common.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,9 +32,7 @@ public class SecurityConfig {
                 // 허용 URI 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/actuator/**", "/auth/login", "/auth/reissue", "/sms/verify",
-                                "/sms/send", "/auth/recover/**", "/auth/user-signup","/auth/rider-signup","/auth/shop-signup", "/auth/findLoginId", "/auth/reset-password",
-                                "/auth/temp-token"
+                                "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

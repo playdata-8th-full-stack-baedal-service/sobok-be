@@ -114,6 +114,27 @@ public class JwtTokenProvider {
     }
 
     /**
+     * Refresh Token 발급 (예외가 발생했다면 빈 문자열)
+     */
+    public String generateTempToken() throws CustomException {
+        try {
+            Date now = new Date();
+            Date expiryDate = new Date(now.getTime() + 30 * 60 * 1000); // 30분
+
+            return Jwts.builder()
+                    .signWith(SignatureAlgorithm.HS256, feignSecretKey.getBytes(StandardCharsets.UTF_8))
+                    .setExpiration(expiryDate)
+                    .setIssuedAt(now)
+                    .setSubject("999")
+                    .claim("role", Role.USER.toString())
+                    .compact();
+        } catch (InvalidKeyException e) {
+            log.error("임시 토큰 생성 중 문제가 발생했습니다.");
+            throw new CustomException("임시 토큰 생성 중 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * 리프레시 토큰 Redis 저장
      * @param auth
      * @param refreshToken

@@ -61,7 +61,7 @@ public class AuthService {
         );
 
         // 사용자이면서 활성화 상태가 아니라면 복구 가능한지 Redis 체크
-        if (auth.getActive().equals("N")) {
+        if ("N".equals(auth.getActive())) {
             // 복구 가능한 역할은 사용자만으로 제한
             if (auth.getRole() == Role.USER) {
                 // 복구 가능하다면 recoveryTarget = true로 넘겨주자
@@ -449,6 +449,27 @@ public class AuthService {
             throw new CustomException("회원 정보 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    // 라이더 활성화 기능
+    @Transactional
+    public void activeRider(Long authId) {
+        // Id 검증
+        Auth auth = authRepository.findById(authId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 유저가 없습니다."));
+
+        // Role이 RIDER 인지 검증
+        if (auth.getRole() != Role.RIDER) {
+            throw new CustomException("배달원만 활성화 가능합니다.", HttpStatus.BAD_REQUEST);
+        }
+        // 라이더 active 활성화 상태로 변경
+        auth.changeActive(true);
+        authRepository.save(auth);
+    }
+
+
+    public String getTempToken() {
+        return jwtTokenProvider.generateTempToken();
     }
 
 }
