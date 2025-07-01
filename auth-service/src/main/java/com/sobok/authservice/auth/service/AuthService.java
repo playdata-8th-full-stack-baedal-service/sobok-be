@@ -313,6 +313,7 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
     public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto, TokenUserInfo userInfo) {
         log.info("authShopReqDto: {}", authShopReqDto.toString());
         log.info("userInfo: {}", userInfo);
