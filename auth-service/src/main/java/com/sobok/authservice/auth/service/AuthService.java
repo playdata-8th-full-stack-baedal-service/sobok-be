@@ -431,4 +431,8 @@ public class AuthService {
         log.info("authId로 조회한 정보: {}", auth);
         return auth;
     }
+
+    public String getTempToken() {
+        return jwtTokenProvider.generateTempToken();
+    }
 }
