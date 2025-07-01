@@ -42,6 +42,12 @@ public class AuthController {
 
     }
 
+    @GetMapping("/temp-token")
+    public ResponseEntity<?> getTempToken() {
+        String tempToken = authService.getTempToken();
+        return ResponseEntity.ok().body(ApiResponse.ok(tempToken, "임시 토큰이 발급되었습니다."));
+    }
+
     /**
      * 통합 로그인
      */
