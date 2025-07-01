@@ -32,13 +32,14 @@ public class UserService {
                     .nickname(user.getNickname())
                     .photo(user.getPhoto())
                     .email(user.getEmail())
+                    .phone(user.getPhone())
                     .build();
 
         }else {
             throw new CustomException("해당 번호로 가입하신 정보가 없습니다.", HttpStatus.BAD_REQUEST);
         }
   }
-  
+
     /**
      * <pre>
      *     # 사용자 회원가입

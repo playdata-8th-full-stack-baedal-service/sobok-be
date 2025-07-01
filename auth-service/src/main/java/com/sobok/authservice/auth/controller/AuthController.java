@@ -122,20 +122,10 @@ public class AuthController {
      * 통합 비밀번호 찾기
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody AuthResetPwReqDto authResetPwReqDto) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody AuthResetPwReqDto authResetPwReqDto) {
         authService.resetPassword(authResetPwReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getLoginId(), "사용자의 비밀번호가 변경되었습니다."));
 
     }
-
-    /**
-     * authId로 사용자 조회
-     */
-    @PostMapping("/findById")
-    public ResponseEntity<?> findById(@RequestBody Long id) {
-        Auth auth = authService.findAuth(id);
-        return ResponseEntity.ok().body(ApiResponse.ok(auth, "사용자 정보 조회 성공"));
-    }
-
 
 }

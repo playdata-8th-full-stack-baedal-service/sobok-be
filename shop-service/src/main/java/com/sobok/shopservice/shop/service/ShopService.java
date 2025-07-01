@@ -1,6 +1,7 @@
 package com.sobok.shopservice.shop.service;
 
 
+import com.sobok.shopservice.common.exception.CustomException;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
@@ -9,7 +10,10 @@ import com.sobok.shopservice.shop.entity.Shop;
 import com.sobok.shopservice.shop.repository.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 
 @Service
@@ -23,13 +27,22 @@ public class ShopService {
 
     public AuthShopResDto createShop(ShopSignupReqDto shopSignupReqDto) {
 
+
+        if (shopRepository.findByShopName(shopSignupReqDto.getShopName()).isPresent()) {
+            throw new CustomException("이미 존재하는 상호명입니다.", HttpStatus.CONFLICT);
+        }
+
+        if (shopRepository.findByRoadFull(shopSignupReqDto.getRoadFull()).isPresent()) {
+            throw new CustomException("이미 존재하는 주소입니다.", HttpStatus.CONFLICT);
+        }
+
+
         // ConvertAddressService로 요청 보내서 위도, 경도 받아오기
         UserAddressReqDto reqDto = UserAddressReqDto.builder()
                 .roadFull(shopSignupReqDto.getRoadFull())
                 .build();
 
         UserLocationResDto location = convertAddressService.getLocation(reqDto);
-
 
         Shop shop = Shop.builder()
                 .authId(shopSignupReqDto.getAuthId())
