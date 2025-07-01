@@ -1,13 +1,12 @@
 package com.sobok.authservice.auth.service;
 
 
-
 import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.client.UserServiceClient;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
-import com.sobok.authservice.auth.feign.UserFeignClient;
+//import com.sobok.authservice.auth.feign.UserFeignClient;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
@@ -43,8 +42,6 @@ public class AuthService {
     private final RedisTemplate<String, String> redisStringTemplate;
     private final UserServiceClient userServiceClient;
 
-
-    private final UserFeignClient userFeignClient;
 
     private final DeliveryClient deliveryClient;
 
@@ -149,8 +146,8 @@ public class AuthService {
 
 
         // feign으로 user한테 저장하라고 보내기
-        ResponseEntity<Object> response = userFeignClient.userSignup(messageDto);
-        if(response.getStatusCode().is4xxClientError() ||  response.getStatusCode().is5xxServerError()) {
+        ResponseEntity<Object> response = userServiceClient.userSignup(messageDto);
+        if (response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError()) {
             log.error("사용자 정보 저장 실패");
             throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -376,7 +373,7 @@ public class AuthService {
 
         // auth 정보 조회
         Auth auth = authRepository.findById(authId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 auth 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
 
         // 로그인 ID 일치 확인
         if (!auth.getLoginId().equals(authResetPwReqDto.getLoginId())) {
