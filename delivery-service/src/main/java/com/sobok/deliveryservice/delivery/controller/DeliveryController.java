@@ -23,7 +23,7 @@ public class DeliveryController {
 
     @PostMapping("/signup")
     public ResponseEntity<RiderResDto> signup(@RequestBody @Valid RiderReqDto dto) {
-        log.info(">>> rider signup 요청 들어옴!");
+        log.info("rider signup 요청 들어옴");
         RiderResDto response = deliveryService.riderCreate(dto);
         return ResponseEntity.ok(response);
     }
