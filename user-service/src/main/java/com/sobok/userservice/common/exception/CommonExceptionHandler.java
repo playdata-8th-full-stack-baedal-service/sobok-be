@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+
 @RestControllerAdvice
 @Slf4j
 public class CommonExceptionHandler {
@@ -29,4 +31,12 @@ public class CommonExceptionHandler {
         log.error("예외 발생! 메세지 : {}", e.getMessage());
         return new ResponseEntity<>(ApiResponse.fail(status, "엔티티를 찾을 수 없습니다."), status);
     }
+
+    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
+    public ResponseEntity<?> customExceptionHandler(SQLIntegrityConstraintViolationException e) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        log.error("예외 발생! 메세지 : {}", e.getMessage());
+        return new ResponseEntity<>(ApiResponse.fail(status, "sql 제약조건 위반 에러 발생!"), status);
+    }
+
 }

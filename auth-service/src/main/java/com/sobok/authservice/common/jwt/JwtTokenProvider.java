@@ -13,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -90,7 +92,8 @@ public class JwtTokenProvider {
         redisTemplate.opsForValue().set(
                 REFRESH_TOKEN_KEY + auth.getId().toString(),
                 refreshToken,
-                refreshExpiration * 60 * 60 * 1000
+                refreshExpiration * 60 * 60 * 1000,
+                TimeUnit.MILLISECONDS
         );
     }
 
