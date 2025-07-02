@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuthReqDto {
+public class AuthUserReqDto {
 
     @NotBlank(message = "아이디는 필수 입니다.")
     private String loginId;

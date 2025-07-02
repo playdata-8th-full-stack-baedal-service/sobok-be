@@ -1,25 +1,19 @@
 package com.sobok.authservice.auth.controller;
 
 
-import com.sobok.authservice.auth.client.UserServiceClient;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.service.AuthService;
 import com.sobok.authservice.common.dto.ApiResponse;
-import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.exception.CustomException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 
 
 @RestController
@@ -32,9 +26,9 @@ public class AuthController {
 
 
     @PostMapping("/user-signup")
-    public ResponseEntity<?> createAuth(@Valid @RequestBody AuthReqDto authReqDto) {
+    public ResponseEntity<?> createAuth(@Valid @RequestBody AuthUserReqDto authUserReqDto) {
 
-        AuthResDto userResDto = authService.userCreate(authReqDto);
+        AuthUserResDto userResDto = authService.userCreate(authUserReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userResDto, "회원가입 성공"));
 
     }
