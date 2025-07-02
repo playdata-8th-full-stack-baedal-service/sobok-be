@@ -1,6 +1,8 @@
 package com.sobok.authservice.auth.client;
 
 import com.sobok.authservice.auth.dto.request.RiderReqDto;
+import com.sobok.authservice.auth.dto.response.ByPhoneResDto;
+import com.sobok.authservice.auth.dto.response.UserResDto;
 import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
 import com.sobok.authservice.common.dto.ApiResponse;
@@ -14,4 +16,7 @@ public interface DeliveryClient {
 
     @PostMapping("/delivery/signup")
     ApiResponse<AuthRiderResDto> registerRider(@RequestBody RiderReqDto dto);
+
+    @PostMapping("/api/findByPhoneNumber")
+    ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 }
