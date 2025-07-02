@@ -279,12 +279,6 @@ public class AuthService {
         }
     }
 
-
-//    public void riderCreate(AuthReqDto authReqDto) {
-//        Optional<Auth> findId = authRepository.findByLoginId(authReqDto.getLoginId());
-//
-//        Auth.builder()
-//    }
     @Transactional
     public AuthRiderResDto riderCreate(AuthRiderReqDto authRiderReqDto) {
         // 라이더 Id 중복 확인
