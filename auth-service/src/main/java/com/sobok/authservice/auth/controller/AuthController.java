@@ -24,7 +24,9 @@ public class AuthController {
 
     private final AuthService authService;
 
-
+    /**
+     * user 회원가입
+     */
     @PostMapping("/user-signup")
     public ResponseEntity<?> createAuth(@Valid @RequestBody AuthUserReqDto authUserReqDto) {
 
@@ -33,6 +35,9 @@ public class AuthController {
 
     }
 
+    /**
+     * 임시토큰 발급
+     */
     @GetMapping("/temp-token")
     public ResponseEntity<?> getTempToken() {
         String tempToken = authService.getTempToken();
@@ -88,12 +93,18 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(id, "사용자의 계정이 정상적으로 복구되었습니다."));
     }
 
+    /**
+     * rider 회원가입
+     */
     @PostMapping("/rider-signup")
     public ResponseEntity<?> createRider(@Valid @RequestBody AuthRiderReqDto authRiderReqDto) {
         AuthRiderResDto riderResDto = authService.riderCreate(authRiderReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(riderResDto, "라이더 회원가입 성공"));
     }
 
+    /**
+     * 가게 등록
+     */
     @PostMapping("/shop-signup")
     public ResponseEntity<?> createShop(@Valid @RequestBody AuthShopReqDto authShopReqDto, @AuthenticationPrincipal TokenUserInfo userInfo) {
         AuthShopResDto shopResDto = authService.shopCreate(authShopReqDto, userInfo);
