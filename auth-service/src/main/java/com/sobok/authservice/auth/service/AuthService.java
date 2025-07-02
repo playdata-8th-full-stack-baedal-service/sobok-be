@@ -110,6 +110,18 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * <pre>
+     *     # 사용자 회원가입
+     *     1. 로그인 ID 중복 여부 확인
+     *     2. 비밀번호 암호화 후 Auth 엔티티 생성 및 저장
+     *     3. User 서비스로 사용자 정보 전달
+     *     4. 회원가입 성공 시 AuthUserResDto 반환
+     * </pre>
+     *
+     * @param authUserReqDto 회원가입 요청 데이터
+     * @return AuthUserResDto 회원가입 후 응답 데이터
+     */
     @Transactional
     public AuthUserResDto userCreate(AuthUserReqDto authUserReqDto) {
         // 회원 Id 가져와서 중복 확인
@@ -279,6 +291,18 @@ public class AuthService {
         }
     }
 
+    /**
+     * <pre>
+     *     # 라이더 회원가입
+     *     1. 로그인 ID 중복 여부 확인
+     *     2. 비밀번호 암호화 후 Auth(RIDER) 엔티티 생성 및 저장 (기본 비활성 상태)
+     *     3. delivery-service에 라이더 정보 전달
+     *     4. 회원가입 성공 시 AuthRiderResDto 반환
+     * </pre>
+     *
+     * @param authRiderReqDto 라이더 회원가입 요청 데이터
+     * @return AuthRiderResDto 회원가입 후 응답 데이터
+     */
     @Transactional
     public AuthRiderResDto riderCreate(AuthRiderReqDto authRiderReqDto) {
         // 라이더 Id 중복 확인
@@ -317,6 +341,20 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * <pre>
+     *     # 가게 등록
+     *     1. 로그인 ID 중복 여부 확인
+     *     2. 비밀번호 암호화 후 Auth(HUB) 엔티티 생성 및 저장
+     *     3. shop-service에 가게 정보 전달
+     *     4. 예외 발생 시 상태에 따라 상세 응답 처리
+     *     5. 회원가입 성공 시 AuthShopResDto 반환
+     * </pre>
+     *
+     * @param authShopReqDto 가게 회원가입 요청 데이터
+     * @param userInfo 로그인한 사용자 정보
+     * @return AuthShopResDto 회원가입 후 응답 데이터
+     */
     @Transactional
     public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto, TokenUserInfo userInfo) {
 
