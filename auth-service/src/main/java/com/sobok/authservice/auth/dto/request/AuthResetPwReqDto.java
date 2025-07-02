@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuthResetPwReqDto {
     private String loginId;
-    private String userPhoneNumber;
 
     @NotBlank(message = "비밀번호는 필수 입니다.")
     @Pattern(regexp = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,16}",

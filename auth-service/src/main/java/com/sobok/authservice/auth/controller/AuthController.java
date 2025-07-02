@@ -110,7 +110,7 @@ public class AuthController {
      * 통합 아이디 찾기
      */
     @GetMapping("/findLoginId")
-    public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {
+    public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
         AuthFindIdResDto authFindIdResDto = authService.userFindId(authFindReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
     }
@@ -118,6 +118,14 @@ public class AuthController {
     /**
      * 통합 비밀번호 찾기
      */
+    @PostMapping("/verification")
+    public ResponseEntity<?> authVerification(@Valid @RequestBody AuthVerifyReqDto authVerifyReqDto) {
+        authService.authVerification(authVerifyReqDto);
+        return ResponseEntity.ok()
+                .body(ApiResponse.ok(authVerifyReqDto.getLoginId(), "해당 사용자의 정보 존재 확인 후 인증번호 발송 완료"));
+    }
+
+    //2단계
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody AuthResetPwReqDto authResetPwReqDto) {
         authService.resetPassword(authResetPwReqDto);

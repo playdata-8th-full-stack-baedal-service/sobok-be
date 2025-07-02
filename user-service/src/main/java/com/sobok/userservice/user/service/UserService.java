@@ -36,7 +36,8 @@ public class UserService {
                     .build();
 
         }else {
-            throw new CustomException("해당 번호로 가입하신 정보가 없습니다.", HttpStatus.BAD_REQUEST);
+            log.info("해당 번호로 가입하신 정보가 없습니다.");
+            return null;
         }
   }
 
