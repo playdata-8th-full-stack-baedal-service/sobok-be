@@ -427,7 +427,7 @@ public class AuthService {
      * 통합 비밀번호 찾기
      */
     //1단계
-    public void authVerification(@Valid AuthVerifyReqDto authVerifyReqDto) {
+    public Long authVerification(@Valid AuthVerifyReqDto authVerifyReqDto) {
         //아이디로 auth.loginId가 존재하는지 확인, active "Y"
         Auth auth = authRepository.findByLoginIdAndActive(authVerifyReqDto.getLoginId(), "Y")
                 .orElseThrow(() -> new CustomException("해당 ID의 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
@@ -456,6 +456,7 @@ public class AuthService {
             throw new CustomException("인증번호 전송에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        return auth.getId();
 
     }
 
@@ -463,18 +464,16 @@ public class AuthService {
     public void resetPassword(AuthResetPwReqDto authResetPwReqDto) {
 
         try {
-
             // auth 정보 조회
-            Auth auth = authRepository.findByLoginId(authResetPwReqDto.getLoginId())
+            Auth auth = authRepository.findById(authResetPwReqDto.getAuthId())
                     .orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
-
 
             // 새 비밀번호 암호화 후 저장
             String encodedPassword = passwordEncoder.encode(authResetPwReqDto.getNewPassword());
             auth.changePassword(encodedPassword);
             authRepository.save(auth);
 
-            log.info("비밀번호 변경 완료: authId = {}", authResetPwReqDto.getLoginId());
+            log.info("비밀번호 변경 완료: authId = {}", authResetPwReqDto.getAuthId());
 
         } catch (FeignException e) {
             log.error("user-service 호출 중 오류 발생: {}", e.getMessage());
@@ -505,4 +504,7 @@ public class AuthService {
     }
 
 
+    public void editPassword(Long authId, @Valid AuthEditPwReqDto authEditPwReqDto) {
+        Auth auth = authRepository.findById(authId).orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
+    }
 }
