@@ -396,11 +396,13 @@ public class AuthService {
         }
 
         try {
-            log.info("문자 인증 통과");
-            ApiResponse<UserResDto> response = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
+            log.info("문자 검증 통과");
+
+            // role에 따라 feign 요청 서비스가 달라지도록 수정해야됨
+            ApiResponse<ByPhoneResDto> response = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
 
 
-            UserResDto byPhone = response.getData();
+            ByPhoneResDto byPhone = response.getData();
             log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
 
             Optional<Auth> authById = authRepository.findByIdAndActive(byPhone.getAuthId(), "Y");
@@ -414,10 +416,10 @@ public class AuthService {
                     .build();
 
         } catch (FeignException.BadRequest e) {
-            log.warn("user-service에서 사용자 조회 실패 (400): {}", e.contentUTF8());
+            log.warn("feign 요청에서 사용자 조회 실패 (400): {}", e.contentUTF8());
             throw new CustomException("입력하신 번호로 가입된 계정이 없습니다.", HttpStatus.NOT_FOUND);
         } catch (FeignException e) {
-            log.error("user-service 호출 중 오류 발생: {}", e.getMessage());
+            log.error("feign 호출 중 오류 발생: {}", e.getMessage());
             throw new CustomException("회원 정보 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -433,17 +435,39 @@ public class AuthService {
                 .orElseThrow(() -> new CustomException("해당 ID의 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
 
         log.info("auth: {}", auth.toString());
+        log.info("role: {}", auth.getRole());
 
-        // 전화번호로 user 정보 조회 (user-service) - authId와 해당 전화번호의 authId가 같은지 확인
-        ApiResponse<UserResDto> findUser = userServiceClient.findByPhone(authVerifyReqDto.getUserPhoneNumber());
+        // 전화번호로 정보 조회 (각 service) - authId와 해당 전화번호의 authId가 같은지 확인
+        ApiResponse<ByPhoneResDto> findAuth;
 
-        if (findUser == null || !findUser.isSuccess() || findUser.getData() == null) {
-            throw new CustomException("해당 번호의 사용자 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST);
+        switch (auth.getRole()) {
+            case USER -> {
+                findAuth = userServiceClient.findByPhone(authVerifyReqDto.getUserPhoneNumber());
+                if (findAuth == null || !findAuth.isSuccess() || findAuth.getData() == null) {
+                    throw new CustomException("유저 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+                }
+            }
+
+            case RIDER -> {
+                findAuth = deliveryClient.findByPhone(authVerifyReqDto.getUserPhoneNumber());
+                if (findAuth == null || !findAuth.isSuccess() || findAuth.getData() == null) {
+                    throw new CustomException("라이더 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+                }
+            }
+
+            case HUB -> {
+                findAuth = shopServiceClient.findByPhone(authVerifyReqDto.getUserPhoneNumber());
+                if (findAuth == null || !findAuth.isSuccess() || findAuth.getData() == null) {
+                    throw new CustomException("허브 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+                }
+            }
+
+            default -> throw new CustomException("알 수 없는 사용자 역할입니다.", HttpStatus.BAD_REQUEST);
         }
 
         // auth ID 일치 확인
-        if (!auth.getId().equals(findUser.getData().getAuthId())) {
-            throw new CustomException("해당 ID를 가진 사용자가 없습니다.", HttpStatus.BAD_REQUEST);
+        if (!auth.getId().equals(findAuth.getData().getAuthId())) {
+            throw new CustomException("해당 ID와 전화번호를 가진 사용자가 없습니다.", HttpStatus.BAD_REQUEST);
         }
 
         // 화면단에서는 (authVerifyReqDto 정보로 통과했을 때) 문자 전송보내고 인증번호 입력하는 박스가 나옴
@@ -475,8 +499,7 @@ public class AuthService {
 
             log.info("비밀번호 변경 완료: authId = {}", authResetPwReqDto.getAuthId());
 
-        } catch (FeignException e) {
-            log.error("user-service 호출 중 오류 발생: {}", e.getMessage());
+        } catch (Exception e) {
             throw new CustomException("회원 정보 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -504,7 +527,4 @@ public class AuthService {
     }
 
 
-    public void editPassword(Long authId, @Valid AuthEditPwReqDto authEditPwReqDto) {
-        Auth auth = authRepository.findById(authId).orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
-    }
 }

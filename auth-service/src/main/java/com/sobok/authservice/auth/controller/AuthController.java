@@ -107,7 +107,7 @@ public class AuthController {
     }
 
     /**
-     * 통합 아이디 찾기
+     * 사용자 아이디 찾기
      */
     @GetMapping("/findLoginId")
     public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
