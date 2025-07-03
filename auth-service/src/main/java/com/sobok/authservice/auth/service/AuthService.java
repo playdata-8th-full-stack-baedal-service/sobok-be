@@ -116,35 +116,45 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * <pre>
+     *     # 사용자 회원가입
+     *     1. 로그인 ID 중복 여부 확인
+     *     2. 비밀번호 암호화 후 Auth 엔티티 생성 및 저장
+     *     3. User 서비스로 사용자 정보 전달
+     *     4. 회원가입 성공 시 AuthUserResDto 반환
+     * </pre>
+     *
+     * @param authUserReqDto 회원가입 요청 데이터
+     * @return AuthUserResDto 회원가입 후 응답 데이터
+     */
     @Transactional
-    public AuthResDto userCreate(AuthReqDto authReqDto) {
-        // 회원 아이디 가져오기
-        Optional<Auth> findByLoginId = authRepository.findByLoginId(authReqDto.getLoginId());
+    public AuthUserResDto userCreate(AuthUserReqDto authUserReqDto) {
+        // 회원 Id 가져와서 중복 확인
+        authRepository.findByLoginId(authUserReqDto.getLoginId())
+                .ifPresent(auth -> {
+                    throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
+                });
 
-        // 중복 체크
-        if (findByLoginId.isPresent()) {
-            throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        Auth userEntity = Auth.builder()
-                .loginId(authReqDto.getLoginId())
-                .password(passwordEncoder.encode(authReqDto.getPassword()))
+        Auth authEntity = Auth.builder()
+                .loginId(authUserReqDto.getLoginId())
+                .password(passwordEncoder.encode(authUserReqDto.getPassword()))
                 .role(Role.USER)
                 .active("Y")
                 .build();
 
-        Auth saved = authRepository.save(userEntity); // DB에 저장
+        Auth saved = authRepository.save(authEntity); // DB에 저장
 
 
         // 사용자 회원가입에 필요한 정보 전달 객체 생성
         UserSignupReqDto messageDto = UserSignupReqDto.builder()
                 .authId(saved.getId())
-                .nickname(authReqDto.getNickname())
-                .email(authReqDto.getEmail())
-                .phone(authReqDto.getPhone())
-                .photo(authReqDto.getPhoto())
-                .roadFull(authReqDto.getRoadFull())
-                .addrDetail(authReqDto.getAddrDetail())
+                .nickname(authUserReqDto.getNickname())
+                .email(authUserReqDto.getEmail())
+                .phone(authUserReqDto.getPhone())
+                .photo(authUserReqDto.getPhoto())
+                .roadFull(authUserReqDto.getRoadFull())
+                .addrDetail(authUserReqDto.getAddrDetail())
                 .build();
 
         // 비동기로 user service에서 회원가입 진행
@@ -161,9 +171,9 @@ public class AuthService {
 
         log.info("회원가입 성공: {}", saved);
 
-        return AuthResDto.builder()
+        return AuthUserResDto.builder()
                 .id(saved.getId())
-                .nickname(authReqDto.getNickname())
+                .nickname(authUserReqDto.getNickname())
                 .build();
 
     }
@@ -287,29 +297,36 @@ public class AuthService {
         }
     }
 
-
-    //    public void riderCreate(AuthReqDto authReqDto) {
-//        Optional<Auth> findId = authRepository.findByLoginId(authReqDto.getLoginId());
-//
-//        Auth.builder()
-//    }
+    /**
+     * <pre>
+     *     # 라이더 회원가입
+     *     1. 로그인 ID 중복 여부 확인
+     *     2. 비밀번호 암호화 후 Auth(RIDER) 엔티티 생성 및 저장 (기본 비활성 상태)
+     *     3. delivery-service에 라이더 정보 전달
+     *     4. 회원가입 성공 시 AuthRiderResDto 반환
+     * </pre>
+     *
+     * @param authRiderReqDto 라이더 회원가입 요청 데이터
+     * @return AuthRiderResDto 회원가입 후 응답 데이터
+     */
     @Transactional
     public AuthRiderResDto riderCreate(AuthRiderReqDto authRiderReqDto) {
-        Optional<Auth> findByLoginId = authRepository.findByLoginId(authRiderReqDto.getLoginId());
+        // 라이더 Id 중복 확인
+        authRepository.findByLoginId(authRiderReqDto.getLoginId())
+                .ifPresent(auth -> {
+                    throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
 
-        if (findByLoginId.isPresent()) {
-            throw new CustomException("이미 존재하는 아이디 입니다.", HttpStatus.BAD_REQUEST);
-        }
+                });
 
         // 인증 정보 저장
-        Auth riderEntity = Auth.builder()
+        Auth authEntity = Auth.builder()
                 .loginId(authRiderReqDto.getLoginId())
                 .password(passwordEncoder.encode(authRiderReqDto.getPassword()))
                 .role(Role.RIDER)
                 .active("N") // 기본 비활성
                 .build();
 
-        Auth saved = authRepository.save(riderEntity);
+        Auth saved = authRepository.save(authEntity);
 
         // delivery-service에 rider 정보 전달
         RiderReqDto riderDto = RiderReqDto.builder()
@@ -321,7 +338,7 @@ public class AuthService {
 
         deliveryClient.registerRider(riderDto);
 
-        log.info("라이더 회원가입 완료 및 배달 정보 전송 완료: {}", saved);
+        log.info("라이더 회원가입 완료: {}", saved);
 
         // 응답 반환
         return AuthRiderResDto.builder()
@@ -330,25 +347,36 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * <pre>
+     *     # 가게 등록
+     *     1. 로그인 ID 중복 여부 확인
+     *     2. 비밀번호 암호화 후 Auth(HUB) 엔티티 생성 및 저장
+     *     3. shop-service에 가게 정보 전달
+     *     4. 예외 발생 시 상태에 따라 상세 응답 처리
+     *     5. 회원가입 성공 시 AuthShopResDto 반환
+     * </pre>
+     *
+     * @param authShopReqDto 가게 회원가입 요청 데이터
+     * @param userInfo 로그인한 사용자 정보
+     * @return AuthShopResDto 회원가입 후 응답 데이터
+     */
     @Transactional
     public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto, TokenUserInfo userInfo) {
-        log.info("authShopReqDto: {}", authShopReqDto.toString());
-        log.info("userInfo: {}", userInfo);
 
-        Optional<Auth> findByLoginId = authRepository.findByLoginId(authShopReqDto.getLoginId());
+        authRepository.findByLoginId(authShopReqDto.getLoginId())
+                .ifPresent(auth -> {
+                    throw new CustomException("이미 존재하는 가게입니다.", HttpStatus.BAD_REQUEST);
+                });
 
-        if (findByLoginId.isPresent()) {
-            throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        Auth shopEntity = Auth.builder()
+        Auth authEntity = Auth.builder()
                 .loginId(authShopReqDto.getLoginId())
                 .password(passwordEncoder.encode(authShopReqDto.getPassword()))
                 .role(Role.HUB)
                 .active("Y")
                 .build();
 
-        Auth saved = authRepository.save(shopEntity);
+        Auth saved = authRepository.save(authEntity);
 
         // 사용자 회원가입에 필요한 정보 전달 객체 생성
         ShopSignupReqDto shopDto = ShopSignupReqDto.builder()

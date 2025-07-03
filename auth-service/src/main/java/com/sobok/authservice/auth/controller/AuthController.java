@@ -1,27 +1,21 @@
 package com.sobok.authservice.auth.controller;
 
 
-import com.sobok.authservice.auth.client.UserServiceClient;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.service.AuthService;
 import com.sobok.authservice.common.dto.ApiResponse;
-import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.exception.CustomException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/auth")
@@ -31,15 +25,20 @@ public class AuthController {
 
     private final AuthService authService;
 
-
+    /**
+     * user 회원가입
+     */
     @PostMapping("/user-signup")
-    public ResponseEntity<?> createAuth(@Valid @RequestBody AuthReqDto authReqDto) {
+    public ResponseEntity<?> createAuth(@Valid @RequestBody AuthUserReqDto authUserReqDto) {
 
-        AuthResDto userResDto = authService.userCreate(authReqDto);
+        AuthUserResDto userResDto = authService.userCreate(authUserReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userResDto, "회원가입 성공"));
 
     }
 
+    /**
+     * 임시토큰 발급
+     */
     @GetMapping("/temp-token")
     public ResponseEntity<?> getTempToken() {
         String tempToken = authService.getTempToken();
@@ -95,12 +94,18 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(id, "사용자의 계정이 정상적으로 복구되었습니다."));
     }
 
+    /**
+     * rider 회원가입
+     */
     @PostMapping("/rider-signup")
     public ResponseEntity<?> createRider(@Valid @RequestBody AuthRiderReqDto authRiderReqDto) {
         AuthRiderResDto riderResDto = authService.riderCreate(authRiderReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(riderResDto, "라이더 회원가입 성공"));
     }
 
+    /**
+     * 가게 등록
+     */
     @PostMapping("/shop-signup")
     public ResponseEntity<?> createShop(@Valid @RequestBody AuthShopReqDto authShopReqDto, @AuthenticationPrincipal TokenUserInfo userInfo) {
         AuthShopResDto shopResDto = authService.shopCreate(authShopReqDto, userInfo);

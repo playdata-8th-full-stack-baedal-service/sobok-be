@@ -20,6 +20,9 @@ public class AdminFeignController {
 
     private final AdminFeignClient adminFeignClient;
 
+    /**
+     * rider 회원가입 승인 요청
+     */
     @PutMapping("/rider-active")
     // 데이터 응답이 null 이라 Void로 설정
     public ResponseEntity<ApiResponse<Void>> activeRider(
