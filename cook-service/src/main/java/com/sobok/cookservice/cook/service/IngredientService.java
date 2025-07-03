@@ -3,6 +3,7 @@ package com.sobok.cookservice.cook.service;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.exception.CustomException;
+import com.sobok.cookservice.cook.dto.request.IngreEditReqDto;
 import com.sobok.cookservice.cook.dto.request.IngreReqDto;
 import com.sobok.cookservice.cook.dto.request.KeywordSearchReqDto;
 import com.sobok.cookservice.cook.dto.response.IngreResDto;
@@ -68,6 +69,7 @@ public class IngredientService {
         return factory
                 .select(Projections.fields(
                         IngreResDto.class,
+                        ingredient.id,
                         ingredient.ingreName,
                         ingredient.price,
                         ingredient.origin,
@@ -77,5 +79,18 @@ public class IngredientService {
                 .where(builder)
                 .orderBy(ingredient.ingreName.asc())
                 .fetch();
+    }
+
+    /**
+     * 식재료 정보 수정 (관리자)
+     */
+    public void ingreEdit(IngreEditReqDto newReqDto) {
+        log.info("newReqDto: {}", newReqDto);
+        Ingredient ingredient = ingredientRepository.findById(newReqDto.getId()).orElseThrow(
+                () -> new CustomException("해당 식재료가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
+        );
+        ingredient.update(newReqDto);
+        ingredientRepository.save(ingredient);
+        log.info("정보 변경 완료");
     }
 }
