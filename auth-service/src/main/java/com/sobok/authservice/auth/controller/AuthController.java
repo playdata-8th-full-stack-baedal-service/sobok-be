@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 
 @RestController
@@ -111,7 +112,7 @@ public class AuthController {
      */
     @GetMapping("/findLoginId")
     public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
-        AuthFindIdResDto authFindIdResDto = authService.userFindId(authFindReqDto);
+        List<AuthFindIdResDto> authFindIdResDto = authService.userFindId(authFindReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
     }
 

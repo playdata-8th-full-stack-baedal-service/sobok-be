@@ -28,7 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sobok.authservice.common.util.Constants.*;
 
@@ -386,7 +390,7 @@ public class AuthService {
      *
      * @return
      */
-    public AuthFindIdResDto userFindId(AuthFindIdReqDto authFindIdReqDto) {
+    public List<AuthFindIdResDto> userFindId(AuthFindIdReqDto authFindIdReqDto) {
         boolean isVerified = smsService.verifySmsCode(authFindIdReqDto.getUserPhoneNumber(), authFindIdReqDto.getUserInputCode());
 
         log.info("isVerified: {}", isVerified);
@@ -398,22 +402,39 @@ public class AuthService {
         try {
             log.info("문자 검증 통과");
 
-            // role에 따라 feign 요청 서비스가 달라지도록 수정해야됨
-            ApiResponse<ByPhoneResDto> response = userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber());
+            // 모든 서비스에 요청보내서 유효한 값만 리스트에 담기
+            List<ApiResponse<ByPhoneResDto>> response = Stream.of(
+                            userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber()),
+                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
+//                            deliveryClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
+                    ).filter(resp -> resp != null && resp.getData() != null)
+                    .toList();
 
+            log.info("페인으로 응답받은 response <ByPhoneResDto>: {}", response);
 
-            ByPhoneResDto byPhone = response.getData();
-            log.info("user-service에서 받아온 user 정보: {}", byPhone.toString());
+            // 각 응답에서 authId 추출 → authRepository 조회 → AuthFindIdResDto로 변환
+            List<AuthFindIdResDto> result = new ArrayList<>();
 
-            Optional<Auth> authById = authRepository.findByIdAndActive(byPhone.getAuthId(), "Y");
+            for (ApiResponse<ByPhoneResDto> res : response) {
+                Long authId = res.getData().getAuthId();
 
-            if (authById.isEmpty()) {
+                Optional<Auth> authById = authRepository.findByIdAndActive(authId, "Y");
+
+                authById.ifPresent(auth -> {
+                    AuthFindIdResDto dto = AuthFindIdResDto.builder()
+                            .loginId(auth.getLoginId())
+                            .build();
+
+                    result.add(dto);
+                });
+            }
+
+            // 결과가 없다면 예외
+            if (result.isEmpty()) {
                 throw new CustomException("해당 AUTH 정보가 없습니다.", HttpStatus.NOT_FOUND);
             }
 
-            return AuthFindIdResDto.builder()
-                    .loginId(authById.get().getLoginId())
-                    .build();
+            return result;
 
         } catch (FeignException.BadRequest e) {
             log.warn("feign 요청에서 사용자 조회 실패 (400): {}", e.contentUTF8());
