@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/actuator/**", "/ingredient/keyword-search"
+                                , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
