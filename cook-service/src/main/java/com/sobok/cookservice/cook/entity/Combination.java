@@ -24,4 +24,8 @@ public class Combination {
 
     @Column(name = "unit_quantity")
     private Integer unitQuantity;
+
+    @ManyToOne(fetch = FetchType.LAZY) // 식재료 테이블과 연관관계 설정
+    @JoinColumn(name = "ingre_id", insertable = false, updatable = false) // db에 저장 x
+    private Ingredient ingredient;
 }
