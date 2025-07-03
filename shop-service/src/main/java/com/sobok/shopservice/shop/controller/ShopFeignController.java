@@ -1,6 +1,7 @@
 package com.sobok.shopservice.shop.controller;
 
 import com.sobok.shopservice.common.dto.ApiResponse;
+import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
 import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
@@ -8,10 +9,7 @@ import com.sobok.shopservice.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -33,5 +31,11 @@ public class ShopFeignController {
         log.info("검색한 사용자 정보 with phone number: {}", byPhoneNumber);
         return ResponseEntity.ok().body(ApiResponse.ok(byPhoneNumber, "전화번호로 찾은 shop 정보입니다."));
 
+    }
+
+    @GetMapping("/shop-info")
+    public ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId) {
+        AuthShopInfoResDto resDto = shopService.getInfo(authId);
+        return ResponseEntity.ok().body(resDto);
     }
 }
