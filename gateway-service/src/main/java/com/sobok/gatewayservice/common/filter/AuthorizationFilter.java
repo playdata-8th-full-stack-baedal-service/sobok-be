@@ -43,6 +43,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             "/ingredient/keyword-search",
             "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email","/auth/check-permission",
             "/auth/check-shopName", "/auth/check-shopAddress"
+            , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
     );
 
     /**

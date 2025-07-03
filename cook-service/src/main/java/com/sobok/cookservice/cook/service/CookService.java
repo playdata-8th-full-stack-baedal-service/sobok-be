@@ -1,11 +1,17 @@
 package com.sobok.cookservice.cook.service;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.CookCreateResDto;
+import com.sobok.cookservice.cook.dto.response.CookResDto;
 import com.sobok.cookservice.cook.entity.Combination;
 import com.sobok.cookservice.cook.entity.Cook;
 import com.sobok.cookservice.cook.entity.Ingredient;
+import com.sobok.cookservice.cook.entity.QCook;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
@@ -17,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.sobok.cookservice.cook.entity.QCook.cook;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -26,6 +34,7 @@ public class CookService {
     private final CookRepository cookRepository;
     private final CombinationRepository combinationRepository;
     private final IngredientRepository ingredientRepository;
+    private final JPAQueryFactory factory;
 
     @Transactional
     public CookCreateResDto createCook(CookCreateReqDto dto) {
@@ -76,4 +85,55 @@ public class CookService {
     }
 
 
+    public List<CookResDto> getCook(Long pageNo, Long numOfRows) {
+        // 전체 조회
+        return searchCook("", pageNo, numOfRows);
+    }
+
+    public List<CookResDto> searchCook(String keyword, Long pageNo, Long numOfRows) {
+        // offset은 0부터 시작
+        long offset = (pageNo - 1) * numOfRows;
+
+        log.info(keyword);
+
+        // 조건 분기
+        BooleanBuilder builder = new BooleanBuilder();
+        try {
+            if (keyword.startsWith("category:")) { // 카테고리 조회
+                // 카테고리 뽑기
+                String category = keyword.replace("category:", "").toUpperCase();
+                log.info(category);
+                CookCategory categoryEnum = CookCategory.valueOf(category);
+
+                builder.and(cook.category.eq(categoryEnum));
+            } else if(!keyword.isBlank()) { // 전체 조회
+                builder.and(cook.name.contains(keyword));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new CustomException("잘못된 카테고리 입력입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+
+        return factory.select(
+                        Projections.fields(
+                                CookResDto.class,
+                                cook.id,
+                                cook.name,
+                                cook.allergy,
+                                cook.recipe,
+                                cook.category,
+                                cook.thumbnail
+                        )
+                )
+                .from(cook)
+                .where(builder)
+                .offset(offset)
+                .limit(numOfRows)
+                .fetch();
+    }
+
+    public List<CookResDto> getCookByCategory(String category, Long pageNo, Long numOfRows) {
+        // 카테고리 조회
+        return searchCook("category:" + category, pageNo, numOfRows);
+    }
 }
