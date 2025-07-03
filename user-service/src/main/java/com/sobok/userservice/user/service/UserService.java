@@ -1,6 +1,8 @@
 package com.sobok.userservice.user.service;
 
+import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.common.exception.CustomException;
+import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
@@ -118,5 +120,18 @@ public class UserService {
                 .email(user.getEmail())
                 .addresses(userAddress)
                 .build();
+    }
+
+    public void editEmail(TokenUserInfo userInfo, UserEmailDto reqDto) {
+        // 사용자 찾기
+        User user = userRepository.findByAuthId(userInfo.getId()).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        // 이메일 넣기
+        user.setEmail(reqDto.getEmail());
+
+        // 저장
+        userRepository.save(user);
     }
 }
