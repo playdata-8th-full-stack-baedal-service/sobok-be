@@ -4,8 +4,6 @@ import com.sobok.cookservice.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor
@@ -14,7 +12,6 @@ import java.time.LocalDateTime;
 @ToString
 @Table(name = "cook")
 public class Cook extends BaseTimeEntity {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
