@@ -575,5 +575,30 @@ public class AuthService {
         return jwtTokenProvider.generateTempToken();
     }
 
+    /**
+     * loginId 중복 체크 (auth-service 내)
+     */
+    public void checkLoginId(String loginId) {
+        if (authRepository.findByLoginId(loginId).isPresent()) {
+            throw new CustomException("이미 사용 중인 아이디입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 
+    /**
+     * nickname 중복 체크 (user-service 호출)
+     */
+    public void checkNickname(String nickname) {
+        if (userServiceClient.checkNickname(nickname)) {
+            throw new CustomException("이미 사용 중인 닉네임입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * email 중복 체크 (user-service 호출)
+     */
+    public void checkEmail(String email) {
+        if (userServiceClient.checkEmail(email)) {
+            throw new CustomException("이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 }

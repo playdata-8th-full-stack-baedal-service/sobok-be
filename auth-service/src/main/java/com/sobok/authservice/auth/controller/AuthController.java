@@ -37,6 +37,33 @@ public class AuthController {
     }
 
     /**
+     * 아이디 중복 확인
+     */
+    @GetMapping("/check-id")
+    public ResponseEntity<?> checkLoginId(@RequestParam String loginId) {
+        authService.checkLoginId(loginId);
+        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 아이디입니다."));
+    }
+
+    /**
+     * user 닉네임 중복 확인
+     */
+    @GetMapping("/check-nickname")
+    public ResponseEntity<?> checkNickname(@RequestParam String nickname) {
+        authService.checkNickname(nickname);
+        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 닉네임입니다."));
+    }
+
+    /**
+     * email 중복 확인
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        authService.checkEmail(email);
+        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 이메일입니다."));
+    }
+
+    /**
      * 임시토큰 발급
      */
     @GetMapping("/temp-token")

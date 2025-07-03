@@ -20,4 +20,10 @@ public interface UserServiceClient {
 
     @PostMapping("/api/signup")
     ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto);
+
+    @GetMapping("/api/check-nickname")
+    Boolean checkNickname(@RequestParam String nickname);
+
+    @GetMapping("/api/check-email")
+    Boolean checkEmail(@RequestParam String email);
 }
