@@ -1,16 +1,14 @@
 package com.sobok.cookservice.cook.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Builder
+@ToString
 @Table(name = "ingredient")
 public class Ingredient {
 
