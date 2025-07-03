@@ -2,6 +2,7 @@ package com.sobok.userservice.user.controller;
 
 
 import com.sobok.userservice.common.dto.ApiResponse;
+import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.service.UserService;
@@ -45,7 +46,13 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(address, "사용자의 주소를 성공적으로 조회하였습니다."));
     }
 
-    // TODO : 이메일, 사진 추가 변경 가능해야 함.
+    @PostMapping("/editEmail")
+    public ResponseEntity<?> editEmail(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserEmailDto reqDto) {
+        userService.editEmail(userInfo, reqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 변경하였습니다."));
+    }
+
+    // TODO : 사진 추가 변경 가능해야 함.
 
 
 }

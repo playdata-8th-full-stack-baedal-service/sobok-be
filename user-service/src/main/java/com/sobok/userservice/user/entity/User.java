@@ -22,6 +22,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String nickname;
 
+    @Setter
     @Column(unique = true, nullable = true)
     private String email;
 
@@ -30,4 +31,5 @@ public class User {
 
     @Column(unique = true, nullable = false)
     private String phone;
+
 }
