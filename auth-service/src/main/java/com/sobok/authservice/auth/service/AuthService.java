@@ -358,7 +358,7 @@ public class AuthService {
      * </pre>
      *
      * @param authShopReqDto 가게 회원가입 요청 데이터
-     * @param userInfo 로그인한 사용자 정보
+     * @param userInfo       로그인한 사용자 정보
      * @return AuthShopResDto 회원가입 후 응답 데이터
      */
     @Transactional
@@ -607,11 +607,25 @@ public class AuthService {
      */
     public void checkPermission(String permission) {
         if (deliveryClient.checkPermission(permission)) {
-           throw new CustomException("사용할 수 없는 면허번호 입니다.", HttpStatus.BAD_REQUEST);
+            throw new CustomException("사용할 수 없는 면허번호 입니다.", HttpStatus.BAD_REQUEST);
         }
     }
 
+    /**
+     * 가게 이름 중복 체크
+     */
+    public void checkShopName(String shopName) {
+        if (shopServiceClient.checkShopName(shopName)) {
+            throw new CustomException("이미 등록된 지점명 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 
-
-
+    /**
+     * 가게 주소 중복 체크
+     */
+    public void checkShopAddress(String shopAddress) {
+        if (shopServiceClient.checkShopAddress(shopAddress)) {
+            throw new CustomException("중복된 가게 주소 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 }
