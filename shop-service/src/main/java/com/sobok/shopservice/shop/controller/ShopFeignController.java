@@ -35,7 +35,6 @@ public class ShopFeignController {
 
     }
 
-
     /**
      * 가게 이름 중복 확인
      */
@@ -49,11 +48,12 @@ public class ShopFeignController {
     @GetMapping("/check-shopAddress")
     public ResponseEntity<Boolean> checkShopAddress(@RequestParam String shopAddress) {
         return ResponseEntity.ok(shopRepository.existsByRoadFull((shopAddress)));
-
+    }
 
     @GetMapping("/shop-info")
     public ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId) {
         AuthShopInfoResDto resDto = shopService.getInfo(authId);
         return ResponseEntity.ok().body(resDto);
     }
+
 }
