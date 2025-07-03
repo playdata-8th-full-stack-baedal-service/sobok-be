@@ -1,6 +1,7 @@
 package com.sobok.cookservice.cook.entity;
 
 import com.sobok.cookservice.common.entity.BaseTimeEntity;
+import com.sobok.cookservice.common.enums.CookCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,8 +26,9 @@ public class Cook extends BaseTimeEntity {
     @Column(nullable = false)
     private String recipe;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String category;
+    private CookCategory category;
 
     @Column(nullable = false, unique = true)
     private String thumbnail;
