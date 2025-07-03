@@ -35,11 +35,17 @@ public class UserFeignController {
 
     }
 
+    /**
+     * 닉네임 중복 검증
+     */
     @GetMapping("/check-nickname")
     public ResponseEntity<Boolean> checkNickname(@RequestParam String nickname) {
         return ResponseEntity.ok(userRepository.existsByNickname(nickname));
     }
 
+    /**
+     * 이메일 중복 검증
+     */
     @GetMapping("/check-email")
     public ResponseEntity<Boolean> checkEmail(@RequestParam String email) {
         return ResponseEntity.ok(userRepository.existsByEmail(email));

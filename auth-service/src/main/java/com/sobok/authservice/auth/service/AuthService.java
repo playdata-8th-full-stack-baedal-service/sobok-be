@@ -576,7 +576,7 @@ public class AuthService {
     }
 
     /**
-     * loginId 중복 체크 (auth-service 내)
+     * loginId 중복 체크
      */
     public void checkLoginId(String loginId) {
         if (authRepository.findByLoginId(loginId).isPresent()) {
@@ -585,7 +585,7 @@ public class AuthService {
     }
 
     /**
-     * nickname 중복 체크 (user-service 호출)
+     * nickname 중복 체크
      */
     public void checkNickname(String nickname) {
         if (userServiceClient.checkNickname(nickname)) {
@@ -594,7 +594,7 @@ public class AuthService {
     }
 
     /**
-     * email 중복 체크 (user-service 호출)
+     * email 중복 체크
      */
     public void checkEmail(String email) {
         if (userServiceClient.checkEmail(email)) {
