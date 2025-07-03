@@ -14,7 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -112,22 +113,42 @@ public class AuthController {
     }
 
     /**
-     * 통합 아이디 찾기
+     * 사용자 아이디 찾기
      */
     @GetMapping("/findLoginId")
-    public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {
-        AuthFindIdResDto authFindIdResDto = authService.userFindId(authFindReqDto);
+    public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
+        List<AuthFindIdResDto> authFindIdResDto = authService.userFindId(authFindReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
     }
 
     /**
      * 통합 비밀번호 찾기
      */
+    @PostMapping("/verification")
+    public ResponseEntity<?> authVerification(@Valid @RequestBody AuthVerifyReqDto authVerifyReqDto) {
+        Long authId = authService.authVerification(authVerifyReqDto);
+        return ResponseEntity.ok()
+                .body(ApiResponse.ok(authId, "해당 사용자의 정보 존재 확인 후 인증번호 발송 완료"));
+    }
+
+    //2단계
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody AuthResetPwReqDto authResetPwReqDto) {
         authService.resetPassword(authResetPwReqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getLoginId(), "사용자의 비밀번호가 변경되었습니다."));
+        return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getAuthId(), "사용자의 비밀번호가 변경되었습니다."));
 
+    }
+
+    /**
+     * 통합 비밀번호 변경
+     */
+    @PatchMapping("/edit-password")
+    public ResponseEntity<?> editPassword(@AuthenticationPrincipal TokenUserInfo userInfo, @Valid @RequestBody AuthEditPwReqDto authEditPwReqDto) {
+        AuthResetPwReqDto authResetPwReqDto = AuthResetPwReqDto.builder().authId(userInfo.getId())
+                .newPassword(authEditPwReqDto.getNewPassword())
+                .build();
+        authService.resetPassword(authResetPwReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getAuthId(), "사용자의 비밀번호가 변경되었습니다."));
     }
 
 }

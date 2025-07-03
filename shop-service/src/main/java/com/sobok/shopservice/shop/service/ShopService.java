@@ -5,6 +5,7 @@ import com.sobok.shopservice.common.exception.CustomException;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
+import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
 import com.sobok.shopservice.shop.dto.response.UserLocationResDto;
 import com.sobok.shopservice.shop.entity.Shop;
 import com.sobok.shopservice.shop.repository.ShopRepository;
@@ -63,5 +64,22 @@ public class ShopService {
                 .shopName(saved.getShopName())
                 .ownerName(saved.getOwnerName())
                 .build();
+    }
+
+    public ByPhoneResDto findByPhoneNumber(String phoneNumber) {
+        Optional<Shop> byPhone = shopRepository.findByPhone(phoneNumber);
+        if (byPhone.isPresent()) {
+            Shop shop = byPhone.get();
+            log.info("전화번호로 얻어온 shop 정보: {}", byPhone.toString());
+            return ByPhoneResDto.builder()
+                    .id(shop.getId())
+                    .authId(shop.getAuthId())
+                    .phone(shop.getPhone())
+                    .build();
+
+        } else {
+            log.info("해당 번호로 가입하신 정보가 없습니다.");
+            return null;
+        }
     }
 }

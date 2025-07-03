@@ -3,10 +3,7 @@ package com.sobok.authservice.auth.entity;
 import com.sobok.authservice.common.entity.BaseTimeEntity;
 import com.sobok.authservice.common.enums.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -18,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Builder
+@ToString
 @Table(name = "auth")
 public class Auth extends BaseTimeEntity {
 

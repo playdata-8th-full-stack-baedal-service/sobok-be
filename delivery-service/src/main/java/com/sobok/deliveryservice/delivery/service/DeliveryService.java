@@ -2,15 +2,20 @@ package com.sobok.deliveryservice.delivery.service;
 
 import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
+import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.entity.Rider;
 import com.sobok.deliveryservice.delivery.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class DeliveryService {
 
     private final RiderRepository riderRepository;
@@ -40,5 +45,22 @@ public class DeliveryService {
                 .phone(saved.getPhone())
                 .permissionNumber(saved.getPermissionNumber())
                 .build();
+    }
+
+    public ByPhoneResDto findByPhoneNumber(String phoneNumber) {
+        Optional<Rider> byPhone = riderRepository.findByPhone(phoneNumber);
+        if (byPhone.isPresent()) {
+            Rider rider = byPhone.get();
+            log.info("전화번호로 얻어온 rider 정보: {}", byPhone.toString());
+            return ByPhoneResDto.builder()
+                    .id(rider.getId())
+                    .authId(rider.getAuthId())
+                    .phone(rider.getPhone())
+                    .build();
+
+        } else {
+            log.info("해당 번호로 가입하신 정보가 없습니다.");
+            return null;
+        }
     }
 }

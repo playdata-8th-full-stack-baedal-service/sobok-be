@@ -2,10 +2,12 @@ package com.sobok.authservice.common.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 
 @Builder
 @Getter
+@ToString
 public class ApiResponse<T> {
     private final boolean success;
     private final T data;

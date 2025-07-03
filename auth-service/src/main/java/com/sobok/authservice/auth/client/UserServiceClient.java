@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface UserServiceClient {
 
     @PostMapping("/api/findByPhoneNumber")
-    ApiResponse<UserResDto> findByPhone(@RequestBody String phoneNumber);
+    ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
     @PostMapping("/api/signup")
     ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto);

@@ -3,6 +3,7 @@ package com.sobok.shopservice.shop.controller;
 import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
+import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
 import com.sobok.shopservice.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,5 +25,13 @@ public class ShopFeignController {
     public ResponseEntity<?> registerShop(@RequestBody ShopSignupReqDto shopSignupReqDto) {
         AuthShopResDto shop = shopService.createShop(shopSignupReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(shop, "가게가 등록되었습니다."));
+    }
+
+    @PostMapping("/findByPhoneNumber")
+    public ResponseEntity<?> getUser(@RequestBody String phoneNumber) {
+        ByPhoneResDto byPhoneNumber = shopService.findByPhoneNumber(phoneNumber);
+        log.info("검색한 사용자 정보 with phone number: {}", byPhoneNumber);
+        return ResponseEntity.ok().body(ApiResponse.ok(byPhoneNumber, "전화번호로 찾은 shop 정보입니다."));
+
     }
 }

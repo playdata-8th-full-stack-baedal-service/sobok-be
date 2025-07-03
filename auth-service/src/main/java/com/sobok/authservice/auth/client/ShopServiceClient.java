@@ -2,6 +2,8 @@ package com.sobok.authservice.auth.client;
 
 import com.sobok.authservice.auth.dto.request.ShopSignupReqDto;
 import com.sobok.authservice.auth.dto.response.AuthShopResDto;
+import com.sobok.authservice.auth.dto.response.ByPhoneResDto;
+import com.sobok.authservice.auth.dto.response.UserResDto;
 import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -13,5 +15,8 @@ public interface ShopServiceClient {
 
     @PostMapping("/api/register")
     ApiResponse<AuthShopResDto> shopSignup(@RequestBody ShopSignupReqDto shopDto);
+
+    @PostMapping("/api/findByPhoneNumber")
+    ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
 }
