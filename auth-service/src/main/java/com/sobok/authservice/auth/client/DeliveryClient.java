@@ -24,6 +24,12 @@ public interface DeliveryClient {
     @PostMapping("/api/findByPhoneNumber")
     ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
+
+    // 라이더 면허 번호 검증
+    @GetMapping("/api/check-permission")
+    boolean checkPermission(@RequestParam String permission);
+
     @GetMapping("/api/rider-info")
     ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId);
+
 }

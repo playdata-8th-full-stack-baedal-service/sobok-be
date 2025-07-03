@@ -23,6 +23,14 @@ public interface UserServiceClient {
     @PostMapping("/api/signup")
     ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto);
 
+    // 닉네임 중복 검증
+    @GetMapping("/api/check-nickname")
+    Boolean checkNickname(@RequestParam String nickname);
+
+    // 이메일 중복 검증
+    @GetMapping("/api/check-email")
+    Boolean checkEmail(@RequestParam String email);
+  
     @GetMapping("/api/user-info")
     ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId);
 }
