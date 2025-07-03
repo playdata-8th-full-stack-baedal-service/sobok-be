@@ -49,6 +49,7 @@ public class ShopFeignController {
     @GetMapping("/check-shopAddress")
     public ResponseEntity<Boolean> checkShopAddress(@RequestParam String shopAddress) {
         return ResponseEntity.ok(shopRepository.existsByRoadFull((shopAddress)));
+    }
 
 
     @GetMapping("/shop-info")
