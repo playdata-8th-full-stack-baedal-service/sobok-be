@@ -3,14 +3,12 @@ package com.sobok.deliveryservice.delivery.controller;
 import com.sobok.deliveryservice.common.dto.ApiResponse;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
+import com.sobok.deliveryservice.delivery.repository.RiderRepository;
 import com.sobok.deliveryservice.delivery.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -19,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class DeliveryFeignController {
 
     private final DeliveryService deliveryService;
+    private final RiderRepository riderRepository;
+
 
     @PostMapping("/findByPhoneNumber")
     public ResponseEntity<?> getUser(@RequestBody String phoneNumber) {
@@ -27,4 +27,14 @@ public class DeliveryFeignController {
         return ResponseEntity.ok().body(ApiResponse.ok(byPhoneNumber, "전화번호로 찾은 rider 정보입니다."));
 
     }
+
+    /**
+     * 라이더 면허 번호 중복 검증
+     */
+    @GetMapping("/check-permission")
+    public ResponseEntity<Boolean> checkPermission(@RequestParam String permission) {
+        return ResponseEntity.ok((riderRepository.existsByPermissionNumber(permission)));
+
+    }
+
 }

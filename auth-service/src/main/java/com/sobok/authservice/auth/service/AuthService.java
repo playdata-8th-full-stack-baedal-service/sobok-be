@@ -601,4 +601,17 @@ public class AuthService {
             throw new CustomException("이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
         }
     }
+
+    /**
+     * 라이더 면허번호 중복 체크
+     */
+    public void checkPermission(String permission) {
+        if (deliveryClient.checkPermission(permission)) {
+           throw new CustomException("사용할 수 없는 면허번호 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+
+
 }

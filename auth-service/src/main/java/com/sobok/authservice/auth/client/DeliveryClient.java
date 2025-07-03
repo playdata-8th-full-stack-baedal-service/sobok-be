@@ -7,8 +7,10 @@ import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
 import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 // 라이더 회원가입 feign 처리
 @FeignClient(name = "delivery-service", configuration = FeignConfig.class)
@@ -19,4 +21,8 @@ public interface DeliveryClient {
 
     @PostMapping("/api/findByPhoneNumber")
     ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
+
+    // 라이더 면허 번호 검증
+    @GetMapping("/api/check-permission")
+    boolean checkPermission(@RequestParam String permission);
 }
