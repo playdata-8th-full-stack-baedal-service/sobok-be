@@ -10,8 +10,10 @@ import com.sobok.cookservice.cook.service.IngredientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +29,7 @@ public class IngredientController {
     /**
      * 관리자 재료 등록
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/register")
     public ResponseEntity<Object> ingreRegister(@Valid @RequestBody IngreReqDto reqDto) {
         ingredientService.ingreCreate(reqDto);
@@ -40,6 +42,9 @@ public class IngredientController {
     @GetMapping("/keyword-search")
     public ResponseEntity<Object> ingreSearch(@RequestBody KeywordSearchReqDto keywordSearchReqDto) {
         List<IngreResDto> ingredients = ingredientService.ingreSearch(keywordSearchReqDto);
+        if (ingredients.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
+        }
         return ResponseEntity.ok().body(ApiResponse.ok(ingredients, "키워드로 검색한 식재료 결과입니다."));
     }
 

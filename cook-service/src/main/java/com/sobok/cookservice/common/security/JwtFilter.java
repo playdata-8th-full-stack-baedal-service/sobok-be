@@ -37,7 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     List<String> whiteList = List.of(
-            "/actuator/**", "/error", "/ingredient/keyword-search"
+            "/actuator/**", "/ingredient/keyword-search"
     );
 
     @Override
@@ -50,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
         boolean isAllowed = whiteList.stream()
-                        .anyMatch(url -> antPathMatcher.match(url, path));
+                .anyMatch(url -> antPathMatcher.match(url, path));
 
         // 허용 path라면 Filter 동작하지 않고 넘기기
         if (isAllowed) {
@@ -62,7 +62,7 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             // 토큰이 존재하는 지 확인
             String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || authHeader.isEmpty() ) {
+            if (authHeader == null || authHeader.isEmpty()) {
                 log.warn("Authorization 헤더가 비어있습니다.");
                 throw new Exception();
             }
@@ -82,7 +82,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // 토큰에서 사용자 정보 추출
             Claims claims = getClaims(token);
-
             // 토큰에서 정보 추출
             long id = Long.parseLong(claims.getSubject());
             Role role = Role.from(claims.get("role", String.class));
@@ -104,6 +103,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * claim 꺼내기
+     *
      * @param token
      * @return
      */
@@ -122,6 +122,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * 토큰 유효기간 검증
+     *
      * @param token
      * @return
      */
@@ -143,6 +144,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * 인증 통과하지 못하면(토큰에 문제가 있다면) 에러 응답 전송
+     *
      * @param response
      * @throws IOException
      */

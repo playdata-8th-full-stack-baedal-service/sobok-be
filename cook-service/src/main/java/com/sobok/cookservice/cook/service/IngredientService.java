@@ -33,6 +33,7 @@ public class IngredientService {
      */
     public void ingreCreate(IngreReqDto reqDto) {
 
+        log.info("컨트롤러 통과");
         // 재료 이름으로 db에 있는지 확인
         Boolean isExist = ingredientRepository.existsByIngreName(reqDto.getIngreName());
 
