@@ -4,11 +4,15 @@ package com.sobok.authservice.auth.service;
 import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.client.ShopServiceClient;
 import com.sobok.authservice.auth.client.UserServiceClient;
+import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
+import com.sobok.authservice.auth.dto.info.AuthUserInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
 //import com.sobok.authservice.auth.feign.UserFeignClient;
 import com.sobok.authservice.auth.repository.AuthRepository;
+import com.sobok.authservice.auth.service.info.AuthInfoProvider;
+import com.sobok.authservice.auth.service.info.AuthInfoProviderFactory;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
@@ -31,7 +35,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.sobok.authservice.common.util.Constants.*;
@@ -50,6 +53,7 @@ public class AuthService {
 
     private final SmsService smsService;
 
+    private final AuthInfoProviderFactory  authInfoProviderFactory;
 
     /**
      * <pre>
@@ -627,5 +631,49 @@ public class AuthService {
         if (shopServiceClient.checkShopAddress(shopAddress)) {
             throw new CustomException("중복된 가게 주소 입니다.", HttpStatus.BAD_REQUEST);
         }
+    }
+  
+    /**
+     * 비밀번호 검증
+     * @return loginId
+     */
+    public String verifyByPassword(Long id, AuthPasswordReqDto reqDto) {
+        Auth auth = authRepository.findById(id).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        boolean isMatch = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
+        if(!isMatch) {
+            throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        return auth.getLoginId();
+    }
+
+    /**
+     * 회원정보 받아오기
+     *
+     * @return
+     */
+    public AuthBaseInfoResDto getInfo(TokenUserInfo userInfo, String loginId) {
+        AuthBaseInfoResDto info = null;
+
+        // 2. role에 따라 요청 보내기
+        try {
+            AuthInfoProvider provider = authInfoProviderFactory.getProvider(Role.valueOf(userInfo.getRole()));
+            info = provider.getInfo(userInfo.getId());
+            info.setLoginId(loginId);
+        } catch (IllegalArgumentException e) {
+            log.error("Role 변환 과정 중 오류 발생!");
+            throw new CustomException("권한 변환 과정에서 오류가 발생하였습니다.", HttpStatus.BAD_REQUEST);
+        } catch (FeignException e) {
+            log.error("Feign 처리 과정에서 오류가 발생하였습니다.");
+            throw new CustomException("정보를 가져오는 도중 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (NullPointerException e) {
+            log.error("정보를 받아왔지만 Null이 응답되었습니다.");
+            throw new CustomException("아무런 정보도 받아오지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return info;
     }
 }

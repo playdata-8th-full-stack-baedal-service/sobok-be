@@ -1,6 +1,7 @@
 package com.sobok.userservice.user.controller;
 
 import com.sobok.userservice.common.dto.ApiResponse;
+import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.repository.UserRepository;
@@ -49,6 +50,13 @@ public class UserFeignController {
     @GetMapping("/check-email")
     public ResponseEntity<Boolean> checkEmail(@RequestParam String email) {
         return ResponseEntity.ok(userRepository.existsByEmail(email));
+    }
+
+    @GetMapping("/user-info")
+    public ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId) {
+        AuthUserInfoResDto resDto = userService.getUserInfo(authId);
+        return ResponseEntity.ok().body(resDto);
+
     }
 
 }

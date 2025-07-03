@@ -2,6 +2,7 @@ package com.sobok.shopservice.shop.service;
 
 
 import com.sobok.shopservice.common.exception.CustomException;
+import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
@@ -81,5 +82,22 @@ public class ShopService {
             log.info("해당 번호로 가입하신 정보가 없습니다.");
             return null;
         }
+    }
+
+    /**
+     * 가게 정보 찾기
+     */
+    public AuthShopInfoResDto getInfo(Long authId) {
+        Shop shop = shopRepository.findByAuthId(authId).orElseThrow(
+                () -> new CustomException("해당하는 가게 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        return AuthShopInfoResDto.builder()
+                .shopName(shop.getShopName())
+                .roadFull(shop.getRoadFull())
+                .phone(shop.getPhone())
+                .ownerName(shop.getOwnerName())
+                .loginId(null)
+                .build();
     }
 }

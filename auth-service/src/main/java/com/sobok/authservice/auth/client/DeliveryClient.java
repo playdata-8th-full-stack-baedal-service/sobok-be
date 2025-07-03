@@ -1,5 +1,6 @@
 package com.sobok.authservice.auth.client;
 
+import com.sobok.authservice.auth.dto.info.AuthRiderInfoResDto;
 import com.sobok.authservice.auth.dto.request.RiderReqDto;
 import com.sobok.authservice.auth.dto.response.ByPhoneResDto;
 import com.sobok.authservice.auth.dto.response.UserResDto;
@@ -7,6 +8,7 @@ import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
 import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +24,12 @@ public interface DeliveryClient {
     @PostMapping("/api/findByPhoneNumber")
     ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
+
     // 라이더 면허 번호 검증
     @GetMapping("/api/check-permission")
     boolean checkPermission(@RequestParam String permission);
+
+    @GetMapping("/api/rider-info")
+    ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId);
+
 }

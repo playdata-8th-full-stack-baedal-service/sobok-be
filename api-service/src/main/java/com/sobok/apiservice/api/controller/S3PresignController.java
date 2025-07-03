@@ -3,14 +3,14 @@ package com.sobok.apiservice.api.controller;
 import com.sobok.apiservice.common.dto.ApiResponse;
 import com.sobok.apiservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -22,9 +22,11 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
+@Slf4j
 public class S3PresignController {
 
     private final S3Presigner s3Presigner;
+    private final S3Client s3Client;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -64,4 +66,24 @@ public class S3PresignController {
 
         return ResponseEntity.ok(ApiResponse.ok(presigned.url().toString(), "S3 버킷에 사진을 넣을 수 있는 URL이 성공적으로 발급되었습니다."));
     }
+
+    /**
+     * S3 사진 삭제
+     */
+    @DeleteMapping("/delete-S3-image")
+    public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
+        log.info("삭제 레츠고");
+        try {
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key("profile/Screenshot from 2025-05-04 13-28-01.png")
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+            return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
+    }
+
 }

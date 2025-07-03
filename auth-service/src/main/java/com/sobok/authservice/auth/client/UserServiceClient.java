@@ -1,6 +1,8 @@
 package com.sobok.authservice.auth.client;
 
+import com.sobok.authservice.auth.dto.info.AuthUserInfoResDto;
 import com.sobok.authservice.auth.dto.request.UserSignupReqDto;
+import com.sobok.authservice.auth.service.info.AuthUserInfoProvider;
 import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
@@ -28,4 +30,7 @@ public interface UserServiceClient {
     // 이메일 중복 검증
     @GetMapping("/api/check-email")
     Boolean checkEmail(@RequestParam String email);
+  
+    @GetMapping("/api/user-info")
+    ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId);
 }

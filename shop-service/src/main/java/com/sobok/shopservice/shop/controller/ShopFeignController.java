@@ -1,6 +1,7 @@
 package com.sobok.shopservice.shop.controller;
 
 import com.sobok.shopservice.common.dto.ApiResponse;
+import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
 import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
@@ -41,7 +42,6 @@ public class ShopFeignController {
     @GetMapping("/check-shopName")
     public ResponseEntity<Boolean> checkShopName(@RequestParam String shopName) {
         return ResponseEntity.ok((shopRepository.existsByShopName(shopName)));
-
     }
     /**
      * 가게 주소 중복 확인
@@ -50,5 +50,10 @@ public class ShopFeignController {
     public ResponseEntity<Boolean> checkShopAddress(@RequestParam String shopAddress) {
         return ResponseEntity.ok(shopRepository.existsByRoadFull((shopAddress)));
 
+
+    @GetMapping("/shop-info")
+    public ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId) {
+        AuthShopInfoResDto resDto = shopService.getInfo(authId);
+        return ResponseEntity.ok().body(resDto);
     }
 }
