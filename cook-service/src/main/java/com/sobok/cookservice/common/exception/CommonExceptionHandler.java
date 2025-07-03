@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -28,5 +29,16 @@ public class CommonExceptionHandler {
         HttpStatus status = e.status;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
         return new ResponseEntity<>(ApiResponse.fail(status, "엔티티를 찾을 수 없습니다."), status);
+    }
+
+    // 식재료 등록 시 잘못된 request body일 경우
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((m1, m2) -> m1 + ", " + m2)
+                .orElse("입력값이 올바르지 않습니다.");
+
+        return new ResponseEntity<>(ApiResponse.fail(HttpStatus.BAD_REQUEST, "입력 오류: " + message), HttpStatus.BAD_REQUEST);
     }
 }

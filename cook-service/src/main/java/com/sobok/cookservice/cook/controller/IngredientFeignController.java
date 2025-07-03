@@ -20,10 +20,6 @@ public class IngredientFeignController {
 
     private final IngredientService ingredientService;
 
-    @PostMapping("/ingredient-register")
-    public ResponseEntity<Object> ingreRegister(@RequestBody IngreReqDto reqDto) {
-        ingredientService.ingreCreate(reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(reqDto.getIngreName(), "재료가 등록되었습니다."));
-    }
+
 
 }
