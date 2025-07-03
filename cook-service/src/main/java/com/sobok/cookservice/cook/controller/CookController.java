@@ -4,6 +4,7 @@ import com.sobok.cookservice.common.dto.ApiResponse;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.CookCreateResDto;
 import com.sobok.cookservice.cook.service.CookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class CookController {
      * 요리 등록
      */
     @PostMapping("/cook-register")
-    public ResponseEntity<?> registerCook(@RequestBody CookCreateReqDto dto) {
+    public ResponseEntity<?> registerCook(@Valid @RequestBody CookCreateReqDto dto) {
         CookCreateResDto resDto = cookService.createCook(dto);
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "요리 등록 성공"));
     }
