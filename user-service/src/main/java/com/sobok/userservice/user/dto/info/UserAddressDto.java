@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.dto.info;
+package com.sobok.userservice.user.dto.info;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AuthUserAddressDto {
-    String id;
-    String roadFull;
-    String addrDetail;
+public class UserAddressDto {
+    private Long id;
+    private String roadFull;
+    private String addrDetail;
 }

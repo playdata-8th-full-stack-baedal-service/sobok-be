@@ -2,6 +2,7 @@ package com.sobok.userservice.user.service;
 
 import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
+import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.entity.UserAddress;
@@ -99,10 +100,10 @@ public class UserService {
                 () -> new CustomException("Auth ID가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
-        List<UserAddressReqDto> userAddress =
+        List<UserAddressDto> userAddress =
                 userAddressRepository.getUserAddressByUserId(user.getId())
                         .stream()
-                        .map(address -> new UserAddressReqDto(address.getRoadFull(), address.getAddrDetail()))
+                        .map(address -> new UserAddressDto(address.getId(),address.getRoadFull(), address.getAddrDetail()))
                         .toList();
 
         if (userAddress.isEmpty()) {

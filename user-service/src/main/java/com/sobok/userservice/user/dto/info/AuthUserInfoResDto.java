@@ -18,5 +18,5 @@ public class AuthUserInfoResDto {
     String email;
     String phone;
     String photo;
-    List<UserAddressReqDto> addresses;
+    List<UserAddressDto> addresses;
 }

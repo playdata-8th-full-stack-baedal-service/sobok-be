@@ -5,6 +5,7 @@ import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.client.ShopServiceClient;
 import com.sobok.authservice.auth.client.UserServiceClient;
 import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
+import com.sobok.authservice.auth.dto.info.AuthUserInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
