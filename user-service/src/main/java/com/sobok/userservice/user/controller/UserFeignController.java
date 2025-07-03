@@ -4,6 +4,7 @@ import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
+import com.sobok.userservice.user.repository.UserRepository;
 import com.sobok.userservice.user.service.UserAddressService;
 import com.sobok.userservice.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class UserFeignController {
     private final UserService userService;
+    private final UserRepository userRepository;
+
 
     @PostMapping("/signup")
     public ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto) {
@@ -33,10 +36,27 @@ public class UserFeignController {
 
     }
 
+    /**
+     * 닉네임 중복 검증
+     */
+    @GetMapping("/check-nickname")
+    public ResponseEntity<Boolean> checkNickname(@RequestParam String nickname) {
+        return ResponseEntity.ok(userRepository.existsByNickname(nickname));
+    }
+
+    /**
+     * 이메일 중복 검증
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmail(@RequestParam String email) {
+        return ResponseEntity.ok(userRepository.existsByEmail(email));
+    }
+
     @GetMapping("/user-info")
     public ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId) {
         AuthUserInfoResDto resDto = userService.getUserInfo(authId);
         return ResponseEntity.ok().body(resDto);
+
     }
 
 }

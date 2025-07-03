@@ -362,7 +362,7 @@ public class AuthService {
      * </pre>
      *
      * @param authShopReqDto 가게 회원가입 요청 데이터
-     * @param userInfo 로그인한 사용자 정보
+     * @param userInfo       로그인한 사용자 정보
      * @return AuthShopResDto 회원가입 후 응답 데이터
      */
     @Transactional
@@ -579,7 +579,60 @@ public class AuthService {
         return jwtTokenProvider.generateTempToken();
     }
 
+    /**
+     * loginId 중복 체크
+     */
+    public void checkLoginId(String loginId) {
+        if (authRepository.findByLoginId(loginId).isPresent()) {
+            throw new CustomException("이미 사용 중인 아이디입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 
+    /**
+     * nickname 중복 체크
+     */
+    public void checkNickname(String nickname) {
+        if (userServiceClient.checkNickname(nickname)) {
+            throw new CustomException("이미 사용 중인 닉네임입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * email 중복 체크
+     */
+    public void checkEmail(String email) {
+        if (userServiceClient.checkEmail(email)) {
+            throw new CustomException("이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * 라이더 면허번호 중복 체크
+     */
+    public void checkPermission(String permission) {
+        if (deliveryClient.checkPermission(permission)) {
+            throw new CustomException("사용할 수 없는 면허번호 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * 가게 이름 중복 체크
+     */
+    public void checkShopName(String shopName) {
+        if (shopServiceClient.checkShopName(shopName)) {
+            throw new CustomException("이미 등록된 지점명 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * 가게 주소 중복 체크
+     */
+    public void checkShopAddress(String shopAddress) {
+        if (shopServiceClient.checkShopAddress(shopAddress)) {
+            throw new CustomException("중복된 가게 주소 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+  
     /**
      * 비밀번호 검증
      * @return loginId

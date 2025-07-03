@@ -11,5 +11,10 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     Optional<Shop> findByRoadFull(String roadFull);
     Optional<Shop> findByPhone(String phoneNumber);
 
+
+    boolean existsByShopName(String shopName);
+    boolean existsByRoadFull(String roadFull);
+
     Optional<Shop> findByAuthId(Long authId);
+
 }

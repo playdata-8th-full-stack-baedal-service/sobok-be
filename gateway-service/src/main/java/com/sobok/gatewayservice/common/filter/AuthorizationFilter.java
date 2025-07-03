@@ -40,7 +40,9 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             "/sms/send", "/sms/verify", "/auth/recover/**", "/auth/login", "/auth/reissue",
             "/auth/user-signup","/auth/rider-signup","/auth/shop-signup",
             "/auth/findLoginId", "/auth/verification", "/auth/reset-password", "/user/findByPhoneNumber",
-            "/auth/temp-token", "/ingredient/keyword-search"
+            "/ingredient/keyword-search",
+            "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email","/auth/check-permission",
+            "/auth/check-shopName", "/auth/check-shopAddress"
     );
 
     /**

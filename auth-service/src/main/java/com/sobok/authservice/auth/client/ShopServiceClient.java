@@ -23,6 +23,14 @@ public interface ShopServiceClient {
     @PostMapping("/api/findByPhoneNumber")
     ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
+    // 가게 지점명 중복 검증
+    @GetMapping("/api/check-shopName")
+    boolean checkShopName(@RequestParam String shopName);
+
+    // 가게 주소 중복 검증
+    @GetMapping("/api/check-shopAddress")
+    boolean checkShopAddress(@RequestParam String shopAddress);
+  
     @GetMapping("/api/shop-info")
     ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId);
 }
