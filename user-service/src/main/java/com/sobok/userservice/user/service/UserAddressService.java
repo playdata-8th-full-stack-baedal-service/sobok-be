@@ -1,6 +1,7 @@
 package com.sobok.userservice.user.service;
 
 import com.sobok.userservice.common.exception.CustomException;
+import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserAddressEditReqDto;
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
@@ -11,8 +12,12 @@ import com.sobok.userservice.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -92,5 +97,16 @@ public class UserAddressService {
 
         userAddressRepository.save(userAddress);
         log.info("주소 변경이 완료되었습니다.");
+    }
+
+    public List<UserAddressDto> getAddress(Long id) {
+        User user = userRepository.findByAuthId(id).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        return userAddressRepository.findByUserId(user.getId())
+                .stream()
+                .map(addr -> new UserAddressDto(addr.getId(), addr.getRoadFull(), addr.getAddrDetail()))
+                .collect(Collectors.toList());
     }
 }

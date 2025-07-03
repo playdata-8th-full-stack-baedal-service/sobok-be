@@ -1,6 +1,7 @@
 package com.sobok.userservice.user.controller;
 
 import com.sobok.userservice.common.dto.ApiResponse;
+import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.service.UserAddressService;
@@ -30,6 +31,12 @@ public class UserFeignController {
         log.info("검색한 사용자 정보 with phone number: {}", byPhoneNumber);
         return ResponseEntity.ok().body(ApiResponse.ok(byPhoneNumber, "전화번호로 찾은 user 정보입니다."));
 
+    }
+
+    @GetMapping("/user-info")
+    public ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId) {
+        AuthUserInfoResDto resDto = userService.getUserInfo(authId);
+        return ResponseEntity.ok().body(resDto);
     }
 
 }

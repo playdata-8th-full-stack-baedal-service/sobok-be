@@ -1,16 +1,22 @@
 package com.sobok.authservice.auth.controller;
 
 
+import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.service.AuthService;
+import com.sobok.authservice.auth.service.info.AuthInfoProvider;
+import com.sobok.authservice.auth.service.info.AuthInfoProviderFactory;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
+import com.sobok.authservice.common.enums.Role;
 import com.sobok.authservice.common.exception.CustomException;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -151,4 +157,18 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getAuthId(), "사용자의 비밀번호가 변경되었습니다."));
     }
 
+    /**
+     * 회원 정보 조회
+     */
+    @PostMapping("/get-info")
+    public ResponseEntity<?> getInfo(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AuthPasswordReqDto reqDto) {
+        // 1. 비밀번호 확인
+        String loginId = authService.verifyByPassword(userInfo.getId(), reqDto);
+
+        // 2. 유저 정보 가져오기
+        AuthBaseInfoResDto info = authService.getInfo(userInfo, loginId);
+
+        // 3. 리턴
+        return ResponseEntity.ok().body(ApiResponse.ok(info, "성공적으로 정보가 조회되었습니다."));
+    }
 }
