@@ -1,6 +1,8 @@
 package com.sobok.authservice.auth.client;
 
+import com.sobok.authservice.auth.dto.info.AuthUserInfoResDto;
 import com.sobok.authservice.auth.dto.request.UserSignupReqDto;
+import com.sobok.authservice.auth.service.info.AuthUserInfoProvider;
 import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
@@ -20,4 +22,7 @@ public interface UserServiceClient {
 
     @PostMapping("/api/signup")
     ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto);
+
+    @GetMapping("/api/user-info")
+    ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId);
 }

@@ -1,6 +1,7 @@
 package com.sobok.deliveryservice.delivery.service;
 
 import com.sobok.deliveryservice.common.exception.CustomException;
+import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
@@ -62,5 +63,21 @@ public class DeliveryService {
             log.info("해당 번호로 가입하신 정보가 없습니다.");
             return null;
         }
+    }
+
+    /**
+     * 라이더 정보 찾기
+     */
+    public AuthRiderInfoResDto getInfo(Long authId) {
+        Rider rider = riderRepository.getRiderByAuthId(authId).orElseThrow(
+                () -> new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
+        );
+
+        return AuthRiderInfoResDto.builder()
+                .phone(rider.getPhone())
+                .permissionNumber(rider.getPermissionNumber())
+                .name(rider.getName())
+                .loginId(null)
+                .build();
     }
 }
