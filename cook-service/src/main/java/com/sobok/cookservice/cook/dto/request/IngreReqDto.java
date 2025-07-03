@@ -11,6 +11,8 @@ import lombok.*;
 @Builder
 public class IngreReqDto {
 
+    private Long id;
+
     @NotBlank(message = "식재료 이름은 필수입니다.")
     private String ingreName;
 
