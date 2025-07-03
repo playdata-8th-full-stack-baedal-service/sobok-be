@@ -4,6 +4,7 @@ import com.sobok.cookservice.common.dto.ApiResponse;
 import com.sobok.cookservice.common.dto.TokenUserInfo;
 import com.sobok.cookservice.cook.dto.request.IngreReqDto;
 import com.sobok.cookservice.cook.dto.request.KeywordSearchReqDto;
+import com.sobok.cookservice.cook.dto.response.IngreResDto;
 import com.sobok.cookservice.cook.entity.Ingredient;
 import com.sobok.cookservice.cook.service.IngredientService;
 import jakarta.validation.Valid;
@@ -23,6 +24,9 @@ public class IngredientController {
 
     private final IngredientService ingredientService;
 
+    /**
+     * 관리자 재료 등록
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
     public ResponseEntity<Object> ingreRegister(@Valid @RequestBody IngreReqDto reqDto) {
@@ -30,9 +34,12 @@ public class IngredientController {
         return ResponseEntity.ok().body(ApiResponse.ok(reqDto.getIngreName(), "식재료가 등록되었습니다."));
     }
 
+    /**
+     * 통합 재료 검색
+     */
     @GetMapping("/keyword-search")
     public ResponseEntity<Object> ingreSearch(@RequestBody KeywordSearchReqDto keywordSearchReqDto) {
-        List<Ingredient> ingredients = ingredientService.ingreSearch(keywordSearchReqDto);
+        List<IngreResDto> ingredients = ingredientService.ingreSearch(keywordSearchReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(ingredients, "키워드로 검색한 식재료 결과입니다."));
     }
 
