@@ -7,6 +7,8 @@ import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.CookCreateResDto;
+import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
+import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
 import com.sobok.cookservice.cook.dto.response.CookResDto;
 import com.sobok.cookservice.cook.entity.Combination;
 import com.sobok.cookservice.cook.entity.Cook;
@@ -137,4 +139,40 @@ public class CookService {
         // 카테고리 조회
         return searchCook("category:" + category, pageNo, numOfRows);
     }
+
+    // 장바구니용 조회
+    public CookDetailResDto getCookDetail(Long cookId) {
+        // 요리 있는지부터 검증 없으면 예외
+        Cook cook = cookRepository.findById(cookId)
+                .orElseThrow(() -> new CustomException("해당 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        // cook 테이블에 해당되는 식재료 찾기
+        List<Combination> combinations = combinationRepository.findByCookId(cookId);
+
+        // 각 조합에서 식재료 정보를 추출하여 dto로 변환
+        List<CookIngredientResDto> ingredients = combinations.stream().map(comb -> {
+            Ingredient ingre = comb.getIngredient(); // 연관된 식재료
+
+            // 식재료가 없거나 존재하지 않으면 예외 던짐
+            if (ingre == null) {
+                ingre = ingredientRepository.findById(comb.getIngreId())
+                        .orElseThrow(() -> new CustomException("식재료가 존재하지 않습니다: id=" + comb.getIngreId(), HttpStatus.NOT_FOUND));
+            }
+
+            return CookIngredientResDto.builder()
+                    .ingredientId(ingre.getId())
+                    .ingreName(ingre.getIngreName())
+                    .unitQuantity(comb.getUnitQuantity())
+                    .unit(ingre.getUnit())
+                    .build();
+        }).toList();
+
+        return CookDetailResDto.builder()
+                .cookId(cook.getId())
+                .name(cook.getName())
+                .thumbnail(cook.getThumbnail())
+                .ingredients(ingredients)
+                .build();
+    }
+
 }
