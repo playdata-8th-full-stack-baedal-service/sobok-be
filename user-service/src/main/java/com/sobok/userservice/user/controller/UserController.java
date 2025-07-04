@@ -4,7 +4,9 @@ package com.sobok.userservice.user.controller;
 import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
+import com.sobok.userservice.user.dto.request.UserBookmarkReqDto;
 import com.sobok.userservice.user.dto.request.UserPhoneDto;
+import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.service.UserService;
 import com.sobok.userservice.common.dto.TokenUserInfo;
@@ -13,6 +15,7 @@ import com.sobok.userservice.user.dto.request.UserAddressReqDto;
 import com.sobok.userservice.user.service.UserAddressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -52,12 +55,45 @@ public class UserController {
         userService.editEmail(userInfo, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 변경하였습니다."));
     }
-
-    @PostMapping("/editPhone")
+    /**
+     * 사용자 전화번호 변경
+     */
+    @PatchMapping("/editPhone")
     public ResponseEntity<?> editPhone(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserPhoneDto userPhoneDto) {
         userService.editPhone(userInfo, userPhoneDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 전화번호를 성공적으로 변경하였습니다."));
     }
+
+    /**
+     * 사용자의 요리 즐겨찾기 등록
+     */
+    @PostMapping("/addBookmark")
+    public ResponseEntity<?> addBookmark(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserBookmarkReqDto userBookmarkReqDto) {
+        userService.addBookmark(userInfo, userBookmarkReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(userBookmarkReqDto, "해당 요리가 즐겨찾기에 등록되었습니다."));
+    }
+
+    /**
+     * 사용자 요리 즐겨찾기 삭제
+     */
+    @PostMapping("/deleteBookmark")
+    public ResponseEntity<?> deleteBookmark(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserBookmarkReqDto userBookmarkReqDto) {
+        userService.deleteBookmark(userInfo, userBookmarkReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(userBookmarkReqDto, "해당 요리가 즐겨찾기 해제되었습니다."));
+    }
+
+    /**
+     * 사용자 요리 즐겨찾기 조회
+     */
+    @GetMapping("/getBookmark")
+    public ResponseEntity<?> getBookmark(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        List<UserBookmarkResDto> bookmark = userService.getBookmark(userInfo.getId());
+        if (bookmark.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
+        }
+        return ResponseEntity.ok().body(ApiResponse.ok(bookmark, "즐겨찾기 요리가 조회되었습니다."));
+    }
+
 
     // TODO : 사진 추가 변경 가능해야 함.
 
