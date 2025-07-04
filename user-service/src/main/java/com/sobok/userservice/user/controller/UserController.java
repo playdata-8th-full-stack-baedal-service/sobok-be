@@ -4,6 +4,7 @@ package com.sobok.userservice.user.controller;
 import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
+import com.sobok.userservice.user.dto.request.UserPhoneDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.service.UserService;
 import com.sobok.userservice.common.dto.TokenUserInfo;
@@ -50,6 +51,12 @@ public class UserController {
     public ResponseEntity<?> editEmail(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserEmailDto reqDto) {
         userService.editEmail(userInfo, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 변경하였습니다."));
+    }
+
+    @PostMapping("/editPhone")
+    public ResponseEntity<?> editPhone(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserPhoneDto userPhoneDto) {
+        userService.editPhone(userInfo, userPhoneDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 전화번호를 성공적으로 변경하였습니다."));
     }
 
     // TODO : 사진 추가 변경 가능해야 함.
