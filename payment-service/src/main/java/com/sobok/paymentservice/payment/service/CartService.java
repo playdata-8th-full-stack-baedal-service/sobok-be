@@ -100,7 +100,7 @@ public class CartService {
      *
      * @return
      */
-    public Long editCartCookCount(Long id, Long count) {
+    public Long editCartCookCount(Long id, Integer count) {
         // TODO : 분산 락 적용 필요..
         log.info("장바구니 수정 서비스 로직 시작! cook id : {}, count : {}", id, count);
 

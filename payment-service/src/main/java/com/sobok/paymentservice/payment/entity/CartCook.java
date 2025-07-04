@@ -30,7 +30,7 @@ public class CartCook {
     private Integer count;
 
 
-    public void changeCount(Long count) {
+    public void changeCount(Integer count) {
         this.count = count;
     }
 }
