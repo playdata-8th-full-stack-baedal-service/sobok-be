@@ -1,0 +1,17 @@
+package com.sobok.apiservice.api.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class TossPayReqDto {
+    private String orderId;
+    private Long amount;
+    private String paymentKey;
+}
+

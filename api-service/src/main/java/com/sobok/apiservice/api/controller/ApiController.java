@@ -1,14 +1,20 @@
 package com.sobok.apiservice.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sobok.apiservice.api.dto.TossPayReqDto;
+import com.sobok.apiservice.api.dto.TossPayResDto;
 import com.sobok.apiservice.common.dto.ApiResponse;
 import com.sobok.apiservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import software.amazon.awssdk.awscore.presigner.PresignRequest;
+import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -16,17 +22,20 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 @Slf4j
-public class S3PresignController {
+public class ApiController {
 
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
+    private final RestClient restClient;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -85,5 +94,39 @@ public class S3PresignController {
         }
             return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
     }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirmPayment(@RequestBody TossPayReqDto reqDto) throws Exception {
+        log.info(reqDto.getPaymentKey().toString());
+        log.info(reqDto.getOrderId().toString());
+        log.info(reqDto.getAmount().toString());
+
+
+        // 토스페이먼츠 API는 시크릿 키를 사용자 ID로 사용하고, 비밀번호는 사용하지 않습니다.
+        // 비밀번호가 없다는 것을 알리기 위해 시크릿 키 뒤에 콜론을 추가합니다.
+        String widgetSecretKey = "test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6";
+        Base64.Encoder encoder = Base64.getEncoder();
+        byte[] encodedBytes = encoder.encode((widgetSecretKey + ":").getBytes(StandardCharsets.UTF_8));
+        String authorizations = "Basic " + new String(encodedBytes);
+
+
+        log.info("토스에 요청 보내기");
+        // 결제를 승인하면 결제수단에서 금액이 차감돼요.
+        TossPayResDto resDto = restClient.post()
+                .uri("/v1/payment/confirm")
+                .header("Authorization", authorizations)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(reqDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                    log.error(res.getStatusText());
+                })
+                .body(TossPayResDto.class);
+
+        log.info("토스 결제 성공!");
+        return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
+    }
+
 
 }
