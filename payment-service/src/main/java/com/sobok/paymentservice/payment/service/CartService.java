@@ -1,5 +1,6 @@
 package com.sobok.paymentservice.payment.service;
 
+import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
@@ -88,8 +89,9 @@ public class CartService {
     }
 
     // 장바구니 조회용
-    public PaymentResDto getCart(Long authId) {
-        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(authId);
+    public PaymentResDto getCart(TokenUserInfo userInfo, Long userId) {
+
+        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userId);
 
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
@@ -130,6 +132,5 @@ public class CartService {
 
         return new PaymentResDto(cartCookList.get(0).getUserId(), items);
     }
-
 
 }

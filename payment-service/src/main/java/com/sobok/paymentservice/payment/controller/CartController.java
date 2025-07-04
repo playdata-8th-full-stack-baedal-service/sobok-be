@@ -28,8 +28,8 @@ public class CartController {
      * 장바구니 조회용
      */
     @GetMapping("/get-cart")
-    public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        PaymentResDto resDto = cartService.getCart(userInfo.getId());
+    public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long userId) {
+        PaymentResDto resDto = cartService.getCart(userInfo, userId);
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 
