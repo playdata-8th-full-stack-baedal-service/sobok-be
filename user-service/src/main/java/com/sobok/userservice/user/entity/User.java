@@ -29,6 +29,7 @@ public class User {
     @Column(nullable = false)
     private String photo;
 
+    @Setter
     @Column(unique = true, nullable = false)
     private String phone;
 

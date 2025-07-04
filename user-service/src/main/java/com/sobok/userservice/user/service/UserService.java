@@ -6,11 +6,10 @@ import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
+import com.sobok.userservice.user.dto.request.UserPhoneDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
-import com.sobok.userservice.user.entity.UserAddress;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,6 +28,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserAddressService userAddressService;
     private final UserAddressRepository userAddressRepository;
+//    private final SmsService smsService;
+
 
     public UserResDto findByPhoneNumber(String phoneNumber) {
         Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
@@ -44,11 +45,11 @@ public class UserService {
                     .phone(user.getPhone())
                     .build();
 
-        }else {
+        } else {
             log.info("해당 번호로 가입하신 정보가 없습니다.");
             return null;
         }
-  }
+    }
 
     /**
      * <pre>
@@ -56,7 +57,6 @@ public class UserService {
      *     1. 사용자 객체 생성 후 저장
      *     2. 주소 값이 전달되었다면 사용자 주소도 저장
      * </pre>
-     *
      */
     public void signup(UserSignupReqDto reqDto) {
         log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
@@ -105,7 +105,7 @@ public class UserService {
         List<UserAddressDto> userAddress =
                 userAddressRepository.getUserAddressByUserId(user.getId())
                         .stream()
-                        .map(address -> new UserAddressDto(address.getId(),address.getRoadFull(), address.getAddrDetail()))
+                        .map(address -> new UserAddressDto(address.getId(), address.getRoadFull(), address.getAddrDetail()))
                         .toList();
 
         if (userAddress.isEmpty()) {
@@ -133,5 +133,17 @@ public class UserService {
 
         // 저장
         userRepository.save(user);
+    }
+
+    public void editPhone(TokenUserInfo userInfo, UserPhoneDto userPhoneDto) {
+        // 로그인 한 사용자 확인
+        User user = userRepository.findByAuthId(userInfo.getId()).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        // 재설정
+        user.setPhone(userPhoneDto.getPhone());
+        userRepository.save(user);
+
     }
 }
