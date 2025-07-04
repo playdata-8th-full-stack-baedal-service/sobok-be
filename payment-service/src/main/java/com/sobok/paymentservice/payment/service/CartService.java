@@ -36,6 +36,12 @@ public class CartService {
     public Long addCartCook(CartAddCookReqDto reqDto) {
         log.info("장바구니 추가 시작");
 
+        // 수량이 0이면 예외 발생
+        if (reqDto.getCount() <= 0) {
+            log.error("잘못된 수량 입력이 발생하였습니다.");
+            throw new CustomException("잘못된 수량 입력입니다", HttpStatus.BAD_REQUEST);
+        }
+
         // 기본 식재료 가져오기 (key : ingreId, value : unitQuantity)
         Map<Long, Integer> defaultIngreList = null;
         try {
@@ -66,7 +72,7 @@ public class CartService {
                     .cartCookId(cartCook.getId())
                     .ingreId(key)
                     .defaultIngre("Y")
-                    .unitQuantity(defaultIngreList.get(key))
+                    .unitQuantity(defaultIngreList.get(key) * reqDto.getCount())
                     .build();
             cartIngreRepository.save(cartIngre);
         }
