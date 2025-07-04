@@ -50,7 +50,7 @@ public class S3PresignController {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(key)
-                    .contentType("image/jpeg")
+                    .contentType("image/png")
                     .build();
 
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()

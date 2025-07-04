@@ -128,6 +128,7 @@ public class CookService {
                 .from(cook)
                 .where(builder)
                 .offset(offset)
+                .orderBy(cook.updatedAt.desc())
                 .limit(numOfRows)
                 .fetch();
     }
