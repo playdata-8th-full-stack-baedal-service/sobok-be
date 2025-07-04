@@ -119,6 +119,27 @@ public class CartService {
     }
 
 
+    /**
+     * 1. 장바구니에 담겨 있는지 확인
+     * 2. Ingredient 다 지우기
+     * 3. cart_cook 지우기
+     *
+     * @return
+     */
+    public Long deleteCart(Long id) {
+        log.info("장바구니 삭제 서비스 로직 실행! id : {}", id);
 
+        // 장바구니에 담겨 있는 지 확인
+        CartCook cartCook = cartCookRepository.findUnpaidCartById(id).orElseThrow(
+                () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
+        );
 
+        // 식재료 모두 삭제
+        cartIngreRepository.deleteByCartCookId(id);
+
+        // 요리 삭제
+        cartCookRepository.delete(cartCook);
+
+        return cartCook.getId();
+    }
 }

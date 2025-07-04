@@ -27,6 +27,11 @@ public class CartController {
         return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니 수량이 성공적으로 변경되었습니다."));
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteCartCook(@PathVariable Long id) {
+        Long cartCookId = cartService.deleteCart(id);
+        return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니의 상품이 성공적으로 삭제되었습니다."));
+    }
     
 
 }
