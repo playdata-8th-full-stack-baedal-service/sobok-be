@@ -88,8 +88,8 @@ public class CartService {
     }
 
     // 장바구니 조회용
-    public PaymentResDto getCart(Long userId) {
-        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userId);
+    public PaymentResDto getCart(Long authId) {
+        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(authId);
 
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);

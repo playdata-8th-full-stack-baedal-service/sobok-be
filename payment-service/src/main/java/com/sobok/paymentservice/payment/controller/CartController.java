@@ -29,7 +29,7 @@ public class CartController {
      */
     @GetMapping("/get-cart")
     public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        PaymentResDto resDto = cartService.getCart(userInfo.getId()); // 토큰에서 userId 빼옴
+        PaymentResDto resDto = cartService.getCart(userInfo.getId());
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 
