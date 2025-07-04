@@ -2,13 +2,18 @@ package com.sobok.userservice.user.service;
 
 import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.common.exception.CustomException;
+import com.sobok.userservice.user.client.CookServiceClient;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserAddressReqDto;
+import com.sobok.userservice.user.dto.request.UserBookmarkReqDto;
 import com.sobok.userservice.user.dto.request.UserPhoneDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
+import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
+import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
+import com.sobok.userservice.user.repository.UserBookmarkRepository;
 import com.sobok.userservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +25,7 @@ import com.sobok.userservice.user.entity.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +34,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserAddressService userAddressService;
     private final UserAddressRepository userAddressRepository;
-//    private final SmsService smsService;
-
+    private final UserBookmarkRepository userBookmarkRepository;
+    private final CookServiceClient cookServiceClient;
 
     public UserResDto findByPhoneNumber(String phoneNumber) {
         Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
@@ -145,5 +151,75 @@ public class UserService {
         user.setPhone(userPhoneDto.getPhone());
         userRepository.save(user);
 
+    }
+
+    public void addBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
+        // 로그인 한 사용자 확인
+        User user = userRepository.findById(userBookmarkReqDto.getUserId()).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        if (!user.getAuthId().equals(userInfo.getId())) {
+            throw new CustomException("잘못된 사용자 정보", HttpStatus.BAD_REQUEST);
+        }
+
+        //cookId가 존재하는지 확인
+        if (!cookServiceClient.checkCook(userBookmarkReqDto.getCookId()).hasBody()) {
+            throw new CustomException("해당하는 요리가 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 즐겨찾기에 없는지 확인
+        UserBookmark bookmark = userBookmarkRepository.findByUserIdAndCookId(
+                userBookmarkReqDto.getUserId(),
+                userBookmarkReqDto.getCookId()
+        );
+
+        if (bookmark != null) {
+            throw new CustomException("이미 즐겨찾기에 등록되어있습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 북마크 추가
+        UserBookmark build = UserBookmark.builder().userId(user.getId())
+                .cookId(userBookmarkReqDto.getCookId())
+                .build();
+
+        userBookmarkRepository.save(build);
+
+        log.info("해당 요리가 즐겨찾기에 등록되었습니다.");
+    }
+
+    public void deleteBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
+        // 로그인 한 사용자 확인
+        User user = userRepository.findById(userBookmarkReqDto.getUserId()).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        if (!user.getAuthId().equals(userInfo.getId())) {
+            throw new CustomException("잘못된 사용자 정보", HttpStatus.BAD_REQUEST);
+        }
+
+        // 즐겨찾기에 있는지 확인
+        UserBookmark bookmark = userBookmarkRepository.findByUserIdAndCookId(
+                userBookmarkReqDto.getUserId(),
+                userBookmarkReqDto.getCookId()
+        );
+
+        if (bookmark == null) {
+            throw new CustomException("즐겨찾기에 등록되어있지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // DB에서 삭제
+        userBookmarkRepository.delete(bookmark);
+    }
+
+    public List<UserBookmarkResDto> getBookmark(Long id) {
+        User user = userRepository.findByAuthId(id).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        return userBookmarkRepository.findByUserId((user.getId()))
+                .stream()
+                .map(bookmark -> new UserBookmarkResDto(bookmark.getCookId()))
+                .collect(Collectors.toList());
     }
 }
