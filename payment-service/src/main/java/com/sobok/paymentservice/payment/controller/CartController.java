@@ -22,7 +22,7 @@ public class CartController {
     }
 
     @PatchMapping("/edit-count")
-    public ResponseEntity<?> editCount(@RequestParam Long id, @RequestParam Long count) {
+    public ResponseEntity<?> editCount(@RequestParam Long id, @RequestParam Integer count) {
         Long cartCookId = cartService.editCartCookCount(id, count);
         return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니 수량이 성공적으로 변경되었습니다."));
     }
