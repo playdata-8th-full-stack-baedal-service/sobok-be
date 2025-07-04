@@ -26,7 +26,6 @@ public class Payment extends BaseTimeEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @ColumnDefault(OrderState.DEFAULT_STR)
     private OrderState orderState;
 
     @Column(nullable = false)

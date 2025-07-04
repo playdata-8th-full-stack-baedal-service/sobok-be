@@ -27,10 +27,8 @@ public class CartIngredient {
     private Long ingreId;
 
     @Column(nullable = false)
-    @ColumnDefault("1")
-    private Integer unitQuantity;
+    private Integer unitQuantity = 1;
 
     @Column(nullable = false)
-    @ColumnDefault("Y")
-    private String defaultIngre;
+    private String defaultIngre = "Y";
 }
