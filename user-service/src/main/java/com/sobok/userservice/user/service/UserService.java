@@ -18,6 +18,7 @@ import com.sobok.userservice.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.sobok.userservice.user.dto.response.UserResDto;
@@ -164,7 +165,10 @@ public class UserService {
         }
 
         //cookId가 존재하는지 확인
-        if (!cookServiceClient.checkCook(userBookmarkReqDto.getCookId()).hasBody()) {
+        ResponseEntity<?> response = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
+        Boolean cookExists = (Boolean) response.getBody();
+
+        if (!Boolean.TRUE.equals(cookExists)) {
             throw new CustomException("해당하는 요리가 없습니다.", HttpStatus.BAD_REQUEST);
         }
 
