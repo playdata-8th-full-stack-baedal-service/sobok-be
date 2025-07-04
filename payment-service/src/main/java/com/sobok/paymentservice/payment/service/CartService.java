@@ -29,9 +29,11 @@ public class CartService {
      * 1. cook service에서 요리를 꺼내와 요리 기본 식재료 가져오기
      * 2. cart_cook 데이터 저장
      * 3. cart_ingre 데이터 저장
+     *
+     * @return
      */
     @Transactional
-    public void addCartCook(CartAddCookReqDto reqDto) {
+    public Long addCartCook(CartAddCookReqDto reqDto) {
         log.info("장바구니 추가 시작");
 
         // 기본 식재료 가져오기 (key : ingreId, value : unitQuantity)
@@ -80,5 +82,43 @@ public class CartService {
                     .build();
             cartIngreRepository.save(cartIngre);
         }
+
+        return cartCook.getId();
     }
+
+    /**
+     * 장바구니 수정
+     * 1. 수량 검증
+     * 2. 상품 조회
+     * 3. 수량 변경
+     *
+     * @return
+     */
+    public Long editCartCookCount(Long id, Long count) {
+        // TODO : 분산 락 적용 필요..
+        log.info("장바구니 수정 서비스 로직 시작! cook id : {}, count : {}", id, count);
+
+        // 수량 검증
+        if (count <= 0) {
+            log.error("잘못된 수량 요청값이 들어왔습니다.");
+            throw new CustomException("잘못된 수량 입력입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 장바구니 상품 꺼내오기
+        CartCook cartCook = cartCookRepository.findUnpaidCartById(id).orElseThrow(
+                () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        // 수량 변경
+        cartCook.changeCount(count);
+
+        // 저장
+        cartCookRepository.save(cartCook);
+
+        return cartCook.getId();
+    }
+
+
+
+
 }

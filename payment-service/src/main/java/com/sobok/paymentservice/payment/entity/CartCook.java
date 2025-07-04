@@ -28,4 +28,9 @@ public class CartCook {
     @Column(nullable = false)
     @ColumnDefault("1")
     private Integer count;
+
+
+    public void changeCount(Long count) {
+        this.count = count;
+    }
 }

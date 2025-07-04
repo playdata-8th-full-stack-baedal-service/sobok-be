@@ -17,8 +17,14 @@ public class CartController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addCartCook(@RequestBody CartAddCookReqDto reqDto) {
-        cartService.addCartCook(reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(reqDto.getUserId(), "장바구니에 성공적으로 저장되었습니다."));
+        Long cartCookId = cartService.addCartCook(reqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니에 성공적으로 저장되었습니다."));
+    }
+
+    @PatchMapping("/edit-count")
+    public ResponseEntity<?> editCount(@RequestParam Long id, @RequestParam Long count) {
+        Long cartCookId = cartService.editCartCookCount(id, count);
+        return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니 수량이 성공적으로 변경되었습니다."));
     }
 
     
