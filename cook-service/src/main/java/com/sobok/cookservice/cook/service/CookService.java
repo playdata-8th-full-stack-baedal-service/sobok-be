@@ -136,4 +136,11 @@ public class CookService {
         // 카테고리 조회
         return searchCook("category:" + category, pageNo, numOfRows);
     }
+
+    public boolean checkCook(Long cookId) {
+        log.info("컨트롤러 통ㄷ과");
+        boolean exists = cookRepository.existsById(cookId);
+        log.info(exists ? "존재" : "없음");
+        return exists;
+    }
 }
