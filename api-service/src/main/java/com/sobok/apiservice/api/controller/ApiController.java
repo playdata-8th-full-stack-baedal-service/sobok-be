@@ -53,5 +53,4 @@ public class ApiController {
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
     }
 
-
 }

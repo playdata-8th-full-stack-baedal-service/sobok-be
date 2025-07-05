@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -46,6 +47,7 @@ public class S3Service {
     public String getS3PresignUrl(String fileName, String category) {
         log.info("S3 Presign URL 생성 시작 | fileName : {} | category : {} ", fileName, category);
 
+        // 카테고리 검증
         if (!ImageCategory.isValidCategory(category)) {
             log.error("유효하지 않은 카테고리입니다. | category : {}", category);
             throw new CustomException("유효하지 않은 카테고리입니다.", HttpStatus.BAD_REQUEST);
@@ -90,8 +92,15 @@ public class S3Service {
      * S3 Presign 업로드 요청 생성
      */
     private PresignedPutObjectRequest getPresignedPutRequest(String key) {
-        // 확장자 확인
-        String ext = key.substring(key.lastIndexOf(".") + 1);
+        // 키 유효성 검사
+        int extIndex = key.lastIndexOf(".") + 1;
+        if (extIndex == 0 || key.length() <= extIndex) {
+            log.error("올바르지 않은 파일명입니다. | key : {}", key);
+            throw new CustomException("올바르지 않은 파일명입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 파일 확장자 검사
+        String ext = key.substring(extIndex);
         String contentType = EXT_TO_CONTENT_TYPE.get(ext);
         if (contentType == null) {
             log.error("잘못된 파일 형식 입력입니다. | 확장자 : {}", ext);
@@ -134,6 +143,9 @@ public class S3Service {
                     Duration.ofMinutes(PRESIGN_URL_CHECK_EXPIRATION)
             );
         } catch (IllegalArgumentException e) {
+            // 키는 반드시 두 개가 들어가도록 보장
+            redisTemplate.delete(S3_UPLOAD_EXPIRATION_KEY + key);
+
             log.error("Redis 키 생성 과정에서 오류가 발생했습니다. | key : {}", key);
             throw new CustomException("Redis 키 생성 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
