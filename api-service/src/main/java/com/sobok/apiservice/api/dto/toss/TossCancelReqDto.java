@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TossPayResDto {
-    private String paymentKey;
-    private String method;
+public class TossCancelReqDto {
+    private String cancelReason;
 }
