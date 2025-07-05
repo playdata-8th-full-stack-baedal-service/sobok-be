@@ -10,11 +10,11 @@ import org.springframework.web.client.RestClient;
 public class RestClientConfig {
     private final RestClient.Builder restClientBuilder;
 
-    @Bean
-    public RestClient kakaoRestClient() {
-        // 카카오 API 호출을 위한 REST Client 객체 생성
-        return restClientBuilder
-                .baseUrl("https://api.tosspayments.com")
-                .build();
-    }
+//    @Bean
+//    public RestClient kakaoRestClient() {
+//        // 카카오 API 호출을 위한 REST Client 객체 생성
+//        return restClientBuilder
+//                .baseUrl("https://api.tosspayments.com")
+//                .build();
+//    }
 }

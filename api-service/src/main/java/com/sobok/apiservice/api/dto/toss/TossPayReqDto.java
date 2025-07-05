@@ -1,4 +1,4 @@
-package com.sobok.apiservice.api.dto;
+package com.sobok.apiservice.api.dto.toss;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

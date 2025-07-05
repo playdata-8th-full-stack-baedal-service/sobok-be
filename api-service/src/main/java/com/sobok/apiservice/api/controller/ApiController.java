@@ -1,21 +1,17 @@
 package com.sobok.apiservice.api.controller;
 
-import com.sobok.apiservice.api.dto.TossPayReqDto;
-import com.sobok.apiservice.api.dto.TossPayResDto;
+import com.sobok.apiservice.api.dto.address.AddressReqDto;
+import com.sobok.apiservice.api.dto.address.LocationResDto;
+import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
+import com.sobok.apiservice.api.dto.toss.TossPayResDto;
+import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import com.sobok.apiservice.api.service.s3.S3Service;
 import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestClient;
-import software.amazon.awssdk.services.s3.S3Client;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +21,7 @@ public class ApiController {
 
     private final S3Service s3Service;
     private final TossPayService tossPayService;
+    private final ConvertAddressService convertAddressService;
 
     /**
      * S3 등록용 URL 발급
@@ -53,4 +50,8 @@ public class ApiController {
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
     }
 
+    @PostMapping("/addAddress")
+    public LocationResDto addAddress(@RequestBody AddressReqDto reqDto) {
+        return convertAddressService.getLocation(reqDto);
+    }
 }
