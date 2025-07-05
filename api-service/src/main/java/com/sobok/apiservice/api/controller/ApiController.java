@@ -3,6 +3,7 @@ package com.sobok.apiservice.api.controller;
 import com.sobok.apiservice.api.dto.TossPayReqDto;
 import com.sobok.apiservice.api.dto.TossPayResDto;
 import com.sobok.apiservice.api.service.s3.S3Service;
+import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +24,7 @@ import java.util.Base64;
 public class ApiController {
 
     private final S3Service s3Service;
-    private final S3Client s3Client;
-    private final RestClient restClient;
+    private final TossPayService tossPayService;
 
     /**
      * S3 등록용 URL 발급
@@ -48,35 +48,8 @@ public class ApiController {
      * 토스페이 결제
      */
     @PostMapping("/confirm")
-    public ResponseEntity<?> confirmPayment(@RequestBody TossPayReqDto reqDto) throws Exception {
-        log.info(reqDto.getPaymentKey().toString());
-        log.info(reqDto.getOrderId().toString());
-        log.info(reqDto.getAmount().toString());
-
-
-        // 토스페이먼츠 API는 시크릿 키를 사용자 ID로 사용하고, 비밀번호는 사용하지 않습니다.
-        // 비밀번호가 없다는 것을 알리기 위해 시크릿 키 뒤에 콜론을 추가합니다.
-        String widgetSecretKey = "test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6";
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] encodedBytes = encoder.encode((widgetSecretKey + ":").getBytes(StandardCharsets.UTF_8));
-        String authorizations = "Basic " + new String(encodedBytes);
-
-
-        log.info("토스에 요청 보내기");
-        // 결제를 승인하면 결제수단에서 금액이 차감돼요.
-        TossPayResDto resDto = restClient.post()
-                .uri("/v1/payment/confirm")
-                .header("Authorization", authorizations)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(reqDto)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
-                    log.error(res.getStatusText());
-                })
-                .body(TossPayResDto.class);
-
-        log.info("토스 결제 성공!");
+    public ResponseEntity<?> confirmPayment(@RequestBody TossPayReqDto reqDto) {
+        TossPayResDto resDto = tossPayService.confirmPayment(reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
     }
 
