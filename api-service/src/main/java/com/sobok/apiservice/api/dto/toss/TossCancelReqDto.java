@@ -1,4 +1,4 @@
-package com.sobok.apiservice.api.dto;
+package com.sobok.apiservice.api.dto.toss;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TossPayResDto {
-    private String mid;
-    private String orderId;
-    private String paymentKey;
+public class TossCancelReqDto {
+    private String cancelReason;
 }
