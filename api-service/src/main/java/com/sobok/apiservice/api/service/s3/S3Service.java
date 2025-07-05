@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -17,7 +16,10 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
+
+import static com.sobok.apiservice.common.util.Constants.*;
 
 @Service
 @Slf4j
@@ -26,15 +28,17 @@ public class S3Service {
     private final S3Presigner s3Presigner;
     private final RedisTemplate<String, String> redisTemplate;
     private final S3Client s3Client;
-    private final RestClient restClient;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    private static final String S3_UPLOAD_EXPIRATION_KEY = "s3:expiration:";
-    private static final String S3_UPLOAD_CHECK_KEY = "s3:validation:";
-    private static final long PRESIGN_URL_EXPIRATION = 10;
-    private static final long PRESIGN_URL_CHECK_EXPIRATION = 20;
+    private static final Map<String, String> EXT_TO_CONTENT_TYPE = Map.of(
+            "png", "image/png",
+            "jpg", "image/jpeg",
+            "jpeg", "image/jpeg",
+            "webp", "image/webp",
+            "gif", "image/gif"
+    );
 
     /**
      * S3 Presign URL 생성
@@ -70,24 +74,35 @@ public class S3Service {
         try {
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                     .bucket(bucket)
-                    .key("profile/Screenshot from 2025-05-04 13-28-01.png")
+                    .key(key)
                     .build();
 
             s3Client.deleteObject(deleteObjectRequest);
         } catch (Exception e) {
-            log.error("S3 이미지를 삭제하는 과정에서 오류가 발생했습니다. | error : {}", e.getMessage());
-            throw new CustomException("S3 이미지를 삭제하는 과정에서 오류가 발생했습니다.",  HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("S3 이미지를 삭제하는 과정에서 오류가 발생했습니다. | error : {}", e.getMessage(), e);
+            throw new CustomException("S3 이미지를 삭제하는 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     //region Private Function
 
+    /**
+     * S3 Presign 업로드 요청 생성
+     */
     private PresignedPutObjectRequest getPresignedPutRequest(String key) {
+        // 확장자 확인
+        String ext = key.substring(key.lastIndexOf(".") + 1);
+        String contentType = EXT_TO_CONTENT_TYPE.get(ext);
+        if (contentType == null) {
+            log.error("잘못된 파일 형식 입력입니다. | 확장자 : {}", ext);
+            throw new CustomException("잘못된 파일 형식 입력입니다.", HttpStatus.BAD_REQUEST);
+        }
+
         // S3 PUT 요청 생성
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .contentType("image/*")
+                .contentType(contentType)
                 .build();
 
         // Presign 요청 생성
@@ -100,6 +115,9 @@ public class S3Service {
         return s3Presigner.presignPutObject(presignRequest);
     }
 
+    /**
+     * 이미지 유효성 검증을 위한 redis 키 생성
+     */
     private void setRedisForCheckingValidation(String key) {
         try {
             // Redis 키 생성 - presign url 업로드 시간 체크용
