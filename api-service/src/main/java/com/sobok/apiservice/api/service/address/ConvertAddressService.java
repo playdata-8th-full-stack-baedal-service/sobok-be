@@ -20,33 +20,29 @@ import org.springframework.web.client.RestClient;
 public class ConvertAddressService {
     private final RestClient.Builder restClientBuilder;
 
+    private RestClient restClient;
+
+    private static final String AddressBaseUrl = "http://43.201.32.178:8080";
+
     @Value("${kakao.restKey}")
     private String kakaoRestKey;
-
-    private RestClient restClient;
-    private String authHeader;
-
-    private static final String kakaoAddressBaseUrl = "https://dapi.kakao.com";
 
 
     @PostConstruct
     private void init() {
         // RestClient 객체 생성
-        this.restClient = restClientBuilder.baseUrl(kakaoAddressBaseUrl).build();
-
-        // Authorization 헤더 생성
-        this.authHeader = "KakaoAK " + kakaoRestKey;
+        this.restClient = restClientBuilder.baseUrl(AddressBaseUrl).build();
     }
 
-    public LocationResDto getLocation(AddressReqDto reqDto) {
+    public LocationResDto getLocation(String address) {
         // 요청 보내서 주소에 해당하는 위도, 경도 받기
         KakaoLocDto locData = restClient
                 .get()
-                .uri(uriBuilder -> uriBuilder.path("/v2/local/search/address.json")
-                        .queryParam("query", reqDto.getRoadFull())
+                .uri(uriBuilder -> uriBuilder.path("/geocode")
+                        .queryParam("roadAddr", address)
                         .build()
                 )
-                .header("Authorization", authHeader)
+                .header("Authorization", "KakaoAK " + kakaoRestKey)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
