@@ -20,33 +20,25 @@ import org.springframework.web.client.RestClient;
 public class ConvertAddressService {
     private final RestClient.Builder restClientBuilder;
 
-    @Value("${kakao.restKey}")
-    private String kakaoRestKey;
-
     private RestClient restClient;
-    private String authHeader;
 
-    private static final String kakaoAddressBaseUrl = "https://dapi.kakao.com";
+    private static final String kakaoAddressBaseUrl = "http://43.201.32.178:8080";
 
 
     @PostConstruct
     private void init() {
         // RestClient 객체 생성
         this.restClient = restClientBuilder.baseUrl(kakaoAddressBaseUrl).build();
-
-        // Authorization 헤더 생성
-        this.authHeader = "KakaoAK " + kakaoRestKey;
     }
 
     public LocationResDto getLocation(AddressReqDto reqDto) {
         // 요청 보내서 주소에 해당하는 위도, 경도 받기
         KakaoLocDto locData = restClient
                 .get()
-                .uri(uriBuilder -> uriBuilder.path("/v2/local/search/address.json")
-                        .queryParam("query", reqDto.getRoadFull())
+                .uri(uriBuilder -> uriBuilder.path("/geocode")
+                        .queryParam("roadAddr", reqDto.getRoadFull())
                         .build()
                 )
-                .header("Authorization", authHeader)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
