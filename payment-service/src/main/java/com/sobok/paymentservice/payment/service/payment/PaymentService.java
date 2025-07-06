@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.service.payment;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.Payment;
@@ -10,6 +11,7 @@ import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import java.util.List;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final CartCookRepository cartCookRepository;
+    private final PaymentEventPublisher publisher;
 
 
     /**
@@ -80,7 +83,10 @@ public class PaymentService {
         // Payment 객체 저장
         paymentRepository.save(payment);
 
-        // TODO MQ로 비동기 가게 배정
+        // MQ를 통해 가게 자동 배정 시작
+        publisher.sendShopAssignMessage(payment);
+
+        log.info("주문 완료 처리 및 가게 자동 배정 시작");
     }
 
     /**
