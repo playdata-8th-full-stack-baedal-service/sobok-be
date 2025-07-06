@@ -22,23 +22,27 @@ public class ConvertAddressService {
 
     private RestClient restClient;
 
-    private static final String kakaoAddressBaseUrl = "http://43.201.32.178:8080";
+    private static final String AddressBaseUrl = "http://43.201.32.178:8080";
+
+    @Value("${kakao.restKey}")
+    private String kakaoRestKey;
 
 
     @PostConstruct
     private void init() {
         // RestClient 객체 생성
-        this.restClient = restClientBuilder.baseUrl(kakaoAddressBaseUrl).build();
+        this.restClient = restClientBuilder.baseUrl(AddressBaseUrl).build();
     }
 
-    public LocationResDto getLocation(AddressReqDto reqDto) {
+    public LocationResDto getLocation(String address) {
         // 요청 보내서 주소에 해당하는 위도, 경도 받기
         KakaoLocDto locData = restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder.path("/geocode")
-                        .queryParam("roadAddr", reqDto.getRoadFull())
+                        .queryParam("roadAddr", address)
                         .build()
                 )
+                .header("Authorization", "KakaoAK " + kakaoRestKey)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {

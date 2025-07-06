@@ -50,8 +50,8 @@ public class ApiController {
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
     }
 
-    @PostMapping("/addAddress")
-    public LocationResDto addAddress(@RequestBody AddressReqDto reqDto) {
-        return convertAddressService.getLocation(reqDto);
+    @GetMapping("/convert-addr")
+    public LocationResDto convertAddress(@RequestParam String roadFull) {
+        return convertAddressService.getLocation(roadFull);
     }
 }
