@@ -46,4 +46,8 @@ public class Payment extends BaseTimeEntity {
         this.payMethod = method;
         this.orderState = orderState;
     }
+
+    public void nextState() {
+        this.orderState = this.orderState.next();
+    }
 }

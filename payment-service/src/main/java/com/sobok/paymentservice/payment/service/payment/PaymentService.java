@@ -2,6 +2,7 @@ package com.sobok.paymentservice.payment.service.payment;
 
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
+import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
@@ -11,7 +12,6 @@ import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +25,7 @@ import java.util.List;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final CartCookRepository cartCookRepository;
-    private final PaymentEventPublisher publisher;
+    private final ShopFeignClient shopFeignClient;
 
 
     /**
@@ -83,10 +83,16 @@ public class PaymentService {
         // Payment 객체 저장
         paymentRepository.save(payment);
 
-        // MQ를 통해 가게 자동 배정 시작
-        publisher.sendShopAssignMessage(payment);
+        // 가게 자동 배정 시작
+        shopFeignClient.assignNearestShop(new ShopAssignDto(payment.getUserAddressId(), payment.getId()));
 
-        log.info("주문 완료 처리 및 가게 자동 배정 시작");
+        // payment 상태 바꾸기
+        payment.nextState();
+
+        // State 바꿔서 다시 저장
+        paymentRepository.save(payment);
+
+        log.info("주문 완료 처리 및 가게 자동 배정 완료");
     }
 
     /**

@@ -2,10 +2,13 @@ package com.sobok.deliveryservice.delivery.service;
 
 import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
+import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
+import com.sobok.deliveryservice.delivery.entity.Delivery;
 import com.sobok.deliveryservice.delivery.entity.Rider;
+import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
 import com.sobok.deliveryservice.delivery.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,7 @@ import java.util.Optional;
 public class DeliveryService {
 
     private final RiderRepository riderRepository;
+    private final DeliveryRepository deliveryRepository;
 
     public RiderResDto riderCreate(RiderReqDto dto) {
 
@@ -79,5 +83,15 @@ public class DeliveryService {
                 .name(rider.getName())
                 .loginId(null)
                 .build();
+    }
+
+    public void registerDelivery(DeliveryRegisterDto reqDto) {
+        // 배달 객체 생성
+        Delivery delivery = Delivery.builder()
+                .shopId(reqDto.getShopId())
+                .paymentId(reqDto.getPaymentId())
+                .build();
+
+        deliveryRepository.save(delivery);
     }
 }
