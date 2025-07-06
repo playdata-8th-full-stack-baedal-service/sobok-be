@@ -108,7 +108,7 @@ public class TossPayService {
 
         // 결제를 승인하면 결제수단에서 금액이 차감돼요.
         TossPayResDto resDto = restClient.post()
-                .uri("/v1/payments/" + paymentKey + "/confirm")
+                .uri("/v1/payments/" + paymentKey + "/cancel")
                 .header("Authorization", authHeader)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)

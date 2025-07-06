@@ -25,6 +25,9 @@ public class PaymentService {
     private final CartCookRepository cartCookRepository;
 
 
+    /**
+     * 결제 사전 정보 등록
+     */
     public Long registerPayment(PaymentRegisterReqDto reqDto) {
         log.info("결제 사전 정보 등록 시작 | Request : {}", reqDto);
 
@@ -58,11 +61,14 @@ public class PaymentService {
         return payment.getId();
     }
 
+    /**
+     * 결제 완료 등록
+     */
     public void completePayment(TossPayRegisterReqDto reqDto) {
         log.info("결제 완료 정보 등록 시작 | Request : {}", reqDto);
 
-        // Payment ID 가져오기
-        Payment payment = paymentRepository.getPaymentByOrderId(reqDto.getOrderId()).orElseThrow(
+        // Pending 상태의 Payment ID 가져오기
+        Payment payment = paymentRepository.getPendingPaymentByOrderId(reqDto.getOrderId(), OrderState.ORDER_PENDING).orElseThrow(
                 () -> new CustomException("해당하는 결제 내역이 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
         );
 
@@ -83,8 +89,8 @@ public class PaymentService {
     public void cancelPayment(String orderId) {
         log.info("결제 취소 시작 | orderId : {}", orderId);
 
-        // payment 객체 가져오기
-        Payment payment = paymentRepository.getPaymentByOrderId(orderId).orElseThrow(
+        // Pending 상태의 Payment 객체 가져오기
+        Payment payment = paymentRepository.getPendingPaymentByOrderId(orderId, OrderState.ORDER_PENDING).orElseThrow(
                 () -> new CustomException("해당하는 결제 내역이 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
         );
 
@@ -98,7 +104,7 @@ public class PaymentService {
         // 결제 기록 삭제
         for (CartCook cartCook : cartCookList) {
             // Payment Id를 null로 바꾸기
-            cartCook.setPaymentId(null);
+            cartCook.detachFromPayment();
             cartCookRepository.save(cartCook);
         }
 

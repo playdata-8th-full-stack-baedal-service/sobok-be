@@ -35,4 +35,7 @@ public class CartCook {
         this.count = count;
     }
 
+    public void detachFromPayment() {
+        this.paymentId = null;
+    }
 }
