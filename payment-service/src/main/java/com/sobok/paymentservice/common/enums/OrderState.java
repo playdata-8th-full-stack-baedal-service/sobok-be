@@ -1,6 +1,7 @@
 package com.sobok.paymentservice.common.enums;
 
 public enum OrderState {
+    ORDER_PENDING,
     ORDER_COMPLETE,
     PREPARING_INGREDIENTS,
     READY_FOR_DELIVERY,
@@ -9,5 +10,5 @@ public enum OrderState {
     DELIVERY_COMPLETE,
     ;
 
-    public static final String DEFAULT_STR = "ORDER_COMPLETE";
+    public static final String DEFAULT_STR = "ORDER_PENDING";
 }

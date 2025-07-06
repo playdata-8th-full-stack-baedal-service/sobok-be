@@ -56,6 +56,7 @@ public class TossPayService {
         } catch (FeignException e) {
             // paymentKey를 사용한 결제 취소
             cancelPayment(resDto.getPaymentKey(), "서비스 내부 주문 등록 오류");
+            paymentFeignClient.cancelPayment(reqDto.getOrderId());
 
             log.error("결제 정보를 등록하는 과정에서 오류가 발생함. | orderId = {}", reqDto.getOrderId());
             throw new CustomException("결제 정보를 등록하는 과정에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
