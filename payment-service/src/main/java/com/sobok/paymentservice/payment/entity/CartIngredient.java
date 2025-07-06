@@ -27,8 +27,10 @@ public class CartIngredient {
     private Long ingreId;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer unitQuantity = 1;
 
     @Column(nullable = false)
+    @Builder.Default
     private String defaultIngre = "Y";
 }

@@ -19,6 +19,7 @@ public class CartCook {
     @Column(nullable = false)
     private Long userId;
 
+    @Setter
     @Column(nullable = true)
     private Long paymentId;
 
@@ -32,5 +33,9 @@ public class CartCook {
 
     public void changeCount(Integer count) {
         this.count = count;
+    }
+
+    public void detachFromPayment() {
+        this.paymentId = null;
     }
 }

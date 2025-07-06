@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class TossPayResDto {
+    private String orderId;
     private String paymentKey;
     private String method;
 }
