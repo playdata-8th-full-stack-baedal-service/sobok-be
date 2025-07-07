@@ -41,7 +41,7 @@ public class CartService {
      * @return
      */
     @Transactional
-    public Long addCartCook(CartAddCookReqDto reqDto) {
+    public Long addCartCook(TokenUserInfo userInfo, CartAddCookReqDto reqDto) {
         log.info("장바구니 추가 시작");
 
         // 수량이 0이면 예외 발생
@@ -67,7 +67,7 @@ public class CartService {
         // 장바구니 요리 저장
         log.info("장바구니 요리 저장 시작");
         CartCook cartCook = CartCook.builder()
-                .userId(reqDto.getUserId())
+                .userId(userInfo.getUserId())
                 .cookId(reqDto.getCookId())
                 .count(reqDto.getCount())
                 .build();
@@ -108,9 +108,9 @@ public class CartService {
      *
      * @return
      */
-    public Long editCartCookCount(Long id, Integer count) {
+    public Long editCartCookCount(Long cartCookId, Integer count) {
         // TODO : 분산 락 적용 필요..
-        log.info("장바구니 수정 서비스 로직 시작! cook id : {}, count : {}", id, count);
+        log.info("장바구니 수정 서비스 로직 시작! cook id : {}, count : {}", cartCookId, count);
 
         // 수량 검증
         if (count <= 0) {
@@ -119,7 +119,7 @@ public class CartService {
         }
 
         // 장바구니 상품 꺼내오기
-        CartCook cartCook = cartCookRepository.findUnpaidCartById(id).orElseThrow(
+        CartCook cartCook = cartCookRepository.findUnpaidCartById(cartCookId).orElseThrow(
                 () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
         );
 
@@ -140,16 +140,16 @@ public class CartService {
      *
      * @return
      */
-    public Long deleteCart(Long id) {
-        log.info("장바구니 삭제 서비스 로직 실행! id : {}", id);
+    public Long deleteCart(Long cookId) {
+        log.info("장바구니 삭제 서비스 로직 실행! id : {}", cookId);
 
         // 장바구니에 담겨 있는 지 확인
-        CartCook cartCook = cartCookRepository.findUnpaidCartById(id).orElseThrow(
+        CartCook cartCook = cartCookRepository.findUnpaidCartById(cookId).orElseThrow(
                 () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
         );
 
         // 식재료 모두 삭제
-        cartIngreRepository.deleteByCartCookId(id);
+        cartIngreRepository.deleteByCartCookId(cookId);
 
         // 요리 삭제
         cartCookRepository.delete(cartCook);
@@ -158,15 +158,15 @@ public class CartService {
     }
 
     // 장바구니 조회용
-    public PaymentResDto getCart(TokenUserInfo userInfo, Long userId) {
+    public PaymentResDto getCart(TokenUserInfo userInfo) {
         Long authId = userInfo.getId();
         // 유저 검증
-        Boolean matched = userServiceClient.verifyUser(authId, userId);
+        Boolean matched = userServiceClient.verifyUser(authId, userInfo.getUserId());
         if (!Boolean.TRUE.equals(matched)) {
             throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
 
-        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userId);
+        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
 
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);

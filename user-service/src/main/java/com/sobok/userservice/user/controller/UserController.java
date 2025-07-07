@@ -92,8 +92,8 @@ public class UserController {
     }
 
     @GetMapping("/preOrderUser")
-    public ResponseEntity<?> preOrderUser(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody PreOrderUserReqDto preOrderUserReqDto) {
-        PreOrderUserResDto preOrderUser = userService.getPreOrderUser(userInfo.getId(), preOrderUserReqDto);
+    public ResponseEntity<?> preOrderUser(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        PreOrderUserResDto preOrderUser = userService.getPreOrderUser(userInfo);
         return ResponseEntity.ok().body(ApiResponse.ok(preOrderUser, "주문을 위한 사용자의 정보가 조회되었습니다."));
     }
 

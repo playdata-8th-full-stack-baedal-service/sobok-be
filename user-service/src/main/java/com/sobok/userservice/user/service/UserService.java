@@ -164,7 +164,7 @@ public class UserService {
 
     public void addBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
-        User user = userCheck(userInfo.getId(), userBookmarkReqDto.getUserId());
+        User user = userCheck(userInfo.getId(),userInfo.getUserId());
 
         //cookId가 존재하는지 확인
         ResponseEntity<?> response = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
@@ -176,7 +176,7 @@ public class UserService {
 
         // 즐겨찾기에 없는지 확인
         UserBookmark bookmark = userBookmarkRepository.findByUserIdAndCookId(
-                userBookmarkReqDto.getUserId(),
+                userInfo.getUserId(),
                 userBookmarkReqDto.getCookId()
         );
 
@@ -196,11 +196,11 @@ public class UserService {
 
     public void deleteBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
-        User user = userCheck(userInfo.getId(), userBookmarkReqDto.getUserId());
+        User user = userCheck(userInfo.getId(), userInfo.getUserId());
 
         // 즐겨찾기에 있는지 확인
         UserBookmark bookmark = userBookmarkRepository.findByUserIdAndCookId(
-                userBookmarkReqDto.getUserId(),
+                userInfo.getUserId(),
                 userBookmarkReqDto.getCookId()
         );
 
@@ -223,13 +223,16 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public PreOrderUserResDto getPreOrderUser(Long id, PreOrderUserReqDto preOrderUserReqDto) {
-        log.info("id: {}, preOrderUserReqDto: {}", id, preOrderUserReqDto);
-        User user = userCheck(id, preOrderUserReqDto.getUserId());
+    public PreOrderUserResDto getPreOrderUser(TokenUserInfo userInfo) {
+        log.info("id: {}, userId: {}", userInfo.getId(), userInfo.getUserId() );
+
+        Long id = userInfo.getId();
+
+        User user = userCheck(id, userInfo.getUserId());
 
         //모든 주소 정보, 사용자 주소 id, 전화번호 조회
         List<UserAddressDto> userAddress =
-                userAddressRepository.getUserAddressByUserId(preOrderUserReqDto.getUserId())
+                userAddressRepository.getUserAddressByUserId(userInfo.getUserId())
                         .stream()
                         .map(address -> new UserAddressDto(address.getId(), address.getRoadFull(), address.getAddrDetail()))
                         .toList();
