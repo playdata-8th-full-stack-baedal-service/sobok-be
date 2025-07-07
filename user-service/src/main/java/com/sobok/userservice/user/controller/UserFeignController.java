@@ -69,4 +69,9 @@ public class UserFeignController {
         return ResponseEntity.ok(matched);
     }
 
+    @GetMapping("/get-user-id")
+    Long getUserId(@RequestParam Long id) {
+        return userService.getUserId(id);
+    }
+
 }

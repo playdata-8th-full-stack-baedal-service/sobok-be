@@ -45,8 +45,15 @@ public class JwtTokenProvider {
      * @param auth
      * @return
      */
-    public String generateAccessToken(Auth auth) throws CustomException{
+    public String generateAccessToken(Auth auth, Long roleId) throws CustomException{
         try {
+            String claim = switch (auth.getRole()) {
+                case USER -> "userId";
+                case RIDER -> "riderId";
+                case HUB ->  "shopId";
+                default -> "none";
+            };
+
             // 현재 시간
             Date now = new Date();
             // ? 시간 * (60 분 / 1 시간) * (60 초 / 1 분) * (1000 ms / 1 초)
@@ -58,6 +65,7 @@ public class JwtTokenProvider {
                     .setIssuedAt(now)
                     .setSubject(auth.getId().toString())
                     .claim("role", auth.getRole().toString())
+                    .claim(claim, roleId.toString())
                     .compact();
         } catch (InvalidKeyException e) {
             log.error("액세스 토큰 생성 중 문제가 발생했습니다.");

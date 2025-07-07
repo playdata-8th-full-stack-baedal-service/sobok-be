@@ -12,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CartAddCookReqDto {
-    private Long userId;
     private Long cookId;
 
     private List<AdditionalIngredient> additionalIngredients;

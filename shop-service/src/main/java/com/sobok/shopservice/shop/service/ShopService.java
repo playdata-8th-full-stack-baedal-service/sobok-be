@@ -10,6 +10,7 @@ import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
 import com.sobok.shopservice.shop.dto.response.UserLocationResDto;
 import com.sobok.shopservice.shop.entity.Shop;
 import com.sobok.shopservice.shop.repository.ShopRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -99,5 +100,13 @@ public class ShopService {
                 .ownerName(shop.getOwnerName())
                 .loginId(null)
                 .build();
+    }
+
+    public Long getShopId(Long id) {
+        Shop shop = shopRepository.getShopByAuthId(id).orElseThrow(
+                () -> new EntityNotFoundException("해당하는 가게 정보를 찾을 수 없습니다.")
+        );
+
+        return shop.getId();
     }
 }

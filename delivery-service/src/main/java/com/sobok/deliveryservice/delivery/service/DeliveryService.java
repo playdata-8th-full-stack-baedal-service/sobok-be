@@ -94,4 +94,12 @@ public class DeliveryService {
 
         deliveryRepository.save(delivery);
     }
+
+    public Long getRiderId(Long id) {
+        Rider rider = riderRepository.getRiderByAuthId(id).orElseThrow(
+                () -> new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
+        );
+
+        return rider.getId();
+    }
 }

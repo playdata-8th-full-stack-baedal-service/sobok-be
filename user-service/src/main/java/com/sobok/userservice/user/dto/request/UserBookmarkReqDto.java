@@ -9,6 +9,5 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserBookmarkReqDto {
-    private Long userId;
     private Long cookId;
 }

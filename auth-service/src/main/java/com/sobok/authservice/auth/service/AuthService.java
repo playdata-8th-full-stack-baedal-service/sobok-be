@@ -101,6 +101,7 @@ public class AuthService {
             }
         }
 
+
         // 비밀번호 확인
         boolean passwordCorrect = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
         if (!passwordCorrect) {
@@ -109,8 +110,15 @@ public class AuthService {
             throw new CustomException("비밀번호가 틀렸습니다.", HttpStatus.FORBIDDEN);
         }
 
+        Long roleId = switch (auth.getRole()) {
+            case USER -> userServiceClient.getUserId(auth.getId());
+            case RIDER -> deliveryClient.getRiderId(auth.getId());
+            case HUB -> shopServiceClient.getShopId(auth.getId());
+            default ->  0L;
+        };
+
         // 토큰 발급
-        String accessToken = jwtTokenProvider.generateAccessToken(auth);
+        String accessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(auth);
 
         // 토큰 저장
@@ -223,9 +231,16 @@ public class AuthService {
                         () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
                 );
 
+                Long roleId = switch (auth.getRole()) {
+                    case USER -> userServiceClient.getUserId(auth.getId());
+                    case RIDER -> deliveryClient.getRiderId(auth.getId());
+                    case HUB -> shopServiceClient.getShopId(auth.getId());
+                    default ->  0L;
+                };
+
                 // access token 재발급
                 log.info("{}번 유저 토큰 재발급", reqDto.getId());
-                return jwtTokenProvider.generateAccessToken(auth);
+                return jwtTokenProvider.generateAccessToken(auth, roleId);
             } else {
                 // 토큰이 일치하지 않는다면
                 log.info("refresh token : {}", storedToken);
