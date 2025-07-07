@@ -2,10 +2,12 @@ package com.sobok.shopservice.shop.controller;
 
 import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
+import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
 import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
 import com.sobok.shopservice.shop.repository.ShopRepository;
+import com.sobok.shopservice.shop.service.ShopAssignService;
 import com.sobok.shopservice.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class ShopFeignController {
 
     private final ShopService shopService;
+    private final ShopAssignService shopAssignService;
     private final ShopRepository shopRepository;
 
     @PostMapping("/register")
@@ -54,6 +57,11 @@ public class ShopFeignController {
     public ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId) {
         AuthShopInfoResDto resDto = shopService.getInfo(authId);
         return ResponseEntity.ok().body(resDto);
+    }
+
+    @GetMapping("/assign-shop")
+    public void assignNearestShop(@RequestBody ShopAssignDto reqDto) {
+        shopAssignService.assignNearestShop(reqDto);
     }
 
 }

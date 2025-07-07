@@ -140,6 +140,7 @@ public class CookService {
         return searchCook("category:" + category, pageNo, numOfRows);
     }
 
+
     // 장바구니용 조회
     public CookDetailResDto getCookDetail(Long cookId) {
         // 요리 있는지부터 검증 없으면 예외
@@ -173,6 +174,14 @@ public class CookService {
                 .thumbnail(cook.getThumbnail())
                 .ingredients(ingredients)
                 .build();
+    }
+
+
+    public boolean checkCook(Long cookId) {
+        log.info("컨트롤러 통ㄷ과");
+        boolean exists = cookRepository.existsById(cookId);
+        log.info(exists ? "존재" : "없음");
+        return exists;
     }
 
 }

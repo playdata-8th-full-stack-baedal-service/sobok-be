@@ -37,7 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     List<String> whiteList = List.of(
-            "/actuator/**"
+            "/actuator/**", "/api/confirm"
     );
 
     @Override

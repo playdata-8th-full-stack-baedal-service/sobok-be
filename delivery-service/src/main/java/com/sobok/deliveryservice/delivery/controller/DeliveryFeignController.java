@@ -2,6 +2,7 @@ package com.sobok.deliveryservice.delivery.controller;
 
 import com.sobok.deliveryservice.common.dto.ApiResponse;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
+import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.repository.RiderRepository;
@@ -43,5 +44,10 @@ public class DeliveryFeignController {
     public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId) {
         AuthRiderInfoResDto resDto = deliveryService.getInfo(authId);
         return ResponseEntity.ok().body(resDto);
+    }
+
+    @PostMapping("/register-delivery")
+    public void registerDelivery(@RequestBody DeliveryRegisterDto reqDto) {
+        deliveryService.registerDelivery(reqDto);
     }
 }

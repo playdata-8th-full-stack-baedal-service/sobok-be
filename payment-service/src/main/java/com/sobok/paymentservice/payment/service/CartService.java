@@ -37,10 +37,18 @@ public class CartService {
      * 1. cook service에서 요리를 꺼내와 요리 기본 식재료 가져오기
      * 2. cart_cook 데이터 저장
      * 3. cart_ingre 데이터 저장
+     *
+     * @return
      */
     @Transactional
-    public void addCartCook(CartAddCookReqDto reqDto) {
+    public Long addCartCook(CartAddCookReqDto reqDto) {
         log.info("장바구니 추가 시작");
+
+        // 수량이 0이면 예외 발생
+        if (reqDto.getCount() <= 0) {
+            log.error("잘못된 수량 입력이 발생하였습니다.");
+            throw new CustomException("잘못된 수량 입력입니다", HttpStatus.BAD_REQUEST);
+        }
 
         // 기본 식재료 가져오기 (key : ingreId, value : unitQuantity)
         Map<Long, Integer> defaultIngreList = null;
@@ -72,7 +80,7 @@ public class CartService {
                     .cartCookId(cartCook.getId())
                     .ingreId(key)
                     .defaultIngre("Y")
-                    .unitQuantity(defaultIngreList.get(key))
+                    .unitQuantity(defaultIngreList.get(key) * reqDto.getCount())
                     .build();
             cartIngreRepository.save(cartIngre);
         }
@@ -88,6 +96,65 @@ public class CartService {
                     .build();
             cartIngreRepository.save(cartIngre);
         }
+
+        return cartCook.getId();
+    }
+
+    /**
+     * 장바구니 수정
+     * 1. 수량 검증
+     * 2. 상품 조회
+     * 3. 수량 변경
+     *
+     * @return
+     */
+    public Long editCartCookCount(Long id, Integer count) {
+        // TODO : 분산 락 적용 필요..
+        log.info("장바구니 수정 서비스 로직 시작! cook id : {}, count : {}", id, count);
+
+        // 수량 검증
+        if (count <= 0) {
+            log.error("잘못된 수량 요청값이 들어왔습니다.");
+            throw new CustomException("잘못된 수량 입력입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 장바구니 상품 꺼내오기
+        CartCook cartCook = cartCookRepository.findUnpaidCartById(id).orElseThrow(
+                () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        // 수량 변경
+        cartCook.changeCount(count);
+
+        // 저장
+        cartCookRepository.save(cartCook);
+
+        return cartCook.getId();
+    }
+
+
+    /**
+     * 1. 장바구니에 담겨 있는지 확인
+     * 2. Ingredient 다 지우기
+     * 3. cart_cook 지우기
+     *
+     * @return
+     */
+    public Long deleteCart(Long id) {
+        log.info("장바구니 삭제 서비스 로직 실행! id : {}", id);
+
+        // 장바구니에 담겨 있는 지 확인
+        CartCook cartCook = cartCookRepository.findUnpaidCartById(id).orElseThrow(
+                () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        // 식재료 모두 삭제
+        cartIngreRepository.deleteByCartCookId(id);
+
+        // 요리 삭제
+        cartCookRepository.delete(cartCook);
+
+        return cartCook.getId();
     }
 
     // 장바구니 조회용

@@ -10,10 +10,15 @@ import com.sobok.cookservice.cook.service.IngredientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+
 
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sobok.cookservice.cook.service.CookService;
+import org.springframework.web.bind.annotation.*;
+      
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ public class CookFeignController {
     private final CombinationService combinationService;
     private final IngredientService ingredientService;
     private final CookService cookService;
+
 
     @GetMapping("/get-cook-default-ingre")
     Map<Long, Integer> getDefaultIngreInfoList(@RequestParam Long cookId) {
@@ -39,6 +45,14 @@ public class CookFeignController {
     @GetMapping("/ingredients/{id}")
     public IngreResDto getIngredient(@PathVariable Long id) {
         return ingredientService.getIngredientDtoById(id);
+    }
+
+    /**
+     * cookId가 DB에 존재하는지 확인
+     */
+    @GetMapping("/check-cook")
+    ResponseEntity<?> checkCook(@RequestParam Long cookId) {
+        return ResponseEntity.ok(cookService.checkCook(cookId));
     }
 
 
