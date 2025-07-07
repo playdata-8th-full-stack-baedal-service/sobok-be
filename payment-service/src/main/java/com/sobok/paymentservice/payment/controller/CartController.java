@@ -19,8 +19,8 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addCartCook(@RequestBody CartAddCookReqDto reqDto) {
-        Long cartCookId = cartService.addCartCook(reqDto);
+    public ResponseEntity<?> addCartCook(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody CartAddCookReqDto reqDto) {
+        Long cartCookId = cartService.addCartCook(userInfo, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니에 성공적으로 저장되었습니다."));
     }
 
@@ -28,13 +28,14 @@ public class CartController {
      * 장바구니 조회용
      */
     @GetMapping("/get-cart")
-    public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long userId) {
-        PaymentResDto resDto = cartService.getCart(userInfo, userId);
+    public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        PaymentResDto resDto = cartService.getCart(userInfo);
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 
     @PatchMapping("/edit-count")
     public ResponseEntity<?> editCount(@RequestParam Long id, @RequestParam Integer count) {
+        // cartCookId
         Long cartCookId = cartService.editCartCookCount(id, count);
         return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니 수량이 성공적으로 변경되었습니다."));
     }

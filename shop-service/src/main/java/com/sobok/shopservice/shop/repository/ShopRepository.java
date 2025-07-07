@@ -17,4 +17,5 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
 
     Optional<Shop> findByAuthId(Long authId);
 
+    Optional<Shop> getShopByAuthId(Long authId);
 }

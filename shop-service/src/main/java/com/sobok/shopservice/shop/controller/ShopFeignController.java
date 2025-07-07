@@ -64,4 +64,9 @@ public class ShopFeignController {
         shopAssignService.assignNearestShop(reqDto);
     }
 
+    @GetMapping("/get-shop-id")
+    public Long getShopId(@RequestParam Long id) {
+        return shopService.getShopId(id);
+    }
+
 }
