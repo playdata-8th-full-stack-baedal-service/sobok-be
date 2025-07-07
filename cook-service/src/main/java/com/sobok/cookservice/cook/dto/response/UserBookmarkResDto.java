@@ -1,4 +1,4 @@
-package com.sobok.userservice.user.dto.response;
+package com.sobok.cookservice.cook.dto.response;
 
 import lombok.*;
 

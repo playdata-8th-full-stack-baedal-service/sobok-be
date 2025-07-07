@@ -23,7 +23,10 @@ import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.entity.User;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -216,10 +219,31 @@ public class UserService {
                 () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
-        return userBookmarkRepository.findByUserId((user.getId()))
+        // getCookId()로 cook 페인요청 보내서 썸네일, 요리이름 가져오기
+        List<Long> cookIdList = userBookmarkRepository.findByUserId((user.getId()))
                 .stream()
-                .map(bookmark -> new UserBookmarkResDto(bookmark.getCookId()))
+                .map(UserBookmark::getCookId)
                 .collect(Collectors.toList());
+
+        List<UserBookmarkResDto> cookInfoList = cookServiceClient.cookPreLookup(cookIdList);
+
+        log.info("cookInfoList: {}", cookInfoList);
+
+        // cookId를 기준으로 매핑
+        Map<Long, UserBookmarkResDto> cookInfoMap = cookInfoList.stream()
+                .collect(Collectors.toMap(UserBookmarkResDto::getCookId, Function.identity()));
+
+        return cookIdList.stream()
+                .map(cookId -> {
+                    UserBookmarkResDto cook = cookInfoMap.get(cookId);
+                    if (cook == null) {
+                        log.warn("cookId={}에 대한 정보가 없음. 생략합니다.", cookId);
+                        return null;
+                    }
+                    return cook;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public PreOrderUserResDto getPreOrderUser(Long id, PreOrderUserReqDto preOrderUserReqDto) {
