@@ -6,6 +6,7 @@ import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
+import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
 import com.sobok.deliveryservice.delivery.entity.Rider;
@@ -110,13 +111,13 @@ public class DeliveryService {
     /**
      * 라이더 정보 조회
      */
-    public List<RiderResDto> getAllRiders() {
+    public List<RiderInfoResDto> getAllRiders() {
         return riderRepository.findAll()
                 .stream()
                 .map(rider -> {
-                    RiderResDto authInfo = authFeignClient.getRiderAuthInfo(rider.getAuthId());
+                    RiderInfoResDto authInfo = authFeignClient.getRiderAuthInfo(rider.getAuthId());
 
-                    return RiderResDto.builder()
+                    return RiderInfoResDto.builder()
                             .id(rider.getId())
                             .loginId(authInfo.getLoginId())
                             .name(rider.getName())

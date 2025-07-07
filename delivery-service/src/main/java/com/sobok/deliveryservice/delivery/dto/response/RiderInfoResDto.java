@@ -9,12 +9,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RiderResDto {
+public class RiderInfoResDto {
 
     private Long id;
     private Long authId;
     private String name;
     private String phone;
     private String permissionNumber;
+    private String active;
+    private String loginId;
 
 }
