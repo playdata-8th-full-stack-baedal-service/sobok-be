@@ -19,10 +19,6 @@ public class AdminService {
     private final AdminShopFeignClient adminShopClient;
 
     public List<ShopResDto> getAllShops(TokenUserInfo userInfo) {
-        Long adminId = userInfo.getId();
-        Long shopId = userInfo.getShopId();
-
-        log.info("관리자 요청 adminId: {}, shopId: {}", adminId, shopId);
 
         if (!userInfo.getRole().equals("ADMIN")) {
             throw new CustomException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);

@@ -120,7 +120,6 @@ public class ShopService {
         return shopRepository.findAll().stream()
                 .map(shop -> ShopResDto.builder()
                         .id(shop.getId())          // 목록 번호
-                        .shopId(shop.getId())      // 아이디 = shopId
                         .shopName(shop.getShopName())
                         .roadFull(shop.getRoadFull())
                         .ownerName(shop.getOwnerName())

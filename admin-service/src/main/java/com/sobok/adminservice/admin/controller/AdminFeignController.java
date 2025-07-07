@@ -49,7 +49,6 @@ public class AdminFeignController {
 
     }
 
-//    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/shops")
     public ResponseEntity<?> getAllShops(@AuthenticationPrincipal TokenUserInfo userInfo) {
         List<ShopResDto> result = adminService.getAllShops(userInfo);
