@@ -134,7 +134,7 @@ public class JwtTokenProvider {
                     .setExpiration(expiryDate)
                     .setIssuedAt(now)
                     .setSubject("999")
-                    .claim("role", Role.USER.toString())
+                    .claim("role", Role.FEIGN.toString())
                     .compact();
         } catch (InvalidKeyException e) {
             log.error("임시 토큰 생성 중 문제가 발생했습니다.");

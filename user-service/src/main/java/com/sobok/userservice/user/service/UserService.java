@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.entity.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,7 @@ public class UserService {
      *     2. 주소 값이 전달되었다면 사용자 주소도 저장
      * </pre>
      */
+    @Transactional
     public void signup(UserSignupReqDto reqDto) {
         log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
 
