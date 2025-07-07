@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -225,5 +226,14 @@ public class AuthController {
 
         // 3. 리턴
         return ResponseEntity.ok().body(ApiResponse.ok(info, "성공적으로 정보가 조회되었습니다."));
+    }
+
+    // 카카오 콜백 요청 처리
+    @GetMapping("/kakao-login")
+    public void kakaoCallback(@RequestParam String code) {
+        log.info("카카오 콜백 처리 시작! code: {}", code);
+
+        String kakaoAccessToken = authService.getKakaoAccessToken(code);
+        authService.getKakaoUserInfo(kakaoAccessToken);
     }
 }

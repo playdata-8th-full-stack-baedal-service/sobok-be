@@ -5,11 +5,9 @@ import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.client.ShopServiceClient;
 import com.sobok.authservice.auth.client.UserServiceClient;
 import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
-import com.sobok.authservice.auth.dto.info.AuthUserInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
-//import com.sobok.authservice.auth.feign.UserFeignClient;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.auth.service.info.AuthInfoProvider;
 import com.sobok.authservice.auth.service.info.AuthInfoProviderFactory;
@@ -23,17 +21,21 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -53,7 +55,12 @@ public class AuthService {
 
     private final SmsService smsService;
 
-    private final AuthInfoProviderFactory  authInfoProviderFactory;
+    private final AuthInfoProviderFactory authInfoProviderFactory;
+
+    @Value("${oauth2.kakao.client-id}")
+    private String kakaoClientId;
+    @Value("${oauth2.kakao.redirect-uri}")
+    private String kakaoRedirectUri;
 
     /**
      * <pre>
@@ -632,9 +639,10 @@ public class AuthService {
             throw new CustomException("중복된 가게 주소 입니다.", HttpStatus.BAD_REQUEST);
         }
     }
-  
+
     /**
      * 비밀번호 검증
+     *
      * @return loginId
      */
     public String verifyByPassword(Long id, AuthPasswordReqDto reqDto) {
@@ -643,7 +651,7 @@ public class AuthService {
         );
 
         boolean isMatch = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
-        if(!isMatch) {
+        if (!isMatch) {
             throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
@@ -675,5 +683,67 @@ public class AuthService {
         }
 
         return info;
+    }
+
+    // 인가 코드로 카카오 액세스 토큰 받기
+    public String getKakaoAccessToken(String code) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        // 요청 URI
+        String requestUri = "https://kauth.kakao.com/oauth/token";
+
+        // 헤더정보 세팅
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        // 바디정보 세팅
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("grant_type", "authorization_code");
+        map.add("code", code);
+        map.add("redirect_uri", kakaoRedirectUri);
+        map.add("client_id", kakaoClientId);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+
+        ResponseEntity<Map> responseEntity = restTemplate.exchange(
+                requestUri, HttpMethod.POST, request, Map.class
+        );
+
+        // 응답 데이터에서 JSON 추출
+        Map<String, Object> responseJSON
+                = (Map<String, Object>) responseEntity.getBody();
+
+        log.info("응답 JSON 데이터: {}", responseJSON);
+
+        // Access Token 추출 (카카오 로그인 중인 사용자의 정보를 요청할 때 필요한 토큰)
+        String accessToken = (String) responseJSON.get("access_token");
+
+        return accessToken;
+
+    }
+
+    // Access Token으로 사용자 정보 얻어오기!
+    public KakaoUserResDto getKakaoUserInfo(String kakaoAccessToken) {
+        String requestUri = "https://kapi.kakao.com/v2/user/me";
+
+        // 요청 헤더
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+        headers.add("Authorization", "Bearer " + kakaoAccessToken);
+
+        // 요청 보내기
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<KakaoUserResDto> response = restTemplate.exchange(
+                requestUri,
+                HttpMethod.POST,
+                new HttpEntity<>(headers),
+                KakaoUserResDto.class
+        );
+
+        KakaoUserResDto dto = response.getBody();
+        log.info("응답된 사용자 정보: {}", dto);
+
+        return dto;
+
     }
 }
