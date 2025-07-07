@@ -92,6 +92,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // @AuthenticationPrinciple, @PreAuthorize("hasRole('ADMIN')") 같은 로직을 사용하기 위한 로직
             TokenUserInfo tokenUserInfo = TokenUserInfo.builder().id(id).role(role.name()).build();
+            String roleClaim = switch(role) {
+                case USER -> "userId";
+                case HUB -> "shopId";
+                case RIDER ->  "riderId";
+                default -> null;
+            };
+            Long roleId = Long.parseLong(claims.get(roleClaim, String.class));
+            switch(role) {
+                case USER -> tokenUserInfo.setUserId(roleId);
+                case HUB -> tokenUserInfo.setShopId(roleId);
+                case RIDER -> tokenUserInfo.setRiderId(roleId);
+            }
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(tokenUserInfo, "", authorities);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
