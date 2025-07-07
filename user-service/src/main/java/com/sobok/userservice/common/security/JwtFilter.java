@@ -98,12 +98,16 @@ public class JwtFilter extends OncePerRequestFilter {
                 case RIDER ->  "riderId";
                 default -> null;
             };
-            Long roleId = Long.parseLong(claims.get(roleClaim, String.class));
-            switch(role) {
-                case USER -> tokenUserInfo.setUserId(roleId);
-                case HUB -> tokenUserInfo.setShopId(roleId);
-                case RIDER -> tokenUserInfo.setRiderId(roleId);
+
+            if(roleClaim != null) {
+                Long roleId = Long.parseLong(claims.get(roleClaim, String.class));
+                switch(role) {
+                    case USER -> tokenUserInfo.setUserId(roleId);
+                    case HUB -> tokenUserInfo.setShopId(roleId);
+                    case RIDER -> tokenUserInfo.setRiderId(roleId);
+                }
             }
+
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(tokenUserInfo, "", authorities);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
