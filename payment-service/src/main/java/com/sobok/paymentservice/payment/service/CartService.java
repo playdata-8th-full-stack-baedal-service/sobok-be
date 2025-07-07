@@ -205,7 +205,7 @@ public class CartService {
             );
         }).toList();
 
-        return new PaymentResDto(cartCookList.get(0).getUserId(), items);
+        return new PaymentResDto(userInfo.getUserId(), items);
     }
 
 }

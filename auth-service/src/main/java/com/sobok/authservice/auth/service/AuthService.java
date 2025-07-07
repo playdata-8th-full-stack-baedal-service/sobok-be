@@ -691,4 +691,17 @@ public class AuthService {
 
         return info;
     }
+
+    /**
+     * 라이더 loginId, active 전달
+     */
+    public AuthRiderInfoResDto getRiderAuthInfo(Long authId) {
+        Auth auth = authRepository.findById(authId)
+                .orElseThrow(() -> new CustomException("authId에 해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND));
+
+        return AuthRiderInfoResDto.builder()
+                .loginId(auth.getLoginId())
+                .active(auth.getActive())
+                .build();
+    }
 }

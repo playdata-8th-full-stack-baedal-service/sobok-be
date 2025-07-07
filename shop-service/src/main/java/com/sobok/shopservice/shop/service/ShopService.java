@@ -7,6 +7,7 @@ import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
 import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
+import com.sobok.shopservice.shop.dto.response.ShopResDto;
 import com.sobok.shopservice.shop.dto.response.UserLocationResDto;
 import com.sobok.shopservice.shop.entity.Shop;
 import com.sobok.shopservice.shop.repository.ShopRepository;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -108,5 +110,21 @@ public class ShopService {
         );
 
         return shop.getId();
+    }
+
+
+    /**
+     * 관리자용 가게 전체 조회
+     */
+    public List<ShopResDto> getAllShops() {
+        return shopRepository.findAll().stream()
+                .map(shop -> ShopResDto.builder()
+                        .id(shop.getId())          // 목록 번호
+                        .shopName(shop.getShopName())
+                        .roadFull(shop.getRoadFull())
+                        .ownerName(shop.getOwnerName())
+                        .phone(shop.getPhone())
+                        .build())
+                .toList();
     }
 }
