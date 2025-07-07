@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.service;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
+import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
@@ -29,6 +30,7 @@ public class CartService {
     private final CookFeignClient cookFeignClient;
     private final CartCookRepository cartCookRepository;
     private final CartIngreRepository cartIngreRepository;
+    private final UserServiceClient userServiceClient;
 
     /**
      * 장바구니 추가
@@ -90,6 +92,12 @@ public class CartService {
 
     // 장바구니 조회용
     public PaymentResDto getCart(TokenUserInfo userInfo, Long userId) {
+        Long authId = userInfo.getId();
+        // 유저 검증
+        Boolean matched = userServiceClient.verifyUser(authId, userId);
+        if (!Boolean.TRUE.equals(matched)) {
+            throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
+        }
 
         List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userId);
 

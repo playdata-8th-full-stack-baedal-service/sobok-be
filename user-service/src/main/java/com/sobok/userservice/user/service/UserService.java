@@ -146,4 +146,12 @@ public class UserService {
         userRepository.save(user);
 
     }
+
+    // 유저 검증용 true false
+    public boolean verifyUser(Long authId, Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getAuthId().equals(authId))
+                .orElse(false);
+    }
+
 }
