@@ -50,4 +50,9 @@ public class DeliveryFeignController {
     public void registerDelivery(@RequestBody DeliveryRegisterDto reqDto) {
         deliveryService.registerDelivery(reqDto);
     }
+
+    @GetMapping("/get-rider-id")
+    public Long getRiderId(@RequestParam Long id) {
+        return deliveryService.getRiderId(id);
+    }
 }

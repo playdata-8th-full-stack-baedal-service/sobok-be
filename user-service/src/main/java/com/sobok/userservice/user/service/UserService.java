@@ -13,6 +13,7 @@ import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserBookmarkRepository;
 import com.sobok.userservice.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -257,5 +258,13 @@ public class UserService {
         }
 
         return user;
+    }
+
+    public Long getUserId(Long id) {
+        User userByAuthId = userRepository.getUserByAuthId(id).orElseThrow(
+                () -> new EntityNotFoundException("유저가 없습니다.")
+        );
+
+        return userByAuthId.getId();
     }
 }

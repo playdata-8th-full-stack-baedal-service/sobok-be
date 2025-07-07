@@ -33,4 +33,7 @@ public interface ShopServiceClient {
   
     @GetMapping("/api/shop-info")
     ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId);
+
+    @GetMapping("/api/get-shop-id")
+    Long getShopId(@RequestParam Long id);
 }

@@ -33,4 +33,7 @@ public interface UserServiceClient {
   
     @GetMapping("/api/user-info")
     ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId);
+
+    @GetMapping("/api/get-user-id")
+    Long getUserId(@RequestParam Long id);
 }
