@@ -2,6 +2,7 @@ package com.sobok.adminservice.admin.controller;
 
 
 import com.sobok.adminservice.admin.client.AdminFeignClient;
+import com.sobok.adminservice.admin.dto.rider.RiderResDto;
 import com.sobok.adminservice.admin.dto.shop.ShopResDto;
 import com.sobok.adminservice.admin.service.AdminService;
 import com.sobok.adminservice.common.dto.ApiResponse;
@@ -49,10 +50,22 @@ public class AdminFeignController {
 
     }
 
+    /**
+     * 관리자 전용 가게 전체 조회
+     */
     @GetMapping("/shops")
     public ResponseEntity<?> getAllShops(@AuthenticationPrincipal TokenUserInfo userInfo) {
         List<ShopResDto> result = adminService.getAllShops(userInfo);
         return ResponseEntity.ok(ApiResponse.ok(result, "가게 전체 조회 성공"));
 
+    }
+
+    /**
+     * 관리자 전용 라이더 전체 조회
+     */
+    @GetMapping("/riders")
+    public ResponseEntity<?> getAllRiders(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        List<RiderResDto> riders = adminService.getAllRiders(userInfo);
+        return ResponseEntity.ok(ApiResponse.ok(riders, "전체 라이더 정보 조회 성공"));
     }
 }

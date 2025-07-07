@@ -1,6 +1,7 @@
 package com.sobok.deliveryservice.delivery.controller;
 
 import com.sobok.deliveryservice.common.dto.ApiResponse;
+import com.sobok.deliveryservice.common.dto.TokenUserInfo;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
@@ -10,7 +11,10 @@ import com.sobok.deliveryservice.delivery.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -54,5 +58,14 @@ public class DeliveryFeignController {
     @GetMapping("/get-rider-id")
     public Long getRiderId(@RequestParam Long id) {
         return deliveryService.getRiderId(id);
+    }
+
+    /**
+     * 라이더 정보 조회
+     */
+    @GetMapping("/get-rider-all")
+    public ResponseEntity<?> getAllRiders() {
+        List<RiderResDto> riders = deliveryService.getAllRiders();
+        return ResponseEntity.ok(ApiResponse.ok(riders, "전체 라이더 조회 성공"));
     }
 }

@@ -1,6 +1,7 @@
 package com.sobok.deliveryservice.delivery.service;
 
 import com.sobok.deliveryservice.common.exception.CustomException;
+import com.sobok.deliveryservice.delivery.client.AuthFeignClient;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class DeliveryService {
 
     private final RiderRepository riderRepository;
     private final DeliveryRepository deliveryRepository;
+    private final AuthFeignClient authFeignClient;
 
     public RiderResDto riderCreate(RiderReqDto dto) {
 
@@ -102,4 +105,27 @@ public class DeliveryService {
 
         return rider.getId();
     }
+
+
+    /**
+     * 라이더 정보 조회
+     */
+    public List<RiderResDto> getAllRiders() {
+        return riderRepository.findAll()
+                .stream()
+                .map(rider -> {
+                    RiderResDto authInfo = authFeignClient.getRiderAuthInfo(rider.getAuthId());
+
+                    return RiderResDto.builder()
+                            .id(rider.getId())
+                            .loginId(authInfo.getLoginId())
+                            .name(rider.getName())
+                            .phone(rider.getPhone())
+                            .permissionNumber(rider.getPermissionNumber())
+                            .active(authInfo.getActive())
+                            .build();
+                })
+                .toList();
+    }
+
 }

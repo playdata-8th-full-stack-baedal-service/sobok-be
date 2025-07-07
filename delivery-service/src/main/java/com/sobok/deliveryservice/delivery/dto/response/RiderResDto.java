@@ -16,5 +16,7 @@ public class RiderResDto {
     private String name;
     private String phone;
     private String permissionNumber;
+    private String active;
+    private String loginId; // 추가 다른 로직 응답 오류시 수정해야함
 
 }
