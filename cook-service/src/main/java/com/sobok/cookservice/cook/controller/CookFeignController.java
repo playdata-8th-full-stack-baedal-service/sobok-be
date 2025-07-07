@@ -1,15 +1,17 @@
 package com.sobok.cookservice.cook.controller;
 
+
+import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
+import com.sobok.cookservice.cook.dto.response.IngreResDto;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.service.CombinationService;
+import com.sobok.cookservice.cook.service.CookService;
 import com.sobok.cookservice.cook.service.IngredientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +35,18 @@ public class CookFeignController {
         return combinationService.getDefaultIngreInfoList(cookId);
     }
 
+    // 장바구니 조회용
+    @GetMapping("/cook/{cookId}")
+    public CookDetailResDto getCookDetail(@PathVariable Long cookId) {
+        return cookService.getCookDetail(cookId);
+    }
+
+    // 추가 식재료 조회
+    @GetMapping("/ingredients/{id}")
+    public IngreResDto getIngredient(@PathVariable Long id) {
+        return ingredientService.getIngredientDtoById(id);
+    }
+
     /**
      * cookId가 DB에 존재하는지 확인
      */
@@ -40,5 +54,6 @@ public class CookFeignController {
     ResponseEntity<?> checkCook(@RequestParam Long cookId) {
         return ResponseEntity.ok(cookService.checkCook(cookId));
     }
+
 
 }

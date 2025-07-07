@@ -154,6 +154,15 @@ public class UserService {
 
     }
 
+
+    // 유저 검증용 true false
+    public boolean verifyUser(Long authId, Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getAuthId().equals(authId))
+                .orElse(false);
+    }
+
+
     public void addBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
         User user = userRepository.findById(userBookmarkReqDto.getUserId()).orElseThrow(

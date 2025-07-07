@@ -1,8 +1,14 @@
 package com.sobok.paymentservice.payment.service;
 
+import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
+import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
+import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
+import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
+import com.sobok.paymentservice.payment.dto.response.PaymentItemResDto;
+import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.CartIngredient;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
@@ -14,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -23,6 +30,7 @@ public class CartService {
     private final CookFeignClient cookFeignClient;
     private final CartCookRepository cartCookRepository;
     private final CartIngreRepository cartIngreRepository;
+    private final UserServiceClient userServiceClient;
 
     /**
      * 장바구니 추가
@@ -148,4 +156,56 @@ public class CartService {
 
         return cartCook.getId();
     }
+
+    // 장바구니 조회용
+    public PaymentResDto getCart(TokenUserInfo userInfo, Long userId) {
+        Long authId = userInfo.getId();
+        // 유저 검증
+        Boolean matched = userServiceClient.verifyUser(authId, userId);
+        if (!Boolean.TRUE.equals(matched)) {
+            throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
+        }
+
+        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userId);
+
+        if (cartCookList.isEmpty()) {
+            throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        List<PaymentItemResDto> items = cartCookList.stream().map(cartCook -> {
+            CookDetailResDto cook = cookFeignClient.getCookDetail(cartCook.getCookId());
+            List<IngredientResDto> defaultIngredients = cook.getIngredients();
+
+            // 추가 식재료 조회
+            List<CartIngredient> additionalIngredients = cartIngreRepository.findByCartCookId(cartCook.getId());
+            List<IngredientResDto> additionalDtos = additionalIngredients.stream()
+                    .filter(ingre -> "N".equals(ingre.getDefaultIngre()))
+                    .map(ingre -> {
+                        IngredientResDto ingreDetail = cookFeignClient.getIngredient(ingre.getIngreId());
+                        return IngredientResDto.builder()
+                                .ingredientId(ingre.getIngreId())
+                                .ingreName(ingreDetail.getIngreName())
+                                .unitQuantity(ingre.getUnitQuantity())
+                                .unit(ingreDetail.getUnit())
+                                .build();
+                    }).toList();
+
+
+            // 기본 + 추가식재료 합치기
+            List<IngredientResDto> totalIngredients = new java.util.ArrayList<>();
+            totalIngredients.addAll(defaultIngredients);
+            totalIngredients.addAll(additionalDtos);
+
+            return new PaymentItemResDto(
+                    cook.getCookId(),
+                    cook.getName(),
+                    cook.getThumbnail(),
+                    cartCook.getCount(),
+                    totalIngredients
+            );
+        }).toList();
+
+        return new PaymentResDto(cartCookList.get(0).getUserId(), items);
+    }
+
 }

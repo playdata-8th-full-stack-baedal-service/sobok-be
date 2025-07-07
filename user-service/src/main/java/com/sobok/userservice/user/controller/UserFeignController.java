@@ -59,4 +59,14 @@ public class UserFeignController {
 
     }
 
+    /**
+     * 장바구니 조회용 사용자 검증
+     */
+    @GetMapping("/verify-user")
+    public ResponseEntity<Boolean> verifyUser(@RequestParam Long authId,
+                                              @RequestParam Long userId) {
+        boolean matched = userService.verifyUser(authId, userId);
+        return ResponseEntity.ok(matched);
+    }
+
 }

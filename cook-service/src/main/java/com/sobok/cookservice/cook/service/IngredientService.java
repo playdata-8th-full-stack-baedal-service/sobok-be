@@ -93,4 +93,21 @@ public class IngredientService {
         ingredientRepository.save(ingredient);
         log.info("정보 변경 완료");
     }
+
+    /**
+     * 추가 식재료 조회 Feign
+     */
+    public IngreResDto getIngredientDtoById(Long id) {
+        Ingredient ingre = ingredientRepository.findById(id)
+                .orElseThrow(() -> new CustomException("식재료가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        log.info("ingredient name: {}", ingre.getIngreName());
+        return IngreResDto.builder()
+                .id(ingre.getId())
+                .ingreName(ingre.getIngreName())
+                .unit(ingre.getUnit())
+                .price(ingre.getPrice())
+                .origin(ingre.getOrigin())
+                .build();
+    }
+
 }
