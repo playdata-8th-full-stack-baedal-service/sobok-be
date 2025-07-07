@@ -12,4 +12,7 @@ import lombok.NoArgsConstructor;
 public class TokenUserInfo {
     Long id;
     String role;
+    Long userId;
+    Long riderId;
+    Long shopId;
 }
