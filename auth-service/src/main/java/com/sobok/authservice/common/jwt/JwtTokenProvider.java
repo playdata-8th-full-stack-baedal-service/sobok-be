@@ -65,7 +65,7 @@ public class JwtTokenProvider {
                     .setIssuedAt(now)
                     .setSubject(auth.getId().toString())
                     .claim("role", auth.getRole().toString())
-                    .claim(claim, roleId)
+                    .claim(claim, roleId.toString())
                     .compact();
         } catch (InvalidKeyException e) {
             log.error("액세스 토큰 생성 중 문제가 발생했습니다.");
