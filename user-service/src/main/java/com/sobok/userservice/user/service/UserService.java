@@ -6,10 +6,8 @@ import com.sobok.userservice.user.client.CookServiceClient;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
-import com.sobok.userservice.user.dto.request.UserAddressReqDto;
-import com.sobok.userservice.user.dto.request.UserBookmarkReqDto;
-import com.sobok.userservice.user.dto.request.UserPhoneDto;
-import com.sobok.userservice.user.dto.request.UserSignupReqDto;
+import com.sobok.userservice.user.dto.request.*;
+import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
 import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
@@ -165,13 +163,7 @@ public class UserService {
 
     public void addBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
-        User user = userRepository.findById(userBookmarkReqDto.getUserId()).orElseThrow(
-                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
-        );
-
-        if (!user.getAuthId().equals(userInfo.getId())) {
-            throw new CustomException("잘못된 사용자 정보", HttpStatus.BAD_REQUEST);
-        }
+        User user = userCheck(userInfo.getId(), userBookmarkReqDto.getUserId());
 
         //cookId가 존재하는지 확인
         ResponseEntity<?> response = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
@@ -203,13 +195,7 @@ public class UserService {
 
     public void deleteBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
-        User user = userRepository.findById(userBookmarkReqDto.getUserId()).orElseThrow(
-                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
-        );
-
-        if (!user.getAuthId().equals(userInfo.getId())) {
-            throw new CustomException("잘못된 사용자 정보", HttpStatus.BAD_REQUEST);
-        }
+        User user = userCheck(userInfo.getId(), userBookmarkReqDto.getUserId());
 
         // 즐겨찾기에 있는지 확인
         UserBookmark bookmark = userBookmarkRepository.findByUserIdAndCookId(
@@ -234,5 +220,42 @@ public class UserService {
                 .stream()
                 .map(bookmark -> new UserBookmarkResDto(bookmark.getCookId()))
                 .collect(Collectors.toList());
+    }
+
+    public PreOrderUserResDto getPreOrderUser(Long id, PreOrderUserReqDto preOrderUserReqDto) {
+        log.info("id: {}, preOrderUserReqDto: {}", id, preOrderUserReqDto);
+        User user = userCheck(id, preOrderUserReqDto.getUserId());
+
+        //모든 주소 정보, 사용자 주소 id, 전화번호 조회
+        List<UserAddressDto> userAddress =
+                userAddressRepository.getUserAddressByUserId(preOrderUserReqDto.getUserId())
+                        .stream()
+                        .map(address -> new UserAddressDto(address.getId(), address.getRoadFull(), address.getAddrDetail()))
+                        .toList();
+
+        if (userAddress.isEmpty()) {
+            userAddress = null;
+        }
+
+        return PreOrderUserResDto.builder()
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .phone(user.getPhone())
+                .addresses(userAddress)
+                .build();
+    }
+
+    // 로그인 한 사용자 확인
+    public User userCheck(Long authId, Long userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        if (!user.getAuthId().equals(authId)) {
+            throw new CustomException("잘못된 사용자 정보", HttpStatus.BAD_REQUEST);
+        }
+
+        return user;
     }
 }

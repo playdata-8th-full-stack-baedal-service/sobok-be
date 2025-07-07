@@ -4,14 +4,11 @@ package com.sobok.userservice.user.controller;
 import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
-import com.sobok.userservice.user.dto.request.UserBookmarkReqDto;
-import com.sobok.userservice.user.dto.request.UserPhoneDto;
+import com.sobok.userservice.user.dto.request.*;
+import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
-import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.service.UserService;
 import com.sobok.userservice.common.dto.TokenUserInfo;
-import com.sobok.userservice.user.dto.request.UserAddressEditReqDto;
-import com.sobok.userservice.user.dto.request.UserAddressReqDto;
 import com.sobok.userservice.user.service.UserAddressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,6 +89,12 @@ public class UserController {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
         }
         return ResponseEntity.ok().body(ApiResponse.ok(bookmark, "즐겨찾기 요리가 조회되었습니다."));
+    }
+
+    @GetMapping("/preOrderUser")
+    public ResponseEntity<?> preOrderUser(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody PreOrderUserReqDto preOrderUserReqDto) {
+        PreOrderUserResDto preOrderUser = userService.getPreOrderUser(userInfo.getId(), preOrderUserReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(preOrderUser, "주문을 위한 사용자의 정보가 조회되었습니다."));
     }
 
 
