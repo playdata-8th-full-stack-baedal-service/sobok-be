@@ -6,6 +6,7 @@ import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
 import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
+import com.sobok.shopservice.shop.dto.response.ShopResDto;
 import com.sobok.shopservice.shop.repository.ShopRepository;
 import com.sobok.shopservice.shop.service.ShopAssignService;
 import com.sobok.shopservice.shop.service.ShopService;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -67,6 +70,15 @@ public class ShopFeignController {
     @GetMapping("/get-shop-id")
     public Long getShopId(@RequestParam Long id) {
         return shopService.getShopId(id);
+    }
+
+    /**
+     * 관리자용 가게 전체 조회
+     */
+    @GetMapping("/shop-all")
+    public ResponseEntity<?> getAllShops() {
+        List<ShopResDto> result = shopService.getAllShops();
+        return ResponseEntity.ok(ApiResponse.ok(result, "가게 전체 조회 성공"));
     }
 
 }
