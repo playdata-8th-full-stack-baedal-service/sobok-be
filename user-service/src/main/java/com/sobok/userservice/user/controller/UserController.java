@@ -47,6 +47,12 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(address, "사용자의 주소를 성공적으로 조회하였습니다."));
     }
 
+    @DeleteMapping("/deleteAddress/{id}")
+    public ResponseEntity<?> deleteAddress(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable Long id) {
+        Long deletedId = userAddressService.deleteAddress(userInfo, id);
+        return ResponseEntity.ok().body(ApiResponse.ok(deletedId, "사용자의 주소를 성공적으로 삭제하였습니다."));
+    }
+
     @PostMapping("/editEmail")
     public ResponseEntity<?> editEmail(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserEmailDto reqDto) {
         userService.editEmail(userInfo, reqDto);

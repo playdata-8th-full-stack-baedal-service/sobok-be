@@ -112,7 +112,7 @@ public class UserService {
         );
 
         List<UserAddressDto> userAddress =
-                userAddressRepository.getUserAddressByUserId(user.getId())
+                userAddressRepository.findByActiveUserId(user.getId())
                         .stream()
                         .map(address -> new UserAddressDto(address.getId(), address.getRoadFull(), address.getAddrDetail()))
                         .toList();
@@ -235,7 +235,7 @@ public class UserService {
 
         //모든 주소 정보, 사용자 주소 id, 전화번호 조회
         List<UserAddressDto> userAddress =
-                userAddressRepository.getUserAddressByUserId(userInfo.getUserId())
+                userAddressRepository.findByActiveUserId(userInfo.getUserId())
                         .stream()
                         .map(address -> new UserAddressDto(address.getId(), address.getRoadFull(), address.getAddrDetail()))
                         .toList();
