@@ -229,4 +229,14 @@ public class AuthController {
         // 3. 리턴
         return ResponseEntity.ok().body(ApiResponse.ok(info, "성공적으로 정보가 조회되었습니다."));
     }
+
+    /**
+     * user 회원가입
+     */
+    @PostMapping("/kakao-user-signup")
+    public ResponseEntity<?> createKakaoAuth(@Valid @RequestBody AuthByOauthReqDto authByOauthReqDto) {
+        authService.kakaoUserCreate(authByOauthReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok( "회원가입 성공"));
+
+    }
 }

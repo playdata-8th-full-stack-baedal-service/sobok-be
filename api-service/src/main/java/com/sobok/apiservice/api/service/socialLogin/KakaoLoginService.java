@@ -4,7 +4,6 @@ import com.sobok.apiservice.api.client.AuthFeignClient;
 import com.sobok.apiservice.api.dto.kakao.*;
 import com.sobok.apiservice.api.entity.Oauth;
 import com.sobok.apiservice.api.repository.OauthRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -167,7 +167,7 @@ public class UserService {
 
     public void addBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
-        User user = userCheck(userInfo.getId(),userInfo.getUserId());
+        User user = userCheck(userInfo.getId(), userInfo.getUserId());
 
         //cookId가 존재하는지 확인
         ResponseEntity<?> response = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
@@ -248,7 +248,7 @@ public class UserService {
     }
 
     public PreOrderUserResDto getPreOrderUser(TokenUserInfo userInfo) {
-        log.info("id: {}, userId: {}", userInfo.getId(), userInfo.getUserId() );
+        log.info("id: {}, userId: {}", userInfo.getId(), userInfo.getUserId());
 
         Long id = userInfo.getId();
 
@@ -293,5 +293,34 @@ public class UserService {
         );
 
         return userByAuthId.getId();
+    }
+
+    public void kakaoUserSignUp(UserSignupReqDto reqDto) {
+        log.info("사용자 회원가입 시작 : {}", reqDto);
+
+        User user = User.builder()
+                .authId(reqDto.getAuthId())
+                .nickname(reqDto.getNickname())
+                .phone(reqDto.getPhone())
+                .email(reqDto.getEmail())
+                .photo(reqDto.getPhoto())
+                .build();
+
+        // user DB에 저장
+        userRepository.save(user);
+
+        // 사용자 주소 저장
+        if (reqDto.getRoadFull() != null) {
+            UserAddressReqDto addrDto = UserAddressReqDto.builder()
+                    .roadFull(reqDto.getRoadFull())
+                    .addrDetail(reqDto.getAddrDetail())
+                    .build();
+
+            userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+            log.info("성공적으로 사용자의 주소를 저장했습니다.");
+        }
+
+        log.info("성공적으로 사용자 회원가입이 완료되었습니다.");
+
     }
 }

@@ -1,6 +1,7 @@
 package com.sobok.authservice.auth.service;
 
 
+import com.sobok.authservice.auth.client.ApiServiceClient;
 import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.client.ShopServiceClient;
 import com.sobok.authservice.auth.client.UserServiceClient;
@@ -46,7 +47,7 @@ public class AuthService {
     private final UserServiceClient userServiceClient;
     private final ShopServiceClient shopServiceClient;
     private final DeliveryClient deliveryClient;
-
+    private final ApiServiceClient apiServiceClient;
     private final SmsService smsService;
 
     private final AuthInfoProviderFactory authInfoProviderFactory;
@@ -730,9 +731,9 @@ public class AuthService {
                 .build();
     }
 
-    //카카오 회원가입
+
     //api-service에서 feign으로 요청한 auth 저장 로직
-    @Transactional
+    /*@Transactional
     public OauthResDto authSignup(AuthSignupReqDto authSignupReqDto) {
         Auth auth = Auth.builder()
                 .loginId(authSignupReqDto.getLoginId())
@@ -750,7 +751,7 @@ public class AuthService {
                 .authId(auth.getId())
                 .isNew(true)
                 .build();
-    }
+    }*/
 
     public OauthResDto findByOauthId(Long id) {
         // 회원 정보 가져오기
@@ -762,5 +763,58 @@ public class AuthService {
                 .id(auth.getOauthId())
                 .authId(auth.getId())
                 .build();
+    }
+
+    //카카오 회원가입 user 생성
+    @Transactional
+    public void kakaoUserCreate(@Valid AuthByOauthReqDto authByOauthReqDto) {
+        // 이미 oauthId가 존재한다면 예외 던짐
+        authRepository.findByOauthId(authByOauthReqDto.getOauthId())
+                .ifPresent(auth -> {
+                    throw new CustomException("이미 등록된 회원입니다.", HttpStatus.CONFLICT);
+                });
+
+        OauthResDto oauthResDto = apiServiceClient.oauthIdById(authByOauthReqDto.getOauthId());
+
+        log.info("oauthResDto: {}", oauthResDto);
+
+        if (oauthResDto == null) {
+            throw new CustomException("oauth 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 아이디 생성
+        String dummyId = "kakao" + oauthResDto.getSocialId();
+        // 임시 password 생성
+        String dummyPassword = PasswordGenerator.generate(12);
+
+        Auth auth = Auth.builder()
+                .loginId(dummyId)
+                .password(passwordEncoder.encode(dummyPassword))
+                .oauthId(oauthResDto.getId())
+                .role(Role.USER)
+                .active("Y")
+                .build();
+
+        authRepository.save(auth);
+        log.info("저장한 auth: {}", auth);
+
+        // 사용자 회원가입에 필요한 정보 전달 객체 생성
+        UserSignupReqDto messageDto = UserSignupReqDto.builder()
+                .authId(auth.getId())
+                .nickname(authByOauthReqDto.getNickname())
+                .phone(authByOauthReqDto.getPhone())
+                .photo(authByOauthReqDto.getPhoto())
+                .roadFull(authByOauthReqDto.getRoadFull())
+                .addrDetail(authByOauthReqDto.getAddrDetail())
+                .build();
+
+        try {
+            userServiceClient.userSignup(messageDto);
+        } catch (FeignException e) {
+            log.error("사용자 정보 저장 실패");
+            throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        log.info("회원가입 성공: {}", auth);
     }
 }
