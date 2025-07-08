@@ -39,6 +39,11 @@ public class ApiController {
         return ResponseEntity.ok(ApiResponse.ok(presignedUrl, "S3 버킷에 사진을 넣을 수 있는 URL이 성공적으로 발급되었습니다."));
     }
 
+    @GetMapping("/presignFeign")
+    public String generatePresignedUrlFeign(@RequestParam String fileName, @RequestParam String category) {
+        return s3Service.getS3PresignUrl(fileName, category);
+    }
+
     /**
      * S3 사진 삭제
      */

@@ -6,9 +6,9 @@ import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.dto.request.IngreEditReqDto;
 import com.sobok.cookservice.cook.dto.request.IngreReqDto;
 import com.sobok.cookservice.cook.dto.request.KeywordSearchReqDto;
+import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
 import com.sobok.cookservice.cook.dto.response.IngreResDto;
 import com.sobok.cookservice.cook.entity.Ingredient;
-import com.sobok.cookservice.cook.entity.QIngredient;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,15 +97,15 @@ public class IngredientService {
     /**
      * 추가 식재료 조회 Feign
      */
-    public IngreResDto getIngredientDtoById(Long id) {
+    public CookIngredientResDto getIngredientDtoById(Long id) {
         Ingredient ingre = ingredientRepository.findById(id)
                 .orElseThrow(() -> new CustomException("식재료가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
         log.info("ingredient name: {}", ingre.getIngreName());
-        return IngreResDto.builder()
-                .id(ingre.getId())
+        return CookIngredientResDto.builder()
+                .ingredientId(ingre.getId())
                 .ingreName(ingre.getIngreName())
                 .unit(ingre.getUnit())
-                .price(ingre.getPrice())
+                .price(Integer.parseInt(ingre.getPrice()))
                 .origin(ingre.getOrigin())
                 .build();
     }

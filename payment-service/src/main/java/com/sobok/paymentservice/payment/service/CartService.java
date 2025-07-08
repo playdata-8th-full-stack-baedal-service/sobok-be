@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -186,12 +187,13 @@ public class CartService {
                                 .ingreName(ingreDetail.getIngreName())
                                 .unitQuantity(ingre.getUnitQuantity())
                                 .unit(ingreDetail.getUnit())
+                                .price(ingreDetail.getPrice())
                                 .build();
                     }).toList();
 
 
             // 기본 + 추가식재료 합치기
-            List<IngredientResDto> totalIngredients = new java.util.ArrayList<>();
+            List<IngredientResDto> totalIngredients = new ArrayList<>();
             totalIngredients.addAll(defaultIngredients);
             totalIngredients.addAll(additionalDtos);
 

@@ -15,5 +15,6 @@ public class PreOrderUserResDto {
     private Long userId;
     private String nickname;
     private String phone;
+    private String email;
     private List<UserAddressDto> addresses;
 }
