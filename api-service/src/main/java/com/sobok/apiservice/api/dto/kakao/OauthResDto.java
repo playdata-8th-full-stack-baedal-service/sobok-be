@@ -13,4 +13,5 @@ public class OauthResDto {
     private Long authId;
     @JsonProperty("isNew")
     private boolean isNew;
+    private String socialId;
 }

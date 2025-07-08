@@ -1,19 +1,14 @@
 package com.sobok.apiservice.api.service.socialLogin;
 
 import com.sobok.apiservice.api.client.AuthFeignClient;
-import com.sobok.apiservice.api.dto.kakao.AuthLoginResDto;
-import com.sobok.apiservice.api.dto.kakao.AuthSignupReqDto;
-import com.sobok.apiservice.api.dto.kakao.OauthResDto;
-import com.sobok.apiservice.api.dto.kakao.KakaoUserResDto;
+import com.sobok.apiservice.api.dto.kakao.*;
 import com.sobok.apiservice.api.entity.Oauth;
 import com.sobok.apiservice.api.repository.OauthRepository;
-import com.sobok.apiservice.common.exception.CustomException;
-import feign.FeignException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -22,7 +17,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -34,10 +28,8 @@ public class KakaoLoginService {
     @Value("${oauth2.kakao.redirect-uri}")
     private String kakaoRedirectUri;
 
-    //    private final RestTemplate restTemplate;
     private final AuthFeignClient authFeignClient;
     private final OauthRepository oauthRepository;
-    private final PasswordEncoder passwordEncoder;
 
 
     // 인가 코드로 카카오 액세스 토큰 받기
@@ -126,8 +118,8 @@ public class KakaoLoginService {
         // 기존 계정(email)으로 가입한 유저인지 확인
         // 구현 안함
 
-        // 처음 카카오 로그인 한 사람 -> 새 사용자 생성. oauth + auth
-        log.info("카카오 로그인으로 처음 방문한 신규 유저입니다. 회원가입 시작");
+        // 처음 카카오 로그인 한 사람 -> 새 사용자 생성. oauth
+        log.info("카카오 로그인으로 처음 방문한 신규 유저입니다. 회원가입 진행해야 됨");
 
         Oauth kakao = Oauth.builder()
                 .socialProvider("KAKAO")
@@ -138,33 +130,26 @@ public class KakaoLoginService {
 
         log.info("saved: {}", saved);
 
-        // 임시 password 생성
-        String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
-
-        AuthSignupReqDto authEntity = AuthSignupReqDto.builder()
-                .id(saved.getId())  //oauthId
-                .loginId("kakao" + dto.getId().toString())  //로그인아이디 만들기
-                .password(dummyPassword)
-//                    .role(Role.USER)
-//                    .active("Y")
+        return OauthResDto.builder()
+                .id(saved.getId())
+                .isNew(true)
                 .build();
-
-        log.info("auth로 페인 요청해서 저장할 authEntity: {}", authEntity);
-        OauthResDto oauthResDto;
-        try {
-            // feign으로 auth한테 저장하라고 보내기
-            oauthResDto = authFeignClient.authSignup(authEntity);
-            log.info("auth 회원가입 성공 response: {}", oauthResDto);
-        } catch (FeignException e) {
-            log.error("사용자 정보 저장 실패");
-            throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return oauthResDto;
     }
 
     public AuthLoginResDto kakaoLoginToken(Long id) {  //authId
         return authFeignClient.kakaoToken(id);
+    }
+
+    public OauthResDto findOauth(Long oauthId) {
+        Oauth oauth = oauthRepository.findById(oauthId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 Oauth ID의 사용자를 찾을 수 없습니다."));
+
+        log.info("oauth: {}", oauth);
+
+        return OauthResDto.builder()
+                .id(oauth.getId())
+                .socialId(oauth.getSocialId())
+                .build();
     }
 
 }

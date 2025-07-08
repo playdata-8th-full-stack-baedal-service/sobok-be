@@ -133,11 +133,10 @@ public class ApiController {
                                             nickname: '%s',     // 카카오 닉네임 (가입 폼에 미리 채울 수 있음)
                                             email: '%s',
                                             provider: 'KAKAO'
-                                        }, window.location.origin);
+                                        }, 'http://localhost:5173');
                                         window.close();
                                     } else {
-                                        // opener가 없는 경우, 회원가입 페이지로 직접 리다이렉트
-                                        window.location.href = 'http://localhost:5173/auth/signup/usersignup?provider=KAKAO&kakaoId=%s';
+                                        window.location.href = 'http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&kakaoId=%s';
                                     }
                                 </script>
                                 <p>회원가입 페이지로 이동 중...</p>
@@ -145,9 +144,15 @@ public class ApiController {
                             </html>
                             """, oauthResDto.getId(), oauthResDto.getAuthId(), kakaoUserDto.getProperties().getNickname(),
                     kakaoUserDto.getAccount().getEmail(), kakaoUserDto.getId());
-             response.setContentType("text/html;charset=UTF-8");
-             response.getWriter().write(html);
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(html);
         }
+    }
+
+    //feign요청으로 들어올 api
+    @GetMapping("/findByOauthId")
+    public OauthResDto findByOauthId(@RequestParam("id") Long oauthId) {
+        return kakaoLoginService.findOauth(oauthId);
     }
 
 }
