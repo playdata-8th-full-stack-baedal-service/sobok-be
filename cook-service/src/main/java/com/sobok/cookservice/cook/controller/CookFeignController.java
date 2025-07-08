@@ -2,6 +2,7 @@ package com.sobok.cookservice.cook.controller;
 
 
 import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
+import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
 import com.sobok.cookservice.cook.dto.response.IngreResDto;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.service.CombinationService;
@@ -43,7 +44,7 @@ public class CookFeignController {
 
     // 추가 식재료 조회
     @GetMapping("/ingredients/{id}")
-    public IngreResDto getIngredient(@PathVariable Long id) {
+    public CookIngredientResDto getIngredient(@PathVariable Long id) {
         return ingredientService.getIngredientDtoById(id);
     }
 
