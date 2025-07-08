@@ -44,8 +44,8 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email", "/auth/check-permission",
             "/auth/check-shopName", "/auth/check-shopAddress"
             , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
-            , "/api/confirm",
-            "/api/kakao-login"
+            , "/api/confirm", "/api/kakao-user-signup",
+            "/auth/kakao-user-signup"
     );
 
     /**

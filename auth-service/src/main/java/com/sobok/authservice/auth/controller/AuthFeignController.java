@@ -29,17 +29,6 @@ public class AuthFeignController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 카카오 회원가입 - auth 생성
-     */
-    @PostMapping("/kakao-auth")
-    public ResponseEntity<?> kakaoCallback(@RequestBody AuthSignupReqDto authSignupReqDto) {
-        log.info("kakao-auth request: {}", authSignupReqDto);
-        // 회원가입
-        OauthResDto oauthResDto = authService.authSignup(authSignupReqDto);//authId와 닉네임
-        return ResponseEntity.ok().body(oauthResDto);
-    }
-
     //oauthId가 존재할 때 - oauthId로 authId 찾기
     @GetMapping("/findByOauthId")
     OauthResDto authIdById(@RequestParam("id") Long id){
