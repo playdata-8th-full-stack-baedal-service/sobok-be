@@ -59,7 +59,7 @@ public class ShopFeignController {
         return ResponseEntity.ok().body(resDto);
     }
 
-    @GetMapping("/assign-shop")
+    @PostMapping("/assign-shop")
     public void assignNearestShop(@RequestBody ShopAssignDto reqDto) {
         shopAssignService.assignNearestShop(reqDto);
     }

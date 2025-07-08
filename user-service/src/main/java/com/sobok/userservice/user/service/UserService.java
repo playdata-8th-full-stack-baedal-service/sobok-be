@@ -9,6 +9,7 @@ import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;
 import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
+import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserBookmarkRepository;
@@ -272,4 +273,5 @@ public class UserService {
 
         return userByAuthId.getId();
     }
+
 }
