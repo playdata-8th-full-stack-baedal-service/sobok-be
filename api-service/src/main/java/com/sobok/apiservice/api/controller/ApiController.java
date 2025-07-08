@@ -133,7 +133,7 @@ public class ApiController {
                                     if (window.opener) {
                                         window.opener.postMessage({
                                             type: 'NEW_USER_SIGNUP',
-                                            kakaoId: '%s',      // 카카오 고유 ID
+                                            oauthId: '%s',      // oauth ID
                                             authId: '%s',       // 우리 서비스의 authId (임시 식별자)
                                             nickname: '%s',     // 카카오 닉네임 (가입 폼에 미리 채울 수 있음)
                                             email: '%s',

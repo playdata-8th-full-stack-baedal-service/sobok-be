@@ -235,6 +235,7 @@ public class AuthController {
      */
     @PostMapping("/kakao-user-signup")
     public ResponseEntity<?> createKakaoAuth(@Valid @RequestBody AuthByOauthReqDto authByOauthReqDto) {
+        log.info("authByOauthReqDto: {}", authByOauthReqDto);
         authService.kakaoUserCreate(authByOauthReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok( "회원가입 성공"));
 

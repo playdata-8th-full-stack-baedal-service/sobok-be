@@ -25,4 +25,8 @@ public class AuthByOauthReqDto {
 
     private String roadFull;
     private String addrDetail;
+
+    private String loginId;
+    private String password;
+    private String email;
 }
