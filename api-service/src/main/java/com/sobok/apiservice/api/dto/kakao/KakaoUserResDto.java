@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.dto.response;
+package com.sobok.apiservice.api.dto.kakao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class KakaoUserResDto {
-    private Long id;  //social_id
+    private Long id;
 
     @JsonProperty("connected_at")
     private LocalDateTime connectedAt;
