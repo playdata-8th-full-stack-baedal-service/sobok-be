@@ -13,12 +13,14 @@ import java.util.List;
 
 @FeignClient(name = "shop-service",  configuration = FeignConfig.class)
 public interface AdminShopFeignClient {
-
+    /**
+     * 가게 전제 조회
+     */
     @GetMapping("/api/shop-all")
     ApiResponse<List<ShopResDto>> getAllShops();
 
     /**
-     * 가게 정보용
+     * 주문 전체 조회용 가게 정보
      */
     @GetMapping("/api/shop-info-all")
     AdminShopResDto getShopInfo(@RequestParam Long shopId);

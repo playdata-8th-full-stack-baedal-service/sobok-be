@@ -87,7 +87,7 @@ public class DeliveryFeignController {
     /**
      * paymentId를 기준으로 delivery 테이블에서 shopId를 찾아서 반환
      */
-    @GetMapping("/shop-id/by-payment")
+    @GetMapping("/shop-id/payment")
     public ResponseEntity<Long> getShopIdByPaymentId(@RequestParam Long paymentId) {
         Delivery delivery = deliveryRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new CustomException("배달 정보가 없습니다.", HttpStatus.NOT_FOUND));

@@ -28,7 +28,7 @@ public interface AdminRiderFeignClient {
     /**
      * paymentId 기준으로 delivery 테이블의 shopId 추출용
      */
-    @GetMapping("/api/shop-id/by-payment")
+    @GetMapping("/api/shop-id/payment")
     Long getShopIdByPaymentId(@RequestParam Long paymentId);
 
 }
