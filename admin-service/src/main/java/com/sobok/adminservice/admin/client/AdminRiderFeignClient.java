@@ -25,4 +25,10 @@ public interface AdminRiderFeignClient {
     @GetMapping("/api/admin/rider-name")
     RiderNameResDto getRiderName(@RequestParam Long paymentId);
 
+    /**
+     * paymentId 기준으로 delivery 테이블의 shopId 추출용
+     */
+    @GetMapping("/api/shop-id/by-payment")
+    Long getShopIdByPaymentId(@RequestParam Long paymentId);
+
 }

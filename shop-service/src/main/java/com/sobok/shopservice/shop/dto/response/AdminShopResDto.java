@@ -1,0 +1,17 @@
+package com.sobok.shopservice.shop.dto.response;
+
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+/**
+ * 주문 전체 조회용 가게 정보
+ */
+public class AdminShopResDto {
+    private Long shopId;
+    private String shopName;
+    private String shopAddress;
+}

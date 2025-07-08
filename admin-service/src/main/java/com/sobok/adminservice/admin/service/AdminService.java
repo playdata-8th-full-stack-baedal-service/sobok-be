@@ -4,10 +4,7 @@ import com.sobok.adminservice.admin.client.AdminPaymentFeignClient;
 import com.sobok.adminservice.admin.client.AdminRiderFeignClient;
 import com.sobok.adminservice.admin.client.AdminShopFeignClient;
 import com.sobok.adminservice.admin.client.UserFeignClient;
-import com.sobok.adminservice.admin.dto.order.AdminPaymentResDto;
-import com.sobok.adminservice.admin.dto.order.AdminPaymentResponseDto;
-import com.sobok.adminservice.admin.dto.order.RiderNameResDto;
-import com.sobok.adminservice.admin.dto.order.UserInfoResDto;
+import com.sobok.adminservice.admin.dto.order.*;
 import com.sobok.adminservice.admin.dto.rider.RiderResDto;
 import com.sobok.adminservice.admin.dto.shop.ShopResDto;
 import com.sobok.adminservice.common.dto.ApiResponse;
@@ -28,6 +25,7 @@ public class AdminService {
     private final AdminRiderFeignClient adminRiderClient;
     private final AdminPaymentFeignClient adminPaymentClient;
     private final UserFeignClient userFeignClient;
+    private final AdminShopFeignClient adminShopFeignClient;
 
 
     /**
@@ -68,6 +66,9 @@ public class AdminService {
             UserInfoResDto userInfoResDto = userFeignClient.getUserInfo(payment.getUserAddressId());
             RiderNameResDto rider = adminRiderClient.getRiderName(payment.getId());
 
+            Long shopId = adminRiderClient.getShopIdByPaymentId(payment.getId());
+            AdminShopResDto shopInfo = adminShopFeignClient.getShopInfo(shopId);
+
             return AdminPaymentResponseDto.builder()
                     .orderId(payment.getOrderId())
                     .totalPrice(payment.getTotalPrice())
@@ -78,10 +79,11 @@ public class AdminService {
                     .roadFull(userInfoResDto.getRoadFull())
                     .address(userInfoResDto.getAddress())
                     .riderName(rider.getRiderName())
+                    .shopName(shopInfo.getShopName())
+                    .shopAddress(shopInfo.getShopAddress())
                     .build();
         }).toList();
     }
-
 
 }
 

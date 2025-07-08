@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 /**
- * rider 이름 조회, 유저 정보 조회 용
+ * rider 이름 조회, 유저 정보 조회, 가게 정보 조회 용
  */
 public class AdminPaymentResDto {
     // 결제 정보
@@ -32,4 +32,9 @@ public class AdminPaymentResDto {
     private String riderName;
     private Long riderId;
     private Long id;
+
+    // 가게 정보
+    private Long shopId;
+    private String shopName;
+    private String shopAddress;
 }
