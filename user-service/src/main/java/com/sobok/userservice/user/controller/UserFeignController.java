@@ -81,4 +81,13 @@ public class UserFeignController {
         return userAddressService.getUserAddress(userAddressId);
     }
 
+    /**
+     * 카카오용 user 생성
+     */
+    @PostMapping("/kakaoUserSignup")
+    public ResponseEntity<Object> kakaoUserSignup(@RequestBody UserSignupReqDto reqDto) {
+        log.info("reqDto: {}", reqDto);
+        userService.kakaoUserSignUp(reqDto);
+        return ResponseEntity.ok().build();
+    }
 }

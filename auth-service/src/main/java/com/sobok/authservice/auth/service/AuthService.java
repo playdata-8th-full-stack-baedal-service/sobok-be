@@ -732,26 +732,18 @@ public class AuthService {
     }
 
 
-    //api-service에서 feign으로 요청한 auth 저장 로직
-    /*@Transactional
-    public OauthResDto authSignup(AuthSignupReqDto authSignupReqDto) {
-        Auth auth = Auth.builder()
-                .loginId(authSignupReqDto.getLoginId())
-                .password(authSignupReqDto.getPassword())
-                .oauthId(authSignupReqDto.getId())
-                .role(Role.USER)
-                .active("Y")
-                .build();
+    /**
+     * 라이더 loginId, active 전달
+     */
+    public AuthRiderInfoResDto getRiderAuthInfo(Long authId) {
+        Auth auth = authRepository.findById(authId)
+                .orElseThrow(() -> new CustomException("authId에 해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND));
 
-        authRepository.save(auth);
-        log.info("저장한 auth: {}", auth);
-
-        return OauthResDto.builder()
-                .id(auth.getOauthId())
-                .authId(auth.getId())
-                .isNew(true)
+        return AuthRiderInfoResDto.builder()
+                .loginId(auth.getLoginId())
+                .active(auth.getActive())
                 .build();
-    }*/
+    }
 
     public OauthResDto findByOauthId(Long id) {
         // 회원 정보 가져오기

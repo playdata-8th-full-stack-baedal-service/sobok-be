@@ -2,6 +2,7 @@ package com.sobok.authservice.auth.controller;
 
 import com.sobok.authservice.auth.dto.request.AuthSignupReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
+import com.sobok.authservice.auth.dto.response.AuthRiderInfoResDto;
 import com.sobok.authservice.auth.dto.response.AuthUserResDto;
 import com.sobok.authservice.auth.dto.response.OauthResDto;
 import com.sobok.authservice.auth.service.AuthService;
@@ -29,9 +30,17 @@ public class AuthFeignController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * admin-service 전용 라이더 활성화 상태, 로그인 아이디 가져오는 로직
+     */
+    @GetMapping("/auth/info")
+    public ResponseEntity<AuthRiderInfoResDto> getAuthInfo(@RequestParam Long authId) {
+        return ResponseEntity.ok(authService.getRiderAuthInfo(authId));
+    }
+
     //oauthId가 존재할 때 - oauthId로 authId 찾기
     @GetMapping("/findByOauthId")
-    OauthResDto authIdById(@RequestParam("id") Long id){
+    OauthResDto authIdById(@RequestParam("id") Long id) {
         OauthResDto byOauthId = authService.findByOauthId(id);
         log.info("authId: {}", byOauthId);
         return byOauthId;
