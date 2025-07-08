@@ -28,15 +28,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.sobok.authservice.common.util.Constants.*;
@@ -114,7 +108,7 @@ public class AuthService {
             case USER -> userServiceClient.getUserId(auth.getId());
             case RIDER -> deliveryClient.getRiderId(auth.getId());
             case HUB -> shopServiceClient.getShopId(auth.getId());
-            default ->  0L;
+            default -> 0L;
         };
 
         // 토큰 발급
@@ -235,7 +229,7 @@ public class AuthService {
                     case USER -> userServiceClient.getUserId(auth.getId());
                     case RIDER -> deliveryClient.getRiderId(auth.getId());
                     case HUB -> shopServiceClient.getShopId(auth.getId());
-                    default ->  0L;
+                    default -> 0L;
                 };
 
                 // access token 재발급
@@ -458,8 +452,8 @@ public class AuthService {
 
             // 모든 서비스에 요청보내서 유효한 값만 리스트에 담기
             List<ApiResponse<ByPhoneResDto>> response = Stream.of(
-                            userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber()),
-                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
+                            userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
+//                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
 //                            deliveryClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
                     ).filter(resp -> resp != null && resp.getData() != null)
                     .toList();
@@ -700,65 +694,73 @@ public class AuthService {
         return info;
     }
 
-    // 인가 코드로 카카오 액세스 토큰 받기
-    public String getKakaoAccessToken(String code) {
-        RestTemplate restTemplate = new RestTemplate();
 
-        // 요청 URI
-        String requestUri = "https://kauth.kakao.com/oauth/token";
-
-        // 헤더정보 세팅
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
-
-        // 바디정보 세팅
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("grant_type", "authorization_code");
-        map.add("code", code);
-        map.add("redirect_uri", kakaoRedirectUri);
-        map.add("client_id", kakaoClientId);
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        ResponseEntity<Map> responseEntity = restTemplate.exchange(
-                requestUri, HttpMethod.POST, request, Map.class
+    public AuthLoginResDto kakaoLoginToken(Long id) {
+        // 회원 정보 가져오기
+        Auth auth = authRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
         );
+        log.info("auth: {}", auth);
+        Long roleId = switch (auth.getRole()) {
+            case USER -> userServiceClient.getUserId(auth.getId());
+//            case RIDER -> deliveryClient.getRiderId(auth.getId());
+//            case HUB -> shopServiceClient.getShopId(auth.getId());
+            default -> 0L;
+        };
 
-        // 응답 데이터에서 JSON 추출
-        Map<String, Object> responseJSON
-                = (Map<String, Object>) responseEntity.getBody();
+        log.info("roleId: {}", roleId);
 
-        log.info("응답 JSON 데이터: {}", responseJSON);
+        // 토큰 발급
+        String accessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(auth);
 
-        // Access Token 추출 (카카오 로그인 중인 사용자의 정보를 요청할 때 필요한 토큰)
-        String accessToken = (String) responseJSON.get("access_token");
+        log.info("accessToken: {}", accessToken);
 
-        return accessToken;
+        // 토큰 저장
+        jwtTokenProvider.saveRefreshToken(auth, refreshToken);
 
+        log.info("로그인 성공 : {}", auth.getId());
+
+        return AuthLoginResDto.builder()
+                .id(auth.getId())
+                .role(auth.getRole().toString())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .recoveryTarget(false)
+                .build();
     }
 
-    // Access Token으로 사용자 정보 얻어오기!
-    public KakaoUserResDto getKakaoUserInfo(String kakaoAccessToken) {
-        String requestUri = "https://kapi.kakao.com/v2/user/me";
+    //카카오 회원가입
+    //api-service에서 feign으로 요청한 auth 저장 로직
+    @Transactional
+    public OauthResDto authSignup(AuthSignupReqDto authSignupReqDto) {
+        Auth auth = Auth.builder()
+                .loginId(authSignupReqDto.getLoginId())
+                .password(authSignupReqDto.getPassword())
+                .oauthId(authSignupReqDto.getId())
+                .role(Role.USER)
+                .active("Y")
+                .build();
 
-        // 요청 헤더
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
-        headers.add("Authorization", "Bearer " + kakaoAccessToken);
+        authRepository.save(auth);
+        log.info("저장한 auth: {}", auth);
 
-        // 요청 보내기
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<KakaoUserResDto> response = restTemplate.exchange(
-                requestUri,
-                HttpMethod.POST,
-                new HttpEntity<>(headers),
-                KakaoUserResDto.class
+        return OauthResDto.builder()
+                .id(auth.getOauthId())
+                .authId(auth.getId())
+                .isNew(true)
+                .build();
+    }
+
+    public OauthResDto findByOauthId(Long id) {
+        // 회원 정보 가져오기
+        Auth auth = authRepository.findByOauthId(id).orElseThrow(
+                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
         );
 
-        KakaoUserResDto dto = response.getBody();
-        log.info("응답된 사용자 정보: {}", dto);
-
-        return dto;
-
+        return OauthResDto.builder()
+                .id(auth.getOauthId())
+                .authId(auth.getId())
+                .build();
     }
 }

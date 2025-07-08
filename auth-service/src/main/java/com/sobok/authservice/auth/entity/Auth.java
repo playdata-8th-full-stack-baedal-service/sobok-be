@@ -38,6 +38,9 @@ public class Auth extends BaseTimeEntity {
     @Column(nullable = false)
     private String active = "Y";
 
+    @Column(unique = true)
+    private Long oauthId;
+
     public void changeActive() {
         this.active = this.active.equals("Y") ? "N" : "Y";
     }
@@ -46,7 +49,7 @@ public class Auth extends BaseTimeEntity {
         this.active = newActive ? "Y" : "N";
     }
 
-     public void changePassword(String newPassword) {
+    public void changePassword(String newPassword) {
         this.password = newPassword;
     }
 }
