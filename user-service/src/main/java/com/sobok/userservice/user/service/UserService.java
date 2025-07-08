@@ -244,11 +244,17 @@ public class UserService {
             userAddress = null;
         }
 
+        String email = user.getEmail();
+        if(email == null) {
+            email = "example@gmail.com"; // 결제할 때 필요한 메일 정보 생성
+        }
+
         return PreOrderUserResDto.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
                 .phone(user.getPhone())
                 .addresses(userAddress)
+                .email(email)
                 .build();
     }
 
