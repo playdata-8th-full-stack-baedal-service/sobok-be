@@ -28,7 +28,7 @@ public class Payment extends BaseTimeEntity {
     @Column(nullable = false)
     private Long userAddressId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private OrderState orderState;
 

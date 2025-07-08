@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class TossPayReqDto {
-    private String orderId;
-    private Long amount;
     private String paymentKey;
+    private String orderId;
+    private String amount;
 
     @Override
     public String toString() {
