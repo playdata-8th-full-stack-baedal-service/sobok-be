@@ -1,9 +1,6 @@
 package com.sobok.adminservice.admin.service;
 
-import com.sobok.adminservice.admin.client.AdminPaymentFeignClient;
-import com.sobok.adminservice.admin.client.AdminRiderFeignClient;
-import com.sobok.adminservice.admin.client.AdminShopFeignClient;
-import com.sobok.adminservice.admin.client.UserFeignClient;
+import com.sobok.adminservice.admin.client.*;
 import com.sobok.adminservice.admin.dto.order.*;
 import com.sobok.adminservice.admin.dto.rider.RiderResDto;
 import com.sobok.adminservice.admin.dto.shop.ShopResDto;
@@ -26,6 +23,7 @@ public class AdminService {
     private final AdminPaymentFeignClient adminPaymentClient;
     private final UserFeignClient userFeignClient;
     private final AdminShopFeignClient adminShopFeignClient;
+    private final AdminCookFeignClient adminCookFeignClient;
 
 
     /**
@@ -63,11 +61,20 @@ public class AdminService {
         List<AdminPaymentResDto> payments = adminPaymentClient.getAllPayments().getData();
 
         return payments.stream().map(payment -> {
+            // 유저 정보
             UserInfoResDto userInfoResDto = userFeignClient.getUserInfo(payment.getUserAddressId());
+            // 라이더 정보
             RiderNameResDto rider = adminRiderClient.getRiderName(payment.getId());
 
+            // 가게 정보
             Long shopId = adminRiderClient.getShopIdByPaymentId(payment.getId());
             AdminShopResDto shopInfo = adminShopFeignClient.getShopInfo(shopId);
+
+            // 요리 이름 조회
+            List<Long> cookIds = adminPaymentClient.getCookIdsByPaymentId(payment.getId());
+            List<CookNameResDto> cookName = adminCookFeignClient.getCookNames(cookIds);
+            List<String> cookNameList = cookName.stream().map(CookNameResDto::getName).toList();
+
 
             return AdminPaymentResponseDto.builder()
                     .orderId(payment.getOrderId())
@@ -81,6 +88,7 @@ public class AdminService {
                     .riderName(rider.getRiderName())
                     .shopName(shopInfo.getShopName())
                     .shopAddress(shopInfo.getShopAddress())
+                    .cookNames(cookNameList)
                     .build();
         }).toList();
     }

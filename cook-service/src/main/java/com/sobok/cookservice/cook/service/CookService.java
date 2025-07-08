@@ -6,10 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
-import com.sobok.cookservice.cook.dto.response.CookCreateResDto;
-import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
-import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
-import com.sobok.cookservice.cook.dto.response.CookResDto;
+import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.entity.Combination;
 import com.sobok.cookservice.cook.entity.Cook;
 import com.sobok.cookservice.cook.entity.Ingredient;
@@ -24,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCook.cook;
 
@@ -182,6 +180,15 @@ public class CookService {
         boolean exists = cookRepository.existsById(cookId);
         log.info(exists ? "존재" : "없음");
         return exists;
+    }
+
+    /**
+     * 요리이름 조회용 (주문 전체 조회)
+     */
+    public List<CookNameResDto> getCookNamesByIds(List<Long> cookIds) {
+        return cookRepository.findByIdIn(cookIds).stream()
+                .map(cook -> new CookNameResDto(cook.getName()))
+                .collect(Collectors.toList());
     }
 
 }

@@ -3,6 +3,8 @@ package com.sobok.adminservice.admin.dto.order;
 import com.sobok.adminservice.common.enums.OrderState;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -29,4 +31,7 @@ public class AdminPaymentResponseDto {
     // 가게 정보
     private String shopName;
     private String shopAddress;
+
+    // 요리 정보
+    private List<String> cookNames;;
 }

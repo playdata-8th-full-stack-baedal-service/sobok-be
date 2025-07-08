@@ -2,6 +2,7 @@ package com.sobok.cookservice.cook.controller;
 
 
 import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
+import com.sobok.cookservice.cook.dto.response.CookNameResDto;
 import com.sobok.cookservice.cook.dto.response.IngreResDto;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.service.CombinationService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sobok.cookservice.cook.service.CookService;
@@ -53,6 +55,14 @@ public class CookFeignController {
     @GetMapping("/check-cook")
     ResponseEntity<?> checkCook(@RequestParam Long cookId) {
         return ResponseEntity.ok(cookService.checkCook(cookId));
+    }
+
+    /**
+     * 주문 전체 조회용(요리이름)
+     */
+    @PostMapping("/admin/cook-names")
+    public ResponseEntity<List<CookNameResDto>> getCookNames(@RequestBody List<Long> cookIds) {
+        return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
     }
 
 

@@ -143,4 +143,15 @@ public class PaymentService {
                         .build())
                 .toList();
     }
+
+    /**
+     * 결제 정보에 맞는 요리 이름 조회용
+     */
+    public List<Long> getCookIdsByPaymentId(Long paymentId) {
+        return cartCookRepository.findByPaymentId(paymentId)
+                .stream()
+                .map(CartCook::getCookId)
+                .distinct()
+                .toList();
+    }
 }
