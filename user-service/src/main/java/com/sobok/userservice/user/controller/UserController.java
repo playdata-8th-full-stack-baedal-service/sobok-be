@@ -103,6 +103,11 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(preOrderUser, "주문을 위한 사용자의 정보가 조회되었습니다."));
     }
 
+    @PatchMapping("/editPhoto")
+    public ResponseEntity<?> editPhoto(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String fileName, @RequestParam String category) {
+        String url = userService.editPhoto(userInfo, fileName, category);
+        return ResponseEntity.ok(ApiResponse.ok(url, "S3 버킷에 사진을 넣을 수 있는 URL이 성공적으로 발급되었습니다."));
+    }
 
     // TODO : 사진 추가 변경 가능해야 함.
 
