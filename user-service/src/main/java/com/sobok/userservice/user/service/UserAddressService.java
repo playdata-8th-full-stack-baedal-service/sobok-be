@@ -1,5 +1,6 @@
 package com.sobok.userservice.user.service;
 
+import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserAddressEditReqDto;
@@ -120,5 +121,25 @@ public class UserAddressService {
                 .longitude(userAddress.getLongitude())
                 .latitude(userAddress.getLatitude())
                 .build();
+    }
+
+    @Transactional
+    public Long deleteAddress(TokenUserInfo userInfo, Long id) {
+        UserAddress userAddress = userAddressRepository.findById(id).orElseThrow(
+                () -> new CustomException("존재하지 않는 주소입니다.", HttpStatus.NOT_FOUND)
+        );
+
+        if(!userAddress.getUserId().equals(userInfo.getId())) {
+            throw new CustomException("잘못된 사용자 요청입니다.", HttpStatus.FORBIDDEN);
+        }
+
+        String active = userAddress.getActive();
+        if (active == null || "Y".equals(active)) {
+            throw new CustomException("이미 비활성화된 주소입니다.", HttpStatus.BAD_REQUEST);
+        } else {
+            userAddress.convertActive(false);
+        }
+
+        return id;
     }
 }

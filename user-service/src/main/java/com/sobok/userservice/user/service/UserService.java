@@ -2,6 +2,7 @@ package com.sobok.userservice.user.service;
 
 import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.common.exception.CustomException;
+import com.sobok.userservice.user.client.ApiServiceClient;
 import com.sobok.userservice.user.client.CookServiceClient;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
@@ -9,7 +10,6 @@ import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;
 import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
-import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserBookmarkRepository;
@@ -38,6 +38,7 @@ public class UserService {
     private final UserAddressRepository userAddressRepository;
     private final UserBookmarkRepository userBookmarkRepository;
     private final CookServiceClient cookServiceClient;
+    private final ApiServiceClient apiServiceClient;
 
     public UserResDto findByPhoneNumber(String phoneNumber) {
         Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
@@ -112,7 +113,7 @@ public class UserService {
         );
 
         List<UserAddressDto> userAddress =
-                userAddressRepository.getUserAddressByUserId(user.getId())
+                userAddressRepository.findByActiveUserId(user.getId())
                         .stream()
                         .map(address -> new UserAddressDto(address.getId(), address.getRoadFull(), address.getAddrDetail()))
                         .toList();
@@ -167,7 +168,7 @@ public class UserService {
 
     public void addBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
-        User user = userCheck(userInfo.getId(),userInfo.getUserId());
+        User user = userCheck(userInfo.getId(), userInfo.getUserId());
 
         //cookId가 존재하는지 확인
         ResponseEntity<?> response = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
@@ -227,7 +228,7 @@ public class UserService {
     }
 
     public PreOrderUserResDto getPreOrderUser(TokenUserInfo userInfo) {
-        log.info("id: {}, userId: {}", userInfo.getId(), userInfo.getUserId() );
+        log.info("id: {}, userId: {}", userInfo.getId(), userInfo.getUserId());
 
         Long id = userInfo.getId();
 
@@ -235,7 +236,7 @@ public class UserService {
 
         //모든 주소 정보, 사용자 주소 id, 전화번호 조회
         List<UserAddressDto> userAddress =
-                userAddressRepository.getUserAddressByUserId(userInfo.getUserId())
+                userAddressRepository.findByActiveUserId(userInfo.getUserId())
                         .stream()
                         .map(address -> new UserAddressDto(address.getId(), address.getRoadFull(), address.getAddrDetail()))
                         .toList();
@@ -244,11 +245,17 @@ public class UserService {
             userAddress = null;
         }
 
+        String email = user.getEmail();
+        if (email == null) {
+            email = "example@gmail.com"; // 결제할 때 필요한 메일 정보 생성
+        }
+
         return PreOrderUserResDto.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
                 .phone(user.getPhone())
                 .addresses(userAddress)
+                .email(email)
                 .build();
     }
 
@@ -274,4 +281,31 @@ public class UserService {
         return userByAuthId.getId();
     }
 
+    public String editPhoto(TokenUserInfo userInfo, String fileName, String category) {
+        log.info("사용자 이미지 수정 시작 | userId : {}", userInfo.getUserId());
+
+        User user = userRepository.findById(userInfo.getUserId()).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        String url = null;
+        try {
+            // url 생성
+            url = apiServiceClient.generatePresignedUrlFeign(fileName, category);
+        } catch (Exception e) {
+            log.error("사진을 등록하는 URL을 발급받는 과정에서 오류가 발생했습니다.", e);
+            throw new CustomException("사진을 등록하는 URL을 발급받는 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        try {
+            // 원래 있던 사진 삭제
+            String oldPhoto = user.getPhoto();
+            apiServiceClient.deleteS3Image(oldPhoto);
+        } catch (Exception e) {
+            // 이미 없어진 걸수도 있으니까 예외 처리 X
+            log.error("사진을 삭제하는 과정에서 오류가 발생했습니다.");
+        }
+
+        return url;
+    }
 }

@@ -34,6 +34,10 @@ public class UserAddress {
     @Column(nullable = false)
     private Double longitude;
 
+    @Column(nullable = true)
+    @Builder.Default
+    private String active = "Y";
+
     public void editAddress(UserAddressReqDto addressDto, UserLocationResDto locationDto) {
         this.roadFull = addressDto.getRoadFull();
         this.addrDetail = addressDto.getAddrDetail();
@@ -43,5 +47,9 @@ public class UserAddress {
 
     public void editDetail(String addrDetail) {
         this.addrDetail = addrDetail;
+    }
+
+    public void convertActive(boolean active) {
+        this.active = active ? "Y" : "N";
     }
 }
