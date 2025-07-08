@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -108,5 +109,16 @@ public class UserAddressService {
                 .stream()
                 .map(addr -> new UserAddressDto(addr.getId(), addr.getRoadFull(), addr.getAddrDetail()))
                 .collect(Collectors.toList());
+    }
+
+    public UserLocationResDto getUserAddress(Long userAddressId) {
+        UserAddress userAddress = userAddressRepository.findById(userAddressId).orElseThrow(
+                () -> new EntityNotFoundException("존재하지 않는 주소입니다.")
+        );
+
+        return UserLocationResDto.builder()
+                .longitude(userAddress.getLongitude())
+                .latitude(userAddress.getLatitude())
+                .build();
     }
 }

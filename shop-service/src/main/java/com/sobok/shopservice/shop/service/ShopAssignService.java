@@ -68,7 +68,7 @@ public class ShopAssignService {
 
         // 2. Haversine 수식 정의 (위도 경도 값을 통한 거리 계산식)
         NumberTemplate<Double> distance = Expressions.numberTemplate(Double.class,
-                "6371 * acos(cos(radians({0})) * cos(radians({1}.lat)) * cos(radians({1}.lng) - radians({2})) + sin(radians({0})) * sin(radians({1}.lat)))",
+                "6371 * acos(cos(radians({0})) * cos(radians({1}.latitude)) * cos(radians({1}.longitude) - radians({2})) + sin(radians({0})) * sin(radians({1}.latitude)))",
                 userLatitude, shop, userLongitude
         );
 

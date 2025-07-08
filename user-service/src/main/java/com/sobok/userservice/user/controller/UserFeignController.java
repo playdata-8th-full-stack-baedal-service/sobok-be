@@ -3,6 +3,7 @@ package com.sobok.userservice.user.controller;
 import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
+import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.repository.UserRepository;
 import com.sobok.userservice.user.service.UserAddressService;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserFeignController {
     private final UserService userService;
     private final UserRepository userRepository;
+    private final UserAddressService userAddressService;
 
 
     @PostMapping("/signup")
@@ -72,6 +74,11 @@ public class UserFeignController {
     @GetMapping("/get-user-id")
     Long getUserId(@RequestParam Long id) {
         return userService.getUserId(id);
+    }
+
+    @GetMapping("/get-user-address")
+    UserLocationResDto getUserAddress(@RequestParam Long userAddressId) {
+        return userAddressService.getUserAddress(userAddressId);
     }
 
 }

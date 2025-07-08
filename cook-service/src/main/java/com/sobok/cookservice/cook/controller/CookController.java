@@ -39,7 +39,7 @@ public class CookController {
     }
 
     /**
-     * 요리 전체 조회
+     * 요리 검색
      */
     @GetMapping("/search-cook")
     public ResponseEntity<?> getCook(@RequestParam String keyword, @RequestParam Long pageNo, @RequestParam Long numOfRows) {
