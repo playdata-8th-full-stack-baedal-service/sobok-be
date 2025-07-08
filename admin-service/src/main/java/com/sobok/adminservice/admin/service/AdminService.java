@@ -1,7 +1,13 @@
 package com.sobok.adminservice.admin.service;
 
+import com.sobok.adminservice.admin.client.AdminPaymentFeignClient;
 import com.sobok.adminservice.admin.client.AdminRiderFeignClient;
 import com.sobok.adminservice.admin.client.AdminShopFeignClient;
+import com.sobok.adminservice.admin.client.UserFeignClient;
+import com.sobok.adminservice.admin.dto.order.AdminPaymentResDto;
+import com.sobok.adminservice.admin.dto.order.AdminPaymentResponseDto;
+import com.sobok.adminservice.admin.dto.order.RiderNameResDto;
+import com.sobok.adminservice.admin.dto.order.UserInfoResDto;
 import com.sobok.adminservice.admin.dto.rider.RiderResDto;
 import com.sobok.adminservice.admin.dto.shop.ShopResDto;
 import com.sobok.adminservice.common.dto.ApiResponse;
@@ -20,6 +26,8 @@ import java.util.List;
 public class AdminService {
     private final AdminShopFeignClient adminShopClient;
     private final AdminRiderFeignClient adminRiderClient;
+    private final AdminPaymentFeignClient adminPaymentClient;
+    private final UserFeignClient userFeignClient;
 
 
     /**
@@ -45,4 +53,35 @@ public class AdminService {
         ApiResponse<List<RiderResDto>> response = adminRiderClient.getAllRiders();
         return response.getData();
     }
+
+    /**
+     * 관리자 전용 사용자 주문 전체 조회
+     */
+    public List<AdminPaymentResponseDto> getAllPayments(TokenUserInfo userInfo) {
+        if (!userInfo.getRole().equals("ADMIN")) {
+            throw new CustomException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+
+        List<AdminPaymentResDto> payments = adminPaymentClient.getAllPayments().getData();
+
+        return payments.stream().map(payment -> {
+            UserInfoResDto userInfoResDto = userFeignClient.getUserInfo(payment.getUserAddressId());
+            RiderNameResDto rider = adminRiderClient.getRiderName(payment.getId());
+
+            return AdminPaymentResponseDto.builder()
+                    .orderId(payment.getOrderId())
+                    .totalPrice(payment.getTotalPrice())
+                    .payMethod(payment.getPayMethod())
+                    .orderState(payment.getOrderState())
+                    .createdAt(payment.getCreatedAt())
+                    .nickname(userInfoResDto.getNickname())
+                    .roadFull(userInfoResDto.getRoadFull())
+                    .address(userInfoResDto.getAddress())
+                    .riderName(rider.getRiderName())
+                    .build();
+        }).toList();
+    }
+
+
 }
+

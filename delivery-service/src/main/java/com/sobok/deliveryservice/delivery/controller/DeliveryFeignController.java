@@ -4,6 +4,7 @@ import com.sobok.deliveryservice.common.dto.ApiResponse;
 import com.sobok.deliveryservice.common.dto.TokenUserInfo;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
+import com.sobok.deliveryservice.delivery.dto.payment.RiderNameResDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
@@ -69,4 +70,13 @@ public class DeliveryFeignController {
         List<RiderInfoResDto> riders = deliveryService.getAllRiders();
         return ResponseEntity.ok(ApiResponse.ok(riders, "전체 라이더 조회 성공"));
     }
+
+    /**
+     * 라이더 이름 조회
+     */
+    @GetMapping("/admin/rider-name")
+    public RiderNameResDto getRiderName(@RequestParam("paymentId") Long paymentId) {
+        return deliveryService.getRiderNameByPaymentId(paymentId);
+    }
+
 }

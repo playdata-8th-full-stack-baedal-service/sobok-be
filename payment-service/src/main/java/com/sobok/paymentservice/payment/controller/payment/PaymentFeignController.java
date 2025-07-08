@@ -1,10 +1,14 @@
 package com.sobok.paymentservice.payment.controller.payment;
 
+import com.sobok.paymentservice.common.dto.ApiResponse;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -22,5 +26,14 @@ public class PaymentFeignController {
     @DeleteMapping("/delete-payment")
     public void cancelPayment(@RequestBody String orderId) {
         paymentService.cancelPayment(orderId);
+    }
+
+    /**
+     * 관리자 전용 전체 주문 조회
+     */
+    @GetMapping("/admin/payments")
+    public ApiResponse<List<AdminPaymentResDto>> getAllPayments() {
+        List<AdminPaymentResDto> result = paymentService.getAllPaymentsForAdmin();
+        return ApiResponse.ok(result, "전체 주문 조회 성공");
     }
 }

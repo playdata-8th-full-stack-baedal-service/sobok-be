@@ -9,6 +9,8 @@ import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;
 import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
+import com.sobok.userservice.user.dto.response.UserInfoResDto;
+import com.sobok.userservice.user.entity.UserAddress;
 import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserBookmarkRepository;
@@ -269,5 +271,22 @@ public class UserService {
         );
 
         return userByAuthId.getId();
+    }
+
+    /**
+     * 관리자 전용 전체 주문 조회용(사용자 정보)
+     */
+    public UserInfoResDto getUserInfoByAddressId(Long userAddressId) {
+        UserAddress address = userAddressRepository.findById(userAddressId)
+                .orElseThrow(() -> new CustomException("주소를 찾을 수 없습니다", HttpStatus.NOT_FOUND));
+
+        User user = userRepository.findById(address.getUserId())
+                .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다", HttpStatus.NOT_FOUND));
+
+        return UserInfoResDto.builder()
+                .nickname(user.getNickname())
+                .roadFull(address.getRoadFull())
+                .address(address.getAddrDetail())
+                .build();
     }
 }

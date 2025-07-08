@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.service.payment;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
@@ -124,5 +125,22 @@ public class PaymentService {
         paymentRepository.delete(payment);
 
         log.info("결제 취소 성공 | orderId : {}, paymentId : {}", orderId, payment.getId());
+    }
+
+    /**
+     * 주문 전체 조회 (결제)
+     */
+    public List<AdminPaymentResDto> getAllPaymentsForAdmin() {
+        return paymentRepository.findAll().stream()
+                .map(payment -> AdminPaymentResDto.builder()
+                        .id(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .totalPrice(payment.getTotalPrice())
+                        .payMethod(payment.getPayMethod())
+                        .orderState(payment.getOrderState())
+                        .createdAt(payment.getCreatedAt())
+                        .userAddressId(payment.getUserAddressId())
+                        .build())
+                .toList();
     }
 }

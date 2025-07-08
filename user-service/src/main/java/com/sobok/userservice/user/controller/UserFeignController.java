@@ -3,6 +3,7 @@ package com.sobok.userservice.user.controller;
 import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
+import com.sobok.userservice.user.dto.response.UserInfoResDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.repository.UserRepository;
 import com.sobok.userservice.user.service.UserAddressService;
@@ -72,6 +73,14 @@ public class UserFeignController {
     @GetMapping("/get-user-id")
     Long getUserId(@RequestParam Long id) {
         return userService.getUserId(id);
+    }
+
+    /**
+     * 관리자 전용 전체 주문 조회용(사용자 정보)
+     */
+    @GetMapping("/admin/user-info")
+    public UserInfoResDto getUserInfoByAddressId(@RequestParam Long userAddressId) {
+        return userService.getUserInfoByAddressId(userAddressId);
     }
 
 }
