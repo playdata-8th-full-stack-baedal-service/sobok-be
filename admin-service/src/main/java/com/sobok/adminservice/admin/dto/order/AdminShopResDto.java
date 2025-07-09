@@ -13,4 +13,6 @@ import lombok.*;
 public class AdminShopResDto {
     private String shopName;
     private String shopAddress;
+    private String shopPhone;
+    private String ownerName;
 }

@@ -14,4 +14,6 @@ public class AdminShopResDto {
     private Long shopId;
     private String shopName;
     private String shopAddress;
+    private String shopPhone;
+    private String ownerName;
 }

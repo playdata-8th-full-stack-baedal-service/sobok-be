@@ -136,6 +136,8 @@ public class ShopService {
                 .shopId(shop.getId())
                 .shopName(shop.getShopName())
                 .shopAddress(shop.getRoadFull())
+                .ownerName(shop.getOwnerName())
+                .shopPhone(shop.getPhone())
                 .build();
     }
 }

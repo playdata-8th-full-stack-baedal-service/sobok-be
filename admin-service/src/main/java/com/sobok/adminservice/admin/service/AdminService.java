@@ -93,6 +93,8 @@ public class AdminService {
                     .address(userInfoResDto.getAddress())
                     .riderName(rider.getRiderName())
                     .shopName(shopInfo.getShopName())
+                    .shopPhone(shopInfo.getShopPhone())
+                    .ownerName(shopInfo.getOwnerName())
                     .shopAddress(shopInfo.getShopAddress())
                     .cookNames(cookNameList)
                     .loginId(loginId)

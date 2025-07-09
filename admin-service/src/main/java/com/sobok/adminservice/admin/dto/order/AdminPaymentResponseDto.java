@@ -33,6 +33,8 @@ public class AdminPaymentResponseDto {
     // 가게 정보
     private String shopName;
     private String shopAddress;
+    private String ownerName;
+    private String shopPhone;
 
     // 요리 정보
     private List<String> cookNames;;
