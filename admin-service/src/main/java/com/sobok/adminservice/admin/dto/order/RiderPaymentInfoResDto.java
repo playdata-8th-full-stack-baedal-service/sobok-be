@@ -10,6 +10,7 @@ import lombok.*;
 /**
  * 라이더 정보 전달
  */
-public class RiderNameResDto {
+public class RiderPaymentInfoResDto {
     private String riderName;
+    private String riderPhone;
 }

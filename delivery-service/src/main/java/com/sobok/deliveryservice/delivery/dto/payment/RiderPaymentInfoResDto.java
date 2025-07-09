@@ -1,18 +1,17 @@
 package com.sobok.deliveryservice.delivery.dto.payment;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 /**
  * 라이더 이름 조회용 Dto
  */
-public class RiderNameResDto {
+public class RiderPaymentInfoResDto {
     private String riderName;
     private Long riderId;
+    private String riderPhone;
 }
