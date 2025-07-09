@@ -4,6 +4,7 @@ import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
+import com.sobok.userservice.user.dto.response.UserInfoResDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.repository.UserRepository;
 import com.sobok.userservice.user.service.UserAddressService;
@@ -76,6 +77,29 @@ public class UserFeignController {
         return userService.getUserId(id);
     }
 
+    /**
+     * 관리자 전용 전체 주문 조회용(사용자 정보)
+     */
+    @GetMapping("/admin/user-info")
+    public UserInfoResDto getUserInfoByAddressId(@RequestParam Long userAddressId) {
+        return userService.getUserInfoByAddressId(userAddressId);
+    }
+
+    /**
+     * userAddressId로 userId를 찾음
+     */
+    @GetMapping("/user-id")
+    public ResponseEntity<Long> getUserIdByUserAddressId(@RequestParam Long userAddressId) {
+        return ResponseEntity.ok(userService.getUserLoginId(userAddressId));
+    }
+
+    /**
+     * userId를 기반으로 authId 반환
+     */
+    @GetMapping("/auth-id")
+    public ResponseEntity<Long> getAuthIdByUserId(@RequestParam Long userId) {
+        return ResponseEntity.ok(userService.getAuthIdByUserId(userId));
+    }
     @GetMapping("/get-user-address")
     UserLocationResDto getUserAddress(@RequestParam Long userAddressId) {
         return userAddressService.getUserAddress(userAddressId);

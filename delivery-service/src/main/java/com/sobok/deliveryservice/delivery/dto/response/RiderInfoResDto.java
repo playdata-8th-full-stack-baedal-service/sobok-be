@@ -1,14 +1,12 @@
 package com.sobok.deliveryservice.delivery.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
 public class RiderInfoResDto {
 
     private Long id;

@@ -51,4 +51,13 @@ public class AuthFeignController {
         log.info("여기는 토큰생성하는길");
         return authService.kakaoLoginToken(id);
     }
+
+    /**
+     * 주문 조회용 로그인 아이디 전달
+     */
+    @GetMapping("/auth/login-id")
+    public ResponseEntity<String> getLoginId(@RequestParam Long authId) {
+        String loginId = authService.getLoginIdByAuthId(authId);
+        return ResponseEntity.ok(loginId);
+    }
 }

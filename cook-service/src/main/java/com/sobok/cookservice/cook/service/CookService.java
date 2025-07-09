@@ -201,4 +201,14 @@ public class CookService {
         return collect;
     }
 
+    /**
+     * 요리이름 조회용 (주문 전체 조회)
+     */
+    public List<CookNameResDto> getCookNamesByIds(List<Long> cookIds) {
+        return cookRepository.findByIdIn(cookIds).stream()
+                .map(cook -> new CookNameResDto(cook.getId(), cook.getName()))
+                .collect(Collectors.toList());
+    }
+
+
 }
