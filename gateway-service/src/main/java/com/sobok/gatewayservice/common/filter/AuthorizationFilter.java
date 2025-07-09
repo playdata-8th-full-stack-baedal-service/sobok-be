@@ -38,13 +38,14 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
     private static final List<String> whiteList = List.of(
             "/actuator",
             "/sms/send", "/sms/verify", "/auth/recover/**", "/auth/login", "/auth/reissue",
-            "/auth/user-signup","/auth/rider-signup","/auth/shop-signup",
+            "/auth/user-signup", "/auth/rider-signup", "/auth/shop-signup",
             "/auth/findLoginId", "/auth/verification", "/auth/reset-password", "/user/findByPhoneNumber",
             "/ingredient/keyword-search",
-            "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email","/auth/check-permission",
+            "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email", "/auth/check-permission",
             "/auth/check-shopName", "/auth/check-shopAddress"
             , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
-            , "/api/confirm"
+            , "/api/confirm", "/api/kakao-login",
+            "/auth/kakao-user-signup"
     );
 
     /**
@@ -75,13 +76,13 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             String raw = request.getHeaders().getFirst("Authorization");
 
             // Authorization 헤더가 없거나 비어있다면?
-            if(raw == null || raw.isEmpty()) {
+            if (raw == null || raw.isEmpty()) {
                 log.warn("Authorization 헤더가 없거나 비어있습니다.");
                 return onError(response);
             }
 
             // Bearer 토큰이 아니라면
-            if(!raw.startsWith("Bearer ")) {
+            if (!raw.startsWith("Bearer ")) {
                 log.warn("Bearer 토큰이 아닙니다.");
                 return onError(response);
             }
@@ -90,7 +91,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             String token = raw.substring(7);
 
             // 토큰이 유효하지 않다면
-            if(!validateToken(token)) {
+            if (!validateToken(token)) {
                 log.warn("토큰이 유효하지 않습니다.");
                 return onError(response);
             }
@@ -106,6 +107,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
 
     /**
      * 토큰 유효성 검
+     *
      * @param token
      * @return
      */
@@ -148,8 +150,6 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             return response.setComplete();
         }
     }
-
-
 
 
     public static class Config {

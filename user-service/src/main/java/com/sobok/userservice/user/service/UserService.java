@@ -26,7 +26,10 @@ import com.sobok.userservice.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -221,10 +224,31 @@ public class UserService {
                 () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
-        return userBookmarkRepository.findByUserId((user.getId()))
+        // getCookId()로 cook 페인요청 보내서 썸네일, 요리이름 가져오기
+        List<Long> cookIdList = userBookmarkRepository.findByUserId((user.getId()))
                 .stream()
-                .map(bookmark -> new UserBookmarkResDto(bookmark.getCookId()))
+                .map(UserBookmark::getCookId)
                 .collect(Collectors.toList());
+
+        List<UserBookmarkResDto> cookInfoList = cookServiceClient.cookPreLookup(cookIdList);
+
+        log.info("cookInfoList: {}", cookInfoList);
+
+        // cookId를 기준으로 매핑
+        Map<Long, UserBookmarkResDto> cookInfoMap = cookInfoList.stream()
+                .collect(Collectors.toMap(UserBookmarkResDto::getCookId, Function.identity()));
+
+        return cookIdList.stream()
+                .map(cookId -> {
+                    UserBookmarkResDto cook = cookInfoMap.get(cookId);
+                    if (cook == null) {
+                        log.warn("cookId={}에 대한 정보가 없음. 생략합니다.", cookId);
+                        return null;
+                    }
+                    return cook;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public PreOrderUserResDto getPreOrderUser(TokenUserInfo userInfo) {
@@ -259,29 +283,7 @@ public class UserService {
                 .build();
     }
 
-    // 로그인 한 사용자 확인
-    public User userCheck(Long authId, Long userId) {
-
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
-        );
-
-        if (!user.getAuthId().equals(authId)) {
-            throw new CustomException("잘못된 사용자 정보", HttpStatus.BAD_REQUEST);
-        }
-
-        return user;
-    }
-
-    public Long getUserId(Long id) {
-        User userByAuthId = userRepository.getUserByAuthId(id).orElseThrow(
-                () -> new EntityNotFoundException("유저가 없습니다.")
-        );
-
-        return userByAuthId.getId();
-    }
-
-    public String editPhoto(TokenUserInfo userInfo, String fileName, String category) {
+     public String editPhoto(TokenUserInfo userInfo, String fileName, String category) {
         log.info("사용자 이미지 수정 시작 | userId : {}", userInfo.getUserId());
 
         User user = userRepository.findById(userInfo.getUserId()).orElseThrow(
@@ -307,5 +309,56 @@ public class UserService {
         }
 
         return url;
+    }
+
+    // 로그인 한 사용자 확인
+    public User userCheck(Long authId, Long userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        if (!user.getAuthId().equals(authId)) {
+            throw new CustomException("잘못된 사용자 정보", HttpStatus.BAD_REQUEST);
+        }
+
+        return user;
+    }
+
+    public Long getUserId(Long id) {
+        User userByAuthId = userRepository.getUserByAuthId(id).orElseThrow(
+                () -> new EntityNotFoundException("유저가 없습니다.")
+        );
+
+        return userByAuthId.getId();
+    }
+
+    public void kakaoUserSignUp(UserSignupReqDto reqDto) {
+        log.info("사용자 회원가입 시작 : {}", reqDto);
+
+        User user = User.builder()
+                .authId(reqDto.getAuthId())
+                .nickname(reqDto.getNickname())
+                .phone(reqDto.getPhone())
+                .email(reqDto.getEmail())
+                .photo(reqDto.getPhoto())
+                .build();
+
+        // user DB에 저장
+        userRepository.save(user);
+
+        // 사용자 주소 저장
+        if (reqDto.getRoadFull() != null) {
+            UserAddressReqDto addrDto = UserAddressReqDto.builder()
+                    .roadFull(reqDto.getRoadFull())
+                    .addrDetail(reqDto.getAddrDetail())
+                    .build();
+
+            userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+            log.info("성공적으로 사용자의 주소를 저장했습니다.");
+        }
+
+        log.info("성공적으로 사용자 회원가입이 완료되었습니다.");
+
     }
 }

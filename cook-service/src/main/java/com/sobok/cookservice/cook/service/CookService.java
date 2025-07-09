@@ -6,10 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
-import com.sobok.cookservice.cook.dto.response.CookCreateResDto;
-import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
-import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
-import com.sobok.cookservice.cook.dto.response.CookResDto;
+import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.entity.Combination;
 import com.sobok.cookservice.cook.entity.Cook;
 import com.sobok.cookservice.cook.entity.Ingredient;
@@ -24,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCook.cook;
 
@@ -108,7 +106,7 @@ public class CookService {
                 CookCategory categoryEnum = CookCategory.valueOf(category);
 
                 builder.and(cook.category.eq(categoryEnum));
-            } else if(!keyword.isBlank()) { // 전체 조회
+            } else if (!keyword.isBlank()) { // 전체 조회
                 builder.and(cook.name.contains(keyword));
             }
         } catch (IllegalArgumentException e) {
@@ -184,6 +182,23 @@ public class CookService {
         boolean exists = cookRepository.existsById(cookId);
         log.info(exists ? "존재" : "없음");
         return exists;
+    }
+
+    public List<UserBookmarkResDto> findCookById(List<Long> cookIds) {
+
+        List<Cook> cooks = cookRepository.findAllById(cookIds);
+
+        List<UserBookmarkResDto> collect = cooks.stream()
+                .map(cook -> new UserBookmarkResDto(
+                        cook.getId(),
+                        cook.getName(),
+                        cook.getThumbnail()
+                ))
+                .toList();
+
+        log.info("collect: " + collect);
+
+        return collect;
     }
 
 }

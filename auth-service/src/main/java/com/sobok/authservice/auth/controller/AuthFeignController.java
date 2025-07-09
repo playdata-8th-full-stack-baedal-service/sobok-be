@@ -1,16 +1,17 @@
 package com.sobok.authservice.auth.controller;
 
+import com.sobok.authservice.auth.dto.request.AuthSignupReqDto;
+import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.dto.response.AuthRiderInfoResDto;
-import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
-import com.sobok.authservice.auth.entity.Auth;
-import com.sobok.authservice.auth.repository.AuthRepository;
+import com.sobok.authservice.auth.dto.response.AuthUserResDto;
+import com.sobok.authservice.auth.dto.response.OauthResDto;
 import com.sobok.authservice.auth.service.AuthService;
-import com.sobok.authservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api")
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthFeignController {
 
     private final AuthService authService;
-    private final AuthRepository authRepository;
 
     /**
      * 라이더 활성화
@@ -36,5 +36,19 @@ public class AuthFeignController {
     @GetMapping("/auth/info")
     public ResponseEntity<AuthRiderInfoResDto> getAuthInfo(@RequestParam Long authId) {
         return ResponseEntity.ok(authService.getRiderAuthInfo(authId));
+    }
+
+    //oauthId가 존재할 때 - oauthId로 authId 찾기
+    @GetMapping("/findByOauthId")
+    OauthResDto authIdById(@RequestParam("id") Long id) {
+        OauthResDto byOauthId = authService.findByOauthId(id);
+        log.info("authId: {}", byOauthId);
+        return byOauthId;
+    }
+
+    @GetMapping("/kakao-token")
+    AuthLoginResDto kakaoToken(@RequestParam("authId") Long id) {
+        log.info("여기는 토큰생성하는길");
+        return authService.kakaoLoginToken(id);
     }
 }

@@ -1,15 +1,14 @@
 package com.sobok.authservice.auth.service;
 
 
+import com.sobok.authservice.auth.client.ApiServiceClient;
 import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.client.ShopServiceClient;
 import com.sobok.authservice.auth.client.UserServiceClient;
 import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
-import com.sobok.authservice.auth.dto.info.AuthUserInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
-//import com.sobok.authservice.auth.feign.UserFeignClient;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.auth.service.info.AuthInfoProvider;
 import com.sobok.authservice.auth.service.info.AuthInfoProviderFactory;
@@ -23,18 +22,16 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.sobok.authservice.common.util.Constants.*;
@@ -50,10 +47,15 @@ public class AuthService {
     private final UserServiceClient userServiceClient;
     private final ShopServiceClient shopServiceClient;
     private final DeliveryClient deliveryClient;
-
+    private final ApiServiceClient apiServiceClient;
     private final SmsService smsService;
 
-    private final AuthInfoProviderFactory  authInfoProviderFactory;
+    private final AuthInfoProviderFactory authInfoProviderFactory;
+
+    @Value("${oauth2.kakao.client-id}")
+    private String kakaoClientId;
+    @Value("${oauth2.kakao.redirect-uri}")
+    private String kakaoRedirectUri;
 
     /**
      * <pre>
@@ -107,7 +109,7 @@ public class AuthService {
             case USER -> userServiceClient.getUserId(auth.getId());
             case RIDER -> deliveryClient.getRiderId(auth.getId());
             case HUB -> shopServiceClient.getShopId(auth.getId());
-            default ->  0L;
+            default -> 0L;
         };
 
         // 토큰 발급
@@ -228,7 +230,7 @@ public class AuthService {
                     case USER -> userServiceClient.getUserId(auth.getId());
                     case RIDER -> deliveryClient.getRiderId(auth.getId());
                     case HUB -> shopServiceClient.getShopId(auth.getId());
-                    default ->  0L;
+                    default -> 0L;
                 };
 
                 // access token 재발급
@@ -451,8 +453,8 @@ public class AuthService {
 
             // 모든 서비스에 요청보내서 유효한 값만 리스트에 담기
             List<ApiResponse<ByPhoneResDto>> response = Stream.of(
-                            userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber()),
-                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
+                            userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
+//                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
 //                            deliveryClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
                     ).filter(resp -> resp != null && resp.getData() != null)
                     .toList();
@@ -647,9 +649,10 @@ public class AuthService {
             throw new CustomException("중복된 가게 주소 입니다.", HttpStatus.BAD_REQUEST);
         }
     }
-  
+
     /**
      * 비밀번호 검증
+     *
      * @return loginId
      */
     public String verifyByPassword(Long id, AuthPasswordReqDto reqDto) {
@@ -658,7 +661,7 @@ public class AuthService {
         );
 
         boolean isMatch = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
-        if(!isMatch) {
+        if (!isMatch) {
             throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
@@ -692,6 +695,43 @@ public class AuthService {
         return info;
     }
 
+
+    public AuthLoginResDto kakaoLoginToken(Long id) {
+        // 회원 정보 가져오기
+        Auth auth = authRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
+        );
+        log.info("auth: {}", auth);
+        Long roleId = switch (auth.getRole()) {
+            case USER -> userServiceClient.getUserId(auth.getId());
+//            case RIDER -> deliveryClient.getRiderId(auth.getId());
+//            case HUB -> shopServiceClient.getShopId(auth.getId());
+            default -> 0L;
+        };
+
+        log.info("roleId: {}", roleId);
+
+        // 토큰 발급
+        String accessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(auth);
+
+        log.info("accessToken: {}", accessToken);
+
+        // 토큰 저장
+        jwtTokenProvider.saveRefreshToken(auth, refreshToken);
+
+        log.info("로그인 성공 : {}", auth.getId());
+
+        return AuthLoginResDto.builder()
+                .id(auth.getId())
+                .role(auth.getRole().toString())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .recoveryTarget(false)
+                .build();
+    }
+
+
     /**
      * 라이더 loginId, active 전달
      */
@@ -703,5 +743,70 @@ public class AuthService {
                 .loginId(auth.getLoginId())
                 .active(auth.getActive())
                 .build();
+    }
+
+    public OauthResDto findByOauthId(Long id) {
+        // 회원 정보 가져오기
+        Auth auth = authRepository.findByOauthId(id).orElseThrow(
+                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
+        );
+
+        return OauthResDto.builder()
+                .id(auth.getOauthId())
+                .authId(auth.getId())
+                .build();
+    }
+
+    //카카오 회원가입 user 생성
+    @Transactional
+    public void kakaoUserCreate(@Valid AuthByOauthReqDto authByOauthReqDto) {
+        // 이미 oauthId가 존재한다면 예외 던짐
+        authRepository.findByOauthId(authByOauthReqDto.getOauthId())
+                .ifPresent(auth -> {
+                    throw new CustomException("이미 등록된 회원입니다.", HttpStatus.CONFLICT);
+                });
+
+        OauthResDto oauthResDto = apiServiceClient.oauthIdById(authByOauthReqDto.getOauthId());
+
+        log.info("oauthResDto: {}", oauthResDto);
+
+        if (oauthResDto == null) {
+            throw new CustomException("oauth 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 아이디 생성
+        String dummyId = "kakao" + oauthResDto.getSocialId();
+        // 임시 password 생성
+        String dummyPassword = PasswordGenerator.generate(12);
+
+        Auth auth = Auth.builder()
+                .loginId(dummyId)
+                .password(passwordEncoder.encode(dummyPassword))
+                .oauthId(oauthResDto.getId())
+                .role(Role.USER)
+                .active("Y")
+                .build();
+
+        authRepository.save(auth);
+        log.info("저장한 auth: {}", auth);
+
+        // 사용자 회원가입에 필요한 정보 전달 객체 생성
+        UserSignupReqDto messageDto = UserSignupReqDto.builder()
+                .authId(auth.getId())
+                .nickname(authByOauthReqDto.getNickname())
+                .phone(authByOauthReqDto.getPhone())
+                .photo(authByOauthReqDto.getPhoto())
+                .roadFull(authByOauthReqDto.getRoadFull())
+                .addrDetail(authByOauthReqDto.getAddrDetail())
+                .build();
+
+        try {
+            userServiceClient.userSignup(messageDto);
+        } catch (FeignException e) {
+            log.error("사용자 정보 저장 실패");
+            throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        log.info("회원가입 성공: {}", auth);
     }
 }
