@@ -120,7 +120,7 @@ public class PaymentService {
 
         // Cart Cook 리스트 가져오기
         List<CartCook> cartCookList = cartCookRepository.findByPaymentId(payment.getId());
-        if (cartCookList.isEmpty()) {
+        if(cartCookList.isEmpty()) {
             log.error("결제 내역에 해당하는 카트 정보가 존재하지 않습니다. | payment id : {}", payment.getId());
             throw new CustomException("결제 내역에 해당하는 카트 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
