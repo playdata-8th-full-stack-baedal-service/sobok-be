@@ -38,5 +38,6 @@ public class AdminPaymentResponseDto {
     private String shopPhone;
 
     // 요리 정보
-    private List<String> cookNames;
+    private List<CookDetailWithIngredientsResDto> cooks;
+
 }

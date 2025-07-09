@@ -7,8 +7,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-// 요리 이름 전달용 (주문조회)
-public class CookNameResDto {
-    private Long cookId;
-    private String cookName;
+public class IngredientNameResDto {
+    private Long ingreId;
+    private String ingreName;
 }

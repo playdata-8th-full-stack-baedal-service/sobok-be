@@ -12,7 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,10 +74,8 @@ public class AdminService {
             Long shopId = adminRiderClient.getShopIdByPaymentId(payment.getId());
             AdminShopResDto shopInfo = adminShopFeignClient.getShopInfo(shopId);
 
-            // 요리 이름
-            List<Long> cookIds = adminPaymentClient.getCookIdsByPaymentId(payment.getId());
-            List<CookNameResDto> cookName = adminCookFeignClient.getCookNames(cookIds);
-            List<String> cookNameList = cookName.stream().map(CookNameResDto::getName).toList();
+            // 요리 + 기본식재료 + 추가식재료
+            List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(payment.getId());
 
             // 사용자 정보
             Long userId = userFeignClient.getUserIdByUserAddressId(payment.getUserAddressId());
@@ -97,11 +98,71 @@ public class AdminService {
                     .shopPhone(shopInfo.getShopPhone())
                     .ownerName(shopInfo.getOwnerName())
                     .shopAddress(shopInfo.getShopAddress())
-                    .cookNames(cookNameList)
+                    .cooks(cooks)
                     .loginId(loginId)
                     .build();
         }).toList();
     }
+
+    /**
+     * 결제 ID에 해당하는 장바구니 요리이름 재료 정보를 조회,
+     * 요리 이름과 기본/추가 식재료 목록을 포함한 상세 DTO 리스트를 반환
+     *
+     * @param paymentId 결제 ID
+     * @return List<CookDetailWithIngredientsResDto> 요리 이름, 기본 재료, 추가 재료 포함된 DTO 목록
+     */
+    public List<CookDetailWithIngredientsResDto> getCookDetailsByPaymentId(Long paymentId) {
+        // 결제 ID에 해당하는 모든 장바구니 요리 목록 조회
+        List<CartCookResDto> cartCooks = adminPaymentClient.getCartCooks(paymentId);
+
+        // 요리 ID 목록만 추출
+        List<Long> cookIds = cartCooks.stream()
+                .map(CartCookResDto::getCookId)
+                .distinct()
+                .toList();
+
+        // 요리 ID -> 요리 이름 Map으로 변환 (cookId 기준)
+        Map<Long, String> cookNameMap = adminCookFeignClient.getCookNames(cookIds).stream()
+                .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
+
+        List<CookDetailWithIngredientsResDto> result = new ArrayList<>();
+
+        // 각 장바구니 요리별로 재료 조회 및 가공
+        for (CartCookResDto cartCook : cartCooks) {
+            // 해당 장바구니 요리에 포함된 재료 목록 조회
+            List<CartIngredientResDto> ingredients = adminPaymentClient.getCartIngredients(cartCook.getId());
+
+            // 기본 재료 ID만 필터링
+            List<Long> baseIds = ingredients.stream()
+                    .filter(i -> "Y".equals(i.getDefaultIngre()))
+                    .map(CartIngredientResDto::getIngreId)
+                    .toList();
+            // 추가 재료 ID만 필터링
+            List<Long> addIds = ingredients.stream()
+                    .filter(i -> "N".equals(i.getDefaultIngre()))
+                    .map(CartIngredientResDto::getIngreId)
+                    .toList();
+            //기본 재료 ID 이름 변환
+            List<String> baseNames = adminCookFeignClient.getIngredientNames(baseIds).stream()
+                    .map(IngredientNameResDto::getIngreName)
+                    .toList();
+            // 추가 재료 ID 이름 변환
+            List<String> addNames = adminCookFeignClient.getIngredientNames(addIds).stream()
+                    .map(IngredientNameResDto::getIngreName)
+                    .toList();
+            // 요리 이름 조회
+            String cookName = cookNameMap.get(cartCook.getCookId());
+
+            result.add(CookDetailWithIngredientsResDto.builder()
+                    .cookName(cookName)
+                    .baseIngredients(baseNames)
+                    .additionalIngredients(addNames)
+                    .build());
+        }
+
+        return result;
+    }
+
 
 }
 

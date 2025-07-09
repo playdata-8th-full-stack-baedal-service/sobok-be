@@ -1,6 +1,5 @@
 package com.sobok.adminservice.admin.dto.order;
 
-
 import lombok.*;
 
 @Getter
@@ -8,8 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// 요리 이름 조회용(주문 조회)
-public class CookNameResDto {
-    private Long cookId;
-    private String cookName;
+public class IngredientNameResDto {
+    private Long ingreId;
+    private String ingreName;
 }

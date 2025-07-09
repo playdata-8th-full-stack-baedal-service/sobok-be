@@ -187,8 +187,9 @@ public class CookService {
      */
     public List<CookNameResDto> getCookNamesByIds(List<Long> cookIds) {
         return cookRepository.findByIdIn(cookIds).stream()
-                .map(cook -> new CookNameResDto(cook.getName()))
+                .map(cook -> new CookNameResDto(cook.getId(), cook.getName()))
                 .collect(Collectors.toList());
     }
+
 
 }

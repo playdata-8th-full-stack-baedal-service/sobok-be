@@ -7,6 +7,7 @@ import com.sobok.cookservice.cook.dto.request.IngreEditReqDto;
 import com.sobok.cookservice.cook.dto.request.IngreReqDto;
 import com.sobok.cookservice.cook.dto.request.KeywordSearchReqDto;
 import com.sobok.cookservice.cook.dto.response.IngreResDto;
+import com.sobok.cookservice.cook.dto.response.IngredientNameResDto;
 import com.sobok.cookservice.cook.entity.Ingredient;
 import com.sobok.cookservice.cook.entity.QIngredient;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
@@ -108,6 +109,14 @@ public class IngredientService {
                 .price(ingre.getPrice())
                 .origin(ingre.getOrigin())
                 .build();
+    }
+    /**
+     * 식재료 이름 조회용 (주문 전체 조회)
+     */
+    public List<IngredientNameResDto> getIngredientNamesByIds(List<Long> ingreIds) {
+        return ingredientRepository.findAllById(ingreIds).stream()
+                .map(ingredient -> new IngredientNameResDto(ingredient.getId(), ingredient.getIngreName()))
+                .toList();
     }
 
 }

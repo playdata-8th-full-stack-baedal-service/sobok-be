@@ -3,6 +3,8 @@ package com.sobok.paymentservice.payment.controller.payment;
 import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
+import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 import com.sobok.paymentservice.payment.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,5 +46,20 @@ public class PaymentFeignController {
     @GetMapping("/admin/cook-ids")
     public ResponseEntity<List<Long>> getCookIdsByPaymentId(@RequestParam Long paymentId) {
         return ResponseEntity.ok(paymentService.getCookIdsByPaymentId(paymentId));
+    }
+    /**
+     * 결제 ID에 해당하는 모든 장바구니 요리 목록을 조회
+     */
+    @GetMapping("/admin/cart-cooks")
+    public List<CartCookResDto> getCartCooks(@RequestParam Long paymentId) {
+        return paymentService.getCartCooksByPaymentId(paymentId);
+    }
+
+    /**
+     * 특정 장바구니 요리에 포함된 재료 목록을 조회
+     */
+    @GetMapping("/admin/cart-ingredients")
+    public List<CartIngredientResDto> getCartIngredients(@RequestParam Long cartCookId) {
+        return paymentService.getIngredientsByCartCookId(cartCookId);
     }
 }
