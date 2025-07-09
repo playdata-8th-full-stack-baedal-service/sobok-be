@@ -14,4 +14,16 @@ public interface UserFeignClient {
      */
     @GetMapping("/api/admin/user-info")
     UserInfoResDto getUserInfo(@RequestParam("userAddressId") Long userAddressId);
+
+    /**
+     * 유저 정보 조회
+     */
+    @GetMapping("/api/user-id")
+    Long getUserIdByUserAddressId(@RequestParam Long userAddressId);
+
+    /**
+     * 유저 정보 조회
+     */
+    @GetMapping("/api/auth-id")
+    Long getAuthIdByUserId(@RequestParam Long userId);
 }

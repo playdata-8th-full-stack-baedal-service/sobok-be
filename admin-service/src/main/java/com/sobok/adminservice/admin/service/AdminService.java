@@ -24,6 +24,7 @@ public class AdminService {
     private final UserFeignClient userFeignClient;
     private final AdminShopFeignClient adminShopFeignClient;
     private final AdminCookFeignClient adminCookFeignClient;
+    private final AdminFeignClient adminFeignClient;
 
 
     /**
@@ -70,11 +71,15 @@ public class AdminService {
             Long shopId = adminRiderClient.getShopIdByPaymentId(payment.getId());
             AdminShopResDto shopInfo = adminShopFeignClient.getShopInfo(shopId);
 
-            // 요리 이름 조회
+            // 요리 이름
             List<Long> cookIds = adminPaymentClient.getCookIdsByPaymentId(payment.getId());
             List<CookNameResDto> cookName = adminCookFeignClient.getCookNames(cookIds);
             List<String> cookNameList = cookName.stream().map(CookNameResDto::getName).toList();
 
+            // 사용자 정보
+            Long userId = userFeignClient.getUserIdByUserAddressId(payment.getUserAddressId());
+            Long authId = userFeignClient.getAuthIdByUserId(userId);
+            String loginId = adminFeignClient.getLoginId(authId);
 
             return AdminPaymentResponseDto.builder()
                     .orderId(payment.getOrderId())
@@ -89,6 +94,7 @@ public class AdminService {
                     .shopName(shopInfo.getShopName())
                     .shopAddress(shopInfo.getShopAddress())
                     .cookNames(cookNameList)
+                    .loginId(loginId)
                     .build();
         }).toList();
     }

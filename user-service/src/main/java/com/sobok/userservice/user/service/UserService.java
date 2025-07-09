@@ -166,7 +166,7 @@ public class UserService {
 
     public void addBookmark(TokenUserInfo userInfo, UserBookmarkReqDto userBookmarkReqDto) {
         // 로그인 한 사용자 확인
-        User user = userCheck(userInfo.getId(),userInfo.getUserId());
+        User user = userCheck(userInfo.getId(), userInfo.getUserId());
 
         //cookId가 존재하는지 확인
         ResponseEntity<?> response = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
@@ -226,7 +226,7 @@ public class UserService {
     }
 
     public PreOrderUserResDto getPreOrderUser(TokenUserInfo userInfo) {
-        log.info("id: {}, userId: {}", userInfo.getId(), userInfo.getUserId() );
+        log.info("id: {}, userId: {}", userInfo.getId(), userInfo.getUserId());
 
         Long id = userInfo.getId();
 
@@ -289,4 +289,24 @@ public class UserService {
                 .address(address.getAddrDetail())
                 .build();
     }
+    /**
+     * userId로 authId를 조회함
+     */
+    public Long getAuthIdByUserId(Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> {
+                    log.info("userId = {}, authId = {}", user.getId(), user.getAuthId());
+                    return user.getAuthId();
+                })
+                .orElseThrow(() -> new CustomException("해당 유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+    }
+    /**
+     * 해당 주소 ID를 가진 user_address 조회 후, 그 주소에 연결된 유저의 ID (userId)를 반환
+     */
+    public Long getUserLoginId(Long userAddressId) {
+        return userAddressRepository.findById(userAddressId)
+                .map(UserAddress::getUserId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 주소에 연결된 유저를 찾을 수 없습니다."));
+    }
+
 }

@@ -25,6 +25,7 @@ public class AdminPaymentResDto {
     private Long userAddressId;
 
     // 유저 정보
+    private String loginId;
     private String nickname;
     private String roadFull;
     private String address;

@@ -83,4 +83,19 @@ public class UserFeignController {
         return userService.getUserInfoByAddressId(userAddressId);
     }
 
+    /**
+     * userAddressId로 userId를 찾음
+     */
+    @GetMapping("/user-id")
+    public ResponseEntity<Long> getUserIdByUserAddressId(@RequestParam Long userAddressId) {
+        return ResponseEntity.ok(userService.getUserLoginId(userAddressId));
+    }
+
+    /**
+     * userId를 기반으로 authId 반환
+     */
+    @GetMapping("/auth-id")
+    public ResponseEntity<Long> getAuthIdByUserId(@RequestParam Long userId) {
+        return ResponseEntity.ok(userService.getAuthIdByUserId(userId));
+    }
 }

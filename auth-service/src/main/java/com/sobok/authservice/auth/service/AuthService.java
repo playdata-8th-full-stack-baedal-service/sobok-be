@@ -704,4 +704,13 @@ public class AuthService {
                 .active(auth.getActive())
                 .build();
     }
+
+    /**
+     * 유저 정보 조회(authId로)
+     */
+    public String getLoginIdByAuthId(Long authId) {
+        return authRepository.findById(authId)
+                .map(Auth::getLoginId)
+                .orElseThrow(() -> new CustomException("authId에 해당하는 유저가 없습니다.", HttpStatus.NOT_FOUND));
+    }
 }

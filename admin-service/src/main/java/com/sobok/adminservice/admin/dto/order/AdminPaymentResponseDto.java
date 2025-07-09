@@ -21,6 +21,7 @@ public class AdminPaymentResponseDto {
     private Long createdAt;
 
     // 유저 정보
+    private String loginId;
     private String nickname;
     private String roadFull;
     private String address;
