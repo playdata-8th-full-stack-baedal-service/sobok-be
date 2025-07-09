@@ -287,6 +287,7 @@ public class UserService {
                 .nickname(user.getNickname())
                 .roadFull(address.getRoadFull())
                 .address(address.getAddrDetail())
+                .phone(user.getPhone())
                 .build();
     }
     /**

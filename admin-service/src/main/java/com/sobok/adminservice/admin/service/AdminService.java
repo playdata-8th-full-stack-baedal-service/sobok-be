@@ -88,6 +88,7 @@ public class AdminService {
                     .orderState(payment.getOrderState())
                     .createdAt(payment.getCreatedAt())
                     .nickname(userInfoResDto.getNickname())
+                    .phone(userInfoResDto.getPhone())
                     .roadFull(userInfoResDto.getRoadFull())
                     .address(userInfoResDto.getAddress())
                     .riderName(rider.getRiderName())

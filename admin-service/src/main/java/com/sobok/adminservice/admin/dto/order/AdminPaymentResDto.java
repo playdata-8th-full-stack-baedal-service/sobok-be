@@ -29,6 +29,7 @@ public class AdminPaymentResDto {
     private String nickname;
     private String roadFull;
     private String address;
+    private String phone;
 
     // 라이더 정보
     private String riderName;
