@@ -66,7 +66,6 @@ public class AdminService {
             UserInfoResDto userInfoResDto = userFeignClient.getUserInfo(payment.getUserAddressId());
             // 라이더 정보
             RiderPaymentInfoResDto rider = adminRiderClient.getRiderName(payment.getId());
-//            RiderInfoResDto rider = adminRiderClient.getRiderInfoByPaymentId(payment.getId());
 
             // 가게 정보
             Long shopId = adminRiderClient.getShopIdByPaymentId(payment.getId());

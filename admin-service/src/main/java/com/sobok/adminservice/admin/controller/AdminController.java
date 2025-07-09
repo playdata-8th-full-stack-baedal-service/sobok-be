@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 // 관리자 승인 요청 컨트롤러
-public class AdminFeignController {
+public class AdminController {
 
     private final AdminFeignClient adminFeignClient;
     private final AdminService adminService;
