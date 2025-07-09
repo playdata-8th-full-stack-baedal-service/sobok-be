@@ -192,6 +192,7 @@ public class PaymentService {
                             .toList();
 
                     return GetPaymentResDto.builder()
+                            .paymentId(payment.getId())
                             .orderId(payment.getOrderId())
                             .orderState(payment.getOrderState())
                             .totalPrice(payment.getTotalPrice())

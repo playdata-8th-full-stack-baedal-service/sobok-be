@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class GetPaymentResDto {
+    private Long paymentId;
     private String orderId;
     private Long totalPrice;
     private OrderState orderState;
