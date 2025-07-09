@@ -1,4 +1,4 @@
-package com.sobok.paymentservice.payment.dto.payment;
+package com.sobok.paymentservice.payment.dto.response;
 
 import com.sobok.paymentservice.common.enums.OrderState;
 import lombok.*;
