@@ -3,12 +3,16 @@ package com.sobok.paymentservice.payment.service.payment;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
+import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
+import com.sobok.paymentservice.payment.repository.CartIngreRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +30,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final CartCookRepository cartCookRepository;
     private final ShopFeignClient shopFeignClient;
+    private final CartIngreRepository CartIngreRepository;
 
 
     /**
@@ -125,4 +130,59 @@ public class PaymentService {
 
         log.info("결제 취소 성공 | orderId : {}, paymentId : {}", orderId, payment.getId());
     }
+
+    /**
+     * 주문 전체 조회 (결제)
+     */
+    public List<AdminPaymentResDto> getAllPaymentsForAdmin() {
+        return paymentRepository.findAll().stream()
+                .map(payment -> AdminPaymentResDto.builder()
+                        .id(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .totalPrice(payment.getTotalPrice())
+                        .payMethod(payment.getPayMethod())
+                        .orderState(payment.getOrderState())
+                        .createdAt(payment.getCreatedAt())
+                        .userAddressId(payment.getUserAddressId())
+                        .build())
+                .toList();
+    }
+
+    /**
+     * 결제 정보에 맞는 요리 이름 조회용
+     */
+    public List<Long> getCookIdsByPaymentId(Long paymentId) {
+        return cartCookRepository.findByPaymentId(paymentId)
+                .stream()
+                .map(CartCook::getCookId)
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * 결제 Id에 해당하는 장바구니 요리 목록을 조회하여 DTO로 변환
+     */
+    public List<CartCookResDto> getCartCooksByPaymentId(Long paymentId) {
+        return cartCookRepository.findByPaymentId(paymentId).stream()
+                .map(cook -> CartCookResDto.builder()
+                        .id(cook.getId())
+                        .cookId(cook.getCookId())
+                        .quantity(cook.getCount())
+                        .build())
+                .toList();
+    }
+
+    /**
+     * 장바구니 요리 Id에 해당하는 재료 목록을 조회하여 DTO로 변환
+     */
+    public List<CartIngredientResDto> getIngredientsByCartCookId(Long cartCookId) {
+        return CartIngreRepository.findByCartCookId(cartCookId).stream()
+                .map(ingre -> CartIngredientResDto.builder()
+                        .ingreId(ingre.getIngreId())
+                        .defaultIngre(ingre.getDefaultIngre())
+                        .unitQuantity(ingre.getUnitQuantity())
+                        .build())
+                .toList();
+    }
+
 }
