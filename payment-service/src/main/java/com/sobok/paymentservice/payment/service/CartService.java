@@ -160,6 +160,7 @@ public class CartService {
     // 장바구니 조회용
     public PaymentResDto getCart(TokenUserInfo userInfo) {
         Long authId = userInfo.getId();
+
         // 유저 검증
         Boolean matched = userServiceClient.verifyUser(authId, userInfo.getUserId());
         if (!Boolean.TRUE.equals(matched)) {
@@ -174,7 +175,7 @@ public class CartService {
 
         List<PaymentItemResDto> items = cartCookList.stream().map(cartCook -> {
             CookDetailResDto cook = cookFeignClient.getCookDetail(cartCook.getCookId());
-            List<IngredientResDto> defaultIngredients = cook.getIngredients();
+            List<IngredientResDto> baseIngredients = cook.getIngredients(); // 기본 식재료
 
             // 추가 식재료 조회
             List<CartIngredient> additionalIngredients = cartIngreRepository.findByCartCookId(cartCook.getId());
@@ -190,22 +191,19 @@ public class CartService {
                                 .build();
                     }).toList();
 
-
-            // 기본 + 추가식재료 합치기
-            List<IngredientResDto> totalIngredients = new java.util.ArrayList<>();
-            totalIngredients.addAll(defaultIngredients);
-            totalIngredients.addAll(additionalDtos);
-
-            return new PaymentItemResDto(
-                    cook.getCookId(),
-                    cook.getName(),
-                    cook.getThumbnail(),
-                    cartCook.getCount(),
-                    totalIngredients
-            );
+            // 반환 객체 생성 (기본/추가 분리해서 넣기)
+            return PaymentItemResDto.builder()
+                    .cookId(cook.getCookId())
+                    .cookName(cook.getName())
+                    .thumbnail(cook.getThumbnail())
+                    .quantity(cartCook.getCount())
+                    .baseIngredients(baseIngredients)
+                    .additionalIngredients(additionalDtos)
+                    .build();
         }).toList();
 
         return new PaymentResDto(userInfo.getUserId(), items);
     }
+
 
 }

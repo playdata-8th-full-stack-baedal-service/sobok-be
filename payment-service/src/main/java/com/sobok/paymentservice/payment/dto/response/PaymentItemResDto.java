@@ -16,5 +16,6 @@ public class PaymentItemResDto {
     private String cookName;
     private String thumbnail;
     private int quantity;
-    private List<IngredientResDto> ingredients;
+    private List<IngredientResDto> baseIngredients;       // 기본 식재료
+    private List<IngredientResDto> additionalIngredients;  // 추가 식재료
 }
