@@ -208,4 +208,8 @@ public class PaymentService {
         log.info("응답할 dto: {}", paymentDtos);
         return paymentDtos;
     }
+
+    public void getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
+
+    }
 }

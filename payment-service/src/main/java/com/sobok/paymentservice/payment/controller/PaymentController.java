@@ -69,4 +69,13 @@ public class PaymentController {
         List<GetPaymentResDto> getPaymentResDtos = paymentService.getPayment(userInfo);
         return ResponseEntity.ok().body(ApiResponse.ok(getPaymentResDtos,"사용자의 주문 내역이 조회되었습니다."));
     }
+
+    /**
+     * 사용자 주문 세부 조회
+     */
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<?> getPaymentDetail(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable("id") Long paymentId) {
+        paymentService.getPaymentDetail(userInfo, paymentId);
+        return ResponseEntity.ok().body(ApiResponse.ok(paymentId, "주문 상세 내역이 조회되었습니다."));
+    }
 }
