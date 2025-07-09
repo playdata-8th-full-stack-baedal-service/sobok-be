@@ -1,4 +1,4 @@
-package com.sobok.paymentservice.payment.controller.payment;
+package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.service.payment.PaymentService;
