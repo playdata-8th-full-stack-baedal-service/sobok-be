@@ -6,13 +6,13 @@ import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
-import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
+import com.sobok.paymentservice.payment.dto.response.*;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
-import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
-import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
+import com.sobok.paymentservice.payment.entity.CartIngredient;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
@@ -22,11 +22,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
+import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
+
+import com.sobok.paymentservice.payment.repository.CartIngreRepository;
 
 @Service
 @Slf4j
@@ -39,6 +45,7 @@ public class PaymentService {
     private final UserServiceClient userServiceClient;
     private final CookFeignClient cookFeignClient;
     private final CartService cartService;
+    private final CartIngreRepository CartIngreRepository;
 
     /**
      * 결제 사전 정보 등록
@@ -120,7 +127,7 @@ public class PaymentService {
 
         // Cart Cook 리스트 가져오기
         List<CartCook> cartCookList = cartCookRepository.findByPaymentId(payment.getId());
-        if(cartCookList.isEmpty()) {
+        if (cartCookList.isEmpty()) {
             log.error("결제 내역에 해당하는 카트 정보가 존재하지 않습니다. | payment id : {}", payment.getId());
             throw new CustomException("결제 내역에 해당하는 카트 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
@@ -136,6 +143,60 @@ public class PaymentService {
         paymentRepository.delete(payment);
 
         log.info("결제 취소 성공 | orderId : {}, paymentId : {}", orderId, payment.getId());
+    }
+
+    /**
+     * 주문 전체 조회 (결제)
+     */
+    public List<AdminPaymentResDto> getAllPaymentsForAdmin() {
+        return paymentRepository.findAll().stream()
+                .map(payment -> AdminPaymentResDto.builder()
+                        .id(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .totalPrice(payment.getTotalPrice())
+                        .payMethod(payment.getPayMethod())
+                        .orderState(payment.getOrderState())
+                        .createdAt(payment.getCreatedAt())
+                        .userAddressId(payment.getUserAddressId())
+                        .build())
+                .toList();
+    }
+
+    /**
+     * 결제 정보에 맞는 요리 이름 조회용
+     */
+    public List<Long> getCookIdsByPaymentId(Long paymentId) {
+        return cartCookRepository.findByPaymentId(paymentId)
+                .stream()
+                .map(CartCook::getCookId)
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * 결제 Id에 해당하는 장바구니 요리 목록을 조회하여 DTO로 변환
+     */
+    public List<CartCookResDto> getCartCooksByPaymentId(Long paymentId) {
+        return cartCookRepository.findByPaymentId(paymentId).stream()
+                .map(cook -> CartCookResDto.builder()
+                        .id(cook.getId())
+                        .cookId(cook.getCookId())
+                        .quantity(cook.getCount())
+                        .build())
+                .toList();
+    }
+
+    /**
+     * 장바구니 요리 Id에 해당하는 재료 목록을 조회하여 DTO로 변환
+     */
+    public List<CartIngredientResDto> getIngredientsByCartCookId(Long cartCookId) {
+        return CartIngreRepository.findByCartCookId(cartCookId).stream()
+                .map(ingre -> CartIngredientResDto.builder()
+                        .ingreId(ingre.getIngreId())
+                        .defaultIngre(ingre.getDefaultIngre())
+                        .unitQuantity(ingre.getUnitQuantity())
+                        .build())
+                .toList();
     }
 
 
