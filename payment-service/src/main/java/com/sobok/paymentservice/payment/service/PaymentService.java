@@ -1,4 +1,4 @@
-package com.sobok.paymentservice.payment.service.payment;
+package com.sobok.paymentservice.payment.service;
 
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
@@ -6,11 +6,12 @@ import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
-import com.sobok.paymentservice.payment.dto.payment.GetPaymentResDto;
+import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
+import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -38,7 +38,7 @@ public class PaymentService {
     private final ShopFeignClient shopFeignClient;
     private final UserServiceClient userServiceClient;
     private final CookFeignClient cookFeignClient;
-
+    private final CartService cartService;
 
     /**
      * 결제 사전 정보 등록
@@ -139,12 +139,15 @@ public class PaymentService {
     }
 
 
-    public List<GetPaymentResDto> getPayment(TokenUserInfo userInfo) {
+    public List<GetPaymentResDto> getPayment(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
         // 유저 검증
         Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
         if (!Boolean.TRUE.equals(matched)) {
             throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
+
+        long offset = (pageNo - 1) * numOfRows;
+
 
         //일단 userId로 cart_cook에서 조회
         List<CartCook> cartCookList = cartCookRepository.findByUserId((userInfo.getUserId()));
@@ -210,6 +213,35 @@ public class PaymentService {
     }
 
     public void getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
+        //유저 검증
+        Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
+        if (!Boolean.TRUE.equals(matched)) {
+            throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
+        }
 
+        // Cart Cook 리스트 가져오기
+        List<CartCook> cartCookList = cartCookRepository.findByPaymentId(paymentId);
+        if (cartCookList.isEmpty()) {
+            log.error("결제 내역에 해당하는 카트 정보가 존재하지 않습니다. | payment id : {}", paymentId);
+            throw new CustomException("결제 내역에 해당하는 카트 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        cartCookList.forEach(cart -> {
+            if (!cart.getUserId().equals(userInfo.getUserId())) {
+                throw new CustomException("주문한 사용자만 조회가능합니다.", HttpStatus.FORBIDDEN);
+            }
+        });
+
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(
+                () -> new CustomException("주문 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
+        );
+
+        PaymentResDto paymentResDto = cartService.getCart(userInfo);
+        log.info("카트 서비스에서 조회해온 paymentResDto: {}", paymentResDto);
+
+        // payment: 주문 번호, 일자, 배송 상태, 결제 수단 및 총금액, 주소(id), 라이더 요청사항
+        // cook: 포함된 모든 요리 정보, 추가 식재료,
+        // 배송지,
+        //user_address_id 가지고 user-service로 가서 road_full과 addr_detail 가져와야함.
     }
 }
