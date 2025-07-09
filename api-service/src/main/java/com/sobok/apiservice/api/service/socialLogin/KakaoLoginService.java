@@ -4,6 +4,8 @@ import com.sobok.apiservice.api.client.AuthFeignClient;
 import com.sobok.apiservice.api.dto.kakao.*;
 import com.sobok.apiservice.api.entity.Oauth;
 import com.sobok.apiservice.api.repository.OauthRepository;
+import com.sobok.apiservice.common.exception.CustomException;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -105,10 +107,24 @@ public class KakaoLoginService {
         if (oauth.isPresent()) {
             log.info("기존에 카카오 소셜 로그인한 유저입니다.");
             Oauth foundUser = oauth.get();
-            OauthResDto oauthResDto = authFeignClient.authIdById(foundUser.getId());
+            OauthResDto oauthResDto;
+            try {
+                oauthResDto = authFeignClient.authIdById(foundUser.getId());
+            } catch (FeignException.NotFound e) {
+                log.info("oauth는 생성하였지만 회원가입을 마치지 못한 유저입니다.");
+                return OauthResDto.builder()
+                        .id(foundUser.getId())
+                        .socialId(foundUser.getSocialId())
+                        .isNew(true)
+                        .build();
+            } catch (FeignException e) {
+                log.error("Feign 호출 중 예외 발생", e);
+                throw new CustomException("OAuth 정보 조회 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             log.info("oauthResDto: {}", oauthResDto);
             return OauthResDto.builder()
                     .id(foundUser.getId())
+                    .socialId(foundUser.getSocialId())
                     .authId(oauthResDto.getAuthId())
                     .isNew(false)
                     .build();
@@ -120,12 +136,12 @@ public class KakaoLoginService {
         // 처음 카카오 로그인 한 사람 -> 새 사용자 생성. oauth
         log.info("카카오 로그인으로 처음 방문한 신규 유저입니다. 회원가입 진행해야 됨");
 
-        Oauth kakao = Oauth.builder()
+        Oauth build = Oauth.builder()
                 .socialProvider("KAKAO")
                 .socialId(dto.getId().toString())
                 .build();
 
-        Oauth saved = oauthRepository.save(kakao);
+        Oauth saved = oauthRepository.save(build);
 
         log.info("saved: {}", saved);
 

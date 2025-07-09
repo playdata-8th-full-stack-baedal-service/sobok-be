@@ -134,7 +134,6 @@ public class ApiController {
                                         window.opener.postMessage({
                                             type: 'NEW_USER_SIGNUP',
                                             oauthId: '%s',      // oauth ID
-                                            authId: '%s',       // 우리 서비스의 authId (임시 식별자)
                                             nickname: '%s',     // 카카오 닉네임 (가입 폼에 미리 채울 수 있음)
                                             email: '%s',
                                             provider: 'KAKAO'
@@ -142,12 +141,13 @@ public class ApiController {
                                         window.close();
                                     } else {
                                         window.location.href = 'http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&kakaoId=%s';
+//                                        window.location.href = `http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&oauthId=${oauthResDto.getId()}&nickname=${encodeURIComponent(kakaoUserDto.getProperties().getNickname())}&email=${encodeURIComponent(kakaoUserDto.getAccount().getEmail())}`;
                                     }
                                 </script>
                                 <p>회원가입 페이지로 이동 중...</p>
                             </body>
                             </html>
-                            """, oauthResDto.getId(), oauthResDto.getAuthId(), kakaoUserDto.getProperties().getNickname(),
+                            """, oauthResDto.getId(), kakaoUserDto.getProperties().getNickname(),
                     kakaoUserDto.getAccount().getEmail(), kakaoUserDto.getId());
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(html);
