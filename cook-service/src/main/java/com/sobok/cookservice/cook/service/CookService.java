@@ -10,7 +10,6 @@ import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.entity.Combination;
 import com.sobok.cookservice.cook.entity.Cook;
 import com.sobok.cookservice.cook.entity.Ingredient;
-import com.sobok.cookservice.cook.entity.QCook;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
@@ -20,8 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCook.cook;
 
@@ -201,4 +200,27 @@ public class CookService {
         return collect;
     }
 
+    //주문 내역 조회용
+    public List<CookDetailResDto> getCookDetailList(List<Long> cookIds) {
+        log.info("cookIds: " + cookIds);
+
+        // 요리 있는지부터 검증 없으면 예외
+        List<Cook> cooksList = new ArrayList<>();
+
+        for (Long id : cookIds) {
+            Cook cook = cookRepository.findById(id)
+                    .orElseThrow(() -> new CustomException("ID " + id + "에 해당하는 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+            cooksList.add(cook);
+        }
+
+        log.info("cooksList: " + cooksList);
+
+        return cooksList.stream()
+                .map(cook -> CookDetailResDto.builder()
+                        .cookId(cook.getId())
+                        .name(cook.getName())
+                        .thumbnail(cook.getThumbnail())
+                        .build())
+                .toList();
+    }
 }

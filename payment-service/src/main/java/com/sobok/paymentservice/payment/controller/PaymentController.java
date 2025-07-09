@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.controller;
 import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
+import com.sobok.paymentservice.payment.dto.payment.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
 import com.sobok.paymentservice.payment.service.CartService;
@@ -12,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/payment")
@@ -58,4 +61,12 @@ public class PaymentController {
         return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니의 상품이 성공적으로 삭제되었습니다."));
     }
 
+    /**
+     * 사용자 주문 전체 조회
+     */
+    @GetMapping("/get-myPayment")
+    public ResponseEntity<?> getPayment(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        List<GetPaymentResDto> getPaymentResDtos = paymentService.getPayment(userInfo);
+        return ResponseEntity.ok().body(ApiResponse.ok(getPaymentResDtos,"사용자의 주문 내역이 조회되었습니다."));
+    }
 }

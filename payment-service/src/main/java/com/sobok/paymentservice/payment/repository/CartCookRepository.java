@@ -19,4 +19,5 @@ public interface CartCookRepository extends JpaRepository<CartCook, Long> {
 
     List<CartCook> findByPaymentId(Long paymentId);
 
+    List<CartCook> findByUserId(Long userId);
 }
