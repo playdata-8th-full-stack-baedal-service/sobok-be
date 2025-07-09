@@ -10,6 +10,7 @@ import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.entity.Combination;
 import com.sobok.cookservice.cook.entity.Cook;
 import com.sobok.cookservice.cook.entity.Ingredient;
+import com.sobok.cookservice.cook.entity.QCook;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
@@ -18,9 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCook.cook;
 
@@ -223,4 +224,14 @@ public class CookService {
                         .build())
                 .toList();
     }
+    /**
+     * 요리이름 조회용 (주문 전체 조회)
+     */
+    public List<CookNameResDto> getCookNamesByIds(List<Long> cookIds) {
+        return cookRepository.findByIdIn(cookIds).stream()
+                .map(cook -> new CookNameResDto(cook.getId(), cook.getName()))
+                .collect(Collectors.toList());
+    }
+
+
 }

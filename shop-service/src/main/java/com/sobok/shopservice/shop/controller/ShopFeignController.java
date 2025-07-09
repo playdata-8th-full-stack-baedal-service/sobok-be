@@ -4,6 +4,7 @@ import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
+import com.sobok.shopservice.shop.dto.response.AdminShopResDto;
 import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
 import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
 import com.sobok.shopservice.shop.dto.response.ShopResDto;
@@ -79,6 +80,14 @@ public class ShopFeignController {
     public ResponseEntity<?> getAllShops() {
         List<ShopResDto> result = shopService.getAllShops();
         return ResponseEntity.ok(ApiResponse.ok(result, "가게 전체 조회 성공"));
+    }
+
+    /**
+     * 주문 전체 조회용 가게 정보
+     */
+    @GetMapping("/shop-info-all")
+    public ResponseEntity<AdminShopResDto> getShopInfo(@RequestParam Long shopId) {
+        return ResponseEntity.ok(shopService.getShopInfo(shopId));
     }
 
 }

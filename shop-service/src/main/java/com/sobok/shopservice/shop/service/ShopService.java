@@ -5,10 +5,7 @@ import com.sobok.shopservice.common.exception.CustomException;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
-import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
-import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
-import com.sobok.shopservice.shop.dto.response.ShopResDto;
-import com.sobok.shopservice.shop.dto.response.UserLocationResDto;
+import com.sobok.shopservice.shop.dto.response.*;
 import com.sobok.shopservice.shop.entity.Shop;
 import com.sobok.shopservice.shop.repository.ShopRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -126,5 +123,21 @@ public class ShopService {
                         .phone(shop.getPhone())
                         .build())
                 .toList();
+    }
+
+    /**
+     * 주문 전체 조회용 가게 정보 전달
+     */
+    public AdminShopResDto getShopInfo(Long shopId) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new CustomException("해당 가게를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        return AdminShopResDto.builder()
+                .shopId(shop.getId())
+                .shopName(shop.getShopName())
+                .shopAddress(shop.getRoadFull())
+                .ownerName(shop.getOwnerName())
+                .shopPhone(shop.getPhone())
+                .build();
     }
 }

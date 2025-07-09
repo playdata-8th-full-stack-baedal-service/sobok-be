@@ -3,7 +3,11 @@ package com.sobok.cookservice.cook.controller;
 
 import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
 import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
+import com.sobok.cookservice.cook.dto.response.CookNameResDto;
+import com.sobok.cookservice.cook.dto.response.IngreResDto;
 import com.sobok.cookservice.cook.dto.response.UserBookmarkResDto;
+import com.sobok.cookservice.cook.dto.response.IngredientNameResDto;
+import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.service.CombinationService;
 import com.sobok.cookservice.cook.service.CookService;
 import com.sobok.cookservice.cook.service.IngredientService;
@@ -12,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +64,22 @@ public class CookFeignController {
         List<UserBookmarkResDto> result = cookService.findCookById(cookIds);
         return ResponseEntity.ok(result);
     }
+    /**
+     * 주문 전체 조회용(요리이름)
+     */
+    @PostMapping("/admin/cook-names")
+    public ResponseEntity<List<CookNameResDto>> getCookNames(@RequestBody List<Long> cookIds) {
+        return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
+    }
+
+    /**
+     * 식재료 이름 조회(주문 조회)
+     */
+    @PostMapping("/admin/ingredient-names")
+    public List<IngredientNameResDto> getIngredientNames(@RequestBody List<Long> ingreIds) {
+        return ingredientService.getIngredientNamesByIds(ingreIds);
+    }
+
 
     //주문 내역 조회용
     @GetMapping("/cooks")

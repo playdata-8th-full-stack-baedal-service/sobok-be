@@ -10,6 +10,8 @@ import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;
 import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
+import com.sobok.userservice.user.dto.response.UserInfoResDto;
+import com.sobok.userservice.user.entity.UserAddress;
 import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserBookmarkRepository;
@@ -361,4 +363,42 @@ public class UserService {
         log.info("성공적으로 사용자 회원가입이 완료되었습니다.");
 
     }
+
+    /**
+     * 관리자 전용 전체 주문 조회용(사용자 정보)
+     */
+    public UserInfoResDto getUserInfoByAddressId(Long userAddressId) {
+        UserAddress address = userAddressRepository.findById(userAddressId)
+                .orElseThrow(() -> new CustomException("주소를 찾을 수 없습니다", HttpStatus.NOT_FOUND));
+
+        User user = userRepository.findById(address.getUserId())
+                .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다", HttpStatus.NOT_FOUND));
+
+        return UserInfoResDto.builder()
+                .nickname(user.getNickname())
+                .roadFull(address.getRoadFull())
+                .address(address.getAddrDetail())
+                .phone(user.getPhone())
+                .build();
+    }
+    /**
+     * userId로 authId를 조회함
+     */
+    public Long getAuthIdByUserId(Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> {
+                    log.info("userId = {}, authId = {}", user.getId(), user.getAuthId());
+                    return user.getAuthId();
+                })
+                .orElseThrow(() -> new CustomException("해당 유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+    }
+    /**
+     * 해당 주소 ID를 가진 user_address 조회 후, 그 주소에 연결된 유저의 ID (userId)를 반환
+     */
+    public Long getUserLoginId(Long userAddressId) {
+        return userAddressRepository.findById(userAddressId)
+                .map(UserAddress::getUserId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 주소에 연결된 유저를 찾을 수 없습니다."));
+    }
+
 }
