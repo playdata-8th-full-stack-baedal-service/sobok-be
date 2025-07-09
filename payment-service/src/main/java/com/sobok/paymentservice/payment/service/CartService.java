@@ -191,14 +191,14 @@ public class CartService {
                                 .build();
                     }).toList();
 
-            // 반환 객체 생성 (기본/추가 분리해서 넣기)
+            // 기본/추가 식재료 분리해서 넣기)
             return PaymentItemResDto.builder()
                     .cookId(cook.getCookId())
                     .cookName(cook.getName())
                     .thumbnail(cook.getThumbnail())
                     .quantity(cartCook.getCount())
-                    .baseIngredients(baseIngredients)
-                    .additionalIngredients(additionalDtos)
+                    .baseIngredients(baseIngredients) // 기본 식재료
+                    .additionalIngredients(additionalDtos) // 추가 식재료
                     .build();
         }).toList();
 
