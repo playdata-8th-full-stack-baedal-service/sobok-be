@@ -1,14 +1,12 @@
 package com.sobok.deliveryservice.delivery.controller;
 
 import com.sobok.deliveryservice.common.dto.ApiResponse;
-import com.sobok.deliveryservice.common.dto.TokenUserInfo;
 import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
-import com.sobok.deliveryservice.delivery.dto.payment.RiderNameResDto;
+import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
-import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
 import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
 import com.sobok.deliveryservice.delivery.repository.RiderRepository;
@@ -17,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -77,11 +74,11 @@ public class DeliveryFeignController {
     }
 
     /**
-     * 라이더 이름 조회
+     * 결제관련 라이더 정보 조회
      */
-    @GetMapping("/admin/rider-name")
-    public RiderNameResDto getRiderName(@RequestParam("paymentId") Long paymentId) {
-        return deliveryService.getRiderNameByPaymentId(paymentId);
+    @GetMapping("/admin/rider-info")
+    public RiderPaymentInfoResDto getRiderPaymentInfo(@RequestParam Long paymentId) {
+        return deliveryService.getRiderInfoByPaymentId(paymentId);
     }
 
     /**

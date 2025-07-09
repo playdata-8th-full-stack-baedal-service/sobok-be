@@ -35,6 +35,7 @@ public class AdminPaymentResDto {
     private String riderName;
     private Long riderId;
     private Long id;
+    private String riderPhone;
 
     // 가게 정보
     private Long shopId;

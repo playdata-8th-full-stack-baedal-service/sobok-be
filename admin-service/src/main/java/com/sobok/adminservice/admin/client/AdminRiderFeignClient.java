@@ -1,6 +1,6 @@
 package com.sobok.adminservice.admin.client;
 
-import com.sobok.adminservice.admin.dto.order.RiderNameResDto;
+import com.sobok.adminservice.admin.dto.order.RiderPaymentInfoResDto;
 import com.sobok.adminservice.admin.dto.rider.RiderResDto;
 import com.sobok.adminservice.common.config.FeignConfig;
 import com.sobok.adminservice.common.dto.ApiResponse;
@@ -22,8 +22,8 @@ public interface AdminRiderFeignClient {
     /**
      * 라이더 정보 조회
      */
-    @GetMapping("/api/admin/rider-name")
-    RiderNameResDto getRiderName(@RequestParam Long paymentId);
+    @GetMapping("/api/admin/rider-info")
+    RiderPaymentInfoResDto getRiderName(@RequestParam Long paymentId);
 
     /**
      * paymentId 기준으로 delivery 테이블의 shopId 추출용

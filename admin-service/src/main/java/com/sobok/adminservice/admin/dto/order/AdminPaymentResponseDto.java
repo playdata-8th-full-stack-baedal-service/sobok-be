@@ -29,6 +29,7 @@ public class AdminPaymentResponseDto {
 
     // 라이더 정보
     private String riderName;
+    private String riderPhone;
 
     // 가게 정보
     private String shopName;

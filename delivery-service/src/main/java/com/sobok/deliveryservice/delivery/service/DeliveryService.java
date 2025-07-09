@@ -4,7 +4,7 @@ import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.client.AuthFeignClient;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
-import com.sobok.deliveryservice.delivery.dto.payment.RiderNameResDto;
+import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
@@ -131,16 +131,20 @@ public class DeliveryService {
     }
 
     /**
-     * 라이더 이름 조회 ( 결제관련)
+     * 라이더 정보 조회 (전체 주문 조회용)
      */
-    public RiderNameResDto getRiderNameByPaymentId(Long paymentId) {
+    public RiderPaymentInfoResDto getRiderInfoByPaymentId(Long paymentId) {
         Delivery delivery = deliveryRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new CustomException("배달 정보 없음", HttpStatus.NOT_FOUND));
 
         Rider rider = riderRepository.findById(delivery.getRiderId())
                 .orElseThrow(() -> new CustomException("라이더 정보 없음", HttpStatus.NOT_FOUND));
 
-        return new RiderNameResDto(rider.getName(), rider.getId());
+        return RiderPaymentInfoResDto.builder()
+                .riderId(rider.getId())
+                .riderName(rider.getName())
+                .riderPhone(rider.getPhone())
+                .build();
     }
 
 

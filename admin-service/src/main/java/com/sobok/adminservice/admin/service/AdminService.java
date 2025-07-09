@@ -65,7 +65,8 @@ public class AdminService {
             // 유저 정보
             UserInfoResDto userInfoResDto = userFeignClient.getUserInfo(payment.getUserAddressId());
             // 라이더 정보
-            RiderNameResDto rider = adminRiderClient.getRiderName(payment.getId());
+            RiderPaymentInfoResDto rider = adminRiderClient.getRiderName(payment.getId());
+//            RiderInfoResDto rider = adminRiderClient.getRiderInfoByPaymentId(payment.getId());
 
             // 가게 정보
             Long shopId = adminRiderClient.getShopIdByPaymentId(payment.getId());
@@ -92,6 +93,7 @@ public class AdminService {
                     .roadFull(userInfoResDto.getRoadFull())
                     .address(userInfoResDto.getAddress())
                     .riderName(rider.getRiderName())
+                    .riderPhone(rider.getRiderPhone())
                     .shopName(shopInfo.getShopName())
                     .shopPhone(shopInfo.getShopPhone())
                     .ownerName(shopInfo.getOwnerName())
