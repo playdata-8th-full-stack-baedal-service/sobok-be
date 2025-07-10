@@ -1,6 +1,7 @@
 package com.sobok.cookservice.cook.controller;
 
 
+import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
 import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
 import com.sobok.cookservice.cook.dto.response.CookNameResDto;
@@ -8,11 +9,13 @@ import com.sobok.cookservice.cook.dto.response.IngreResDto;
 import com.sobok.cookservice.cook.dto.response.UserBookmarkResDto;
 import com.sobok.cookservice.cook.dto.response.IngredientNameResDto;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
+import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.service.CombinationService;
 import com.sobok.cookservice.cook.service.CookService;
 import com.sobok.cookservice.cook.service.IngredientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -29,6 +32,7 @@ public class CookFeignController {
     private final CombinationService combinationService;
     private final IngredientService ingredientService;
     private final CookService cookService;
+    private final CookRepository cookRepository;
 
 
     @GetMapping("/get-cook-default-ingre")
@@ -85,5 +89,13 @@ public class CookFeignController {
     @GetMapping("/cooks")
     List<CookDetailResDto> getCookDetails(@RequestParam("id") List<Long> cookIds){
         return cookService.getCookDetailList(cookIds);
+    }
+
+    /**
+     * 게시글 등록(요리 이름 조회)
+     */
+    @GetMapping("/cook/name")
+    public String getCookNameById(@RequestParam Long cookId) {
+        return cookService.getCookNameById(cookId);
     }
 }

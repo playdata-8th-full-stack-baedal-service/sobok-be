@@ -1,16 +1,19 @@
 package com.sobok.userservice.user.controller;
 
 import com.sobok.userservice.common.dto.ApiResponse;
+import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import com.sobok.userservice.user.dto.response.UserInfoResDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
+import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserRepository;
 import com.sobok.userservice.user.service.UserAddressService;
 import com.sobok.userservice.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +26,7 @@ public class UserFeignController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final UserAddressService userAddressService;
+    private final UserAddressRepository addressRepository;
 
 
     @PostMapping("/signup")
@@ -100,6 +104,7 @@ public class UserFeignController {
     public ResponseEntity<Long> getAuthIdByUserId(@RequestParam Long userId) {
         return ResponseEntity.ok(userService.getAuthIdByUserId(userId));
     }
+
     @GetMapping("/get-user-address")
     UserLocationResDto getUserAddress(@RequestParam Long userAddressId) {
         return userAddressService.getUserAddress(userAddressId);
@@ -113,5 +118,13 @@ public class UserFeignController {
         log.info("reqDto: {}", reqDto);
         userService.kakaoUserSignUp(reqDto);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 게시글 등록용(유저 정보 반환)
+     */
+    @GetMapping("/admin/user-id")
+    public Long getUserIdByAddress(@RequestParam Long userAddressId) {
+        return userService.getUserIdByAddress(userAddressId);
     }
 }
