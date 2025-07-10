@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -312,12 +313,6 @@ public class PaymentService {
     }
 
     public PaymentDetailResDto getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
-        //유저 검증
-        Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
-        if (!Boolean.TRUE.equals(matched)) {
-            throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
-        }
-
         // paymentId로 Cart Cook 리스트 가져오기
         List<CartCook> cartCookList = cartCookRepository.findByPaymentId(paymentId);
         if (cartCookList.isEmpty()) {
@@ -325,30 +320,49 @@ public class PaymentService {
             throw new CustomException("결제 내역에 해당하는 카트 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
-        // 로그인한 사용자 본인이 주문한게 맞는지 확인
-        cartCookList.forEach(cart -> {
-            if (!cart.getUserId().equals(userInfo.getUserId())) {
-                throw new CustomException("주문한 사용자만 조회가능합니다.", HttpStatus.FORBIDDEN);
+        log.info("userInfo 전체 확인: {}", userInfo);
+
+        if ("USER".equals(userInfo.getRole())) {
+            //유저 검증
+            Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
+            if (!Boolean.TRUE.equals(matched)) {
+                throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
             }
-        });
+            // 로그인한 사용자 본인이 주문한게 맞는지 확인
+            cartCookList.forEach(cart -> {
+                if (!cart.getUserId().equals(userInfo.getUserId())) {
+                    throw new CustomException("주문한 사용자만 조회가능합니다.", HttpStatus.FORBIDDEN);
+                }
+            });
+        }
 
         // paymentId로 payment 정보 조회
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(
                 () -> new CustomException("주문 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
         );
 
-        PaymentResDto paymentResDto = cartService.getCart(userInfo, "ordered");
+        // 주문한 요리 식재료, 추가 식재료 정보 얻기
+        PaymentResDto paymentResDto = cartService.getCart(userInfo, paymentId.toString());
         List<PaymentItemResDto> items = paymentResDto.getItems().stream()
                 .filter(item -> item.getPaymentId().equals(paymentId))
                 .toList();
         log.info("items: {}", items);
 
+        // shopId를 얻기 위해 delivery-service에 요청
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
+
+        if ("HUB".equals(userInfo.getRole())) {
+            //가게 검증
+            if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
+                throw new CustomException("현재 사용자(authId:" + userInfo.getId()+", shopId:"+userInfo.getShopId()
+                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+            }
+        }
+
         // 배송지
         UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
         log.info("사용자 주소 정보를 얻기 위한 userInfoResDto: {}", userInfoResDto);
 
-        // shopId를 얻기 위해 delivery-service에 요청
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
         // shopId로 shop 정보 얻기
         AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
