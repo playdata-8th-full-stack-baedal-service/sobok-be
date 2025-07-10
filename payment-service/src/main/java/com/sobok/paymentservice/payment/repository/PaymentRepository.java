@@ -19,7 +19,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p WHERE p.orderId = :orderId AND p.orderState = :state")
     Optional<Payment> getPendingPaymentByOrderId(@Param("orderId") String orderId, @Param("state") OrderState orderState);
 
-    @Query("SELECT p FROM Payment p WHERE p.id IN :ids ORDER BY p.createdAt DESC")
-    List<Payment> findAllByIdInOrderByCreatedAtDesc(@Param("ids") List<Long> ids);
+    Page<Payment> findByIdIn(List<Long> ids, Pageable pageable);
+
+    Page<Payment> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
 }

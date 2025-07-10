@@ -10,7 +10,6 @@ import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
-import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
 import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.*;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
@@ -25,7 +24,9 @@ import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -243,7 +244,9 @@ public class PaymentService {
         log.info("주문한 요리 정보 cookDetails : {}", cookDetails);
 
         //결제 정보 가져오기
-        List<Payment> payments = paymentRepository.findAllByIdInOrderByCreatedAtDesc(paymentIdList);
+        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue(), Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Payment> pagedPayments = paymentRepository.findByIdIn(paymentIdList, pageable);
+        List<Payment> payments = pagedPayments.getContent();
         log.info("찾아온 payment: {}", payments);
 
         // 근데 여러개의 cart_cook이 하나의 paymentId를 가질 수 있음
