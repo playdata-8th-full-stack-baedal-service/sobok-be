@@ -18,4 +18,5 @@ public class PaymentItemResDto {
     private int quantity;
     private List<IngredientResDto> baseIngredients;       // 기본 식재료
     private List<IngredientResDto> additionalIngredients;  // 추가 식재료
+    private Long paymentId;
 }

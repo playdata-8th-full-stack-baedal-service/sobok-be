@@ -158,7 +158,7 @@ public class CartService {
     }
 
     // 장바구니 조회용
-    public PaymentResDto getCart(TokenUserInfo userInfo) {
+    public PaymentResDto getCart(TokenUserInfo userInfo, String status) {
         Long authId = userInfo.getId();
 
         // 유저 검증
@@ -167,7 +167,16 @@ public class CartService {
             throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
 
-        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
+        List<CartCook> cartCookList = List.of();
+
+        if ("cart".equals(status)) {
+            cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
+        } else if ("ordered".equals(status)) {
+            cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNotNull(userInfo.getUserId());
+        }
+
+        log.info("주문된 카트 목록 cartCookList : {}", cartCookList);
+
 
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
@@ -200,6 +209,7 @@ public class CartService {
                     .quantity(cartCook.getCount())
                     .baseIngredients(baseIngredients) // 기본 식재료
                     .additionalIngredients(additionalDtos) // 추가 식재료
+                    .paymentId(cartCook.getPaymentId())
                     .build();
         }).toList();
 

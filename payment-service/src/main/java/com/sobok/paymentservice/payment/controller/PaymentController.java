@@ -5,6 +5,7 @@ import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.response.PaymentDetailResDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
 import com.sobok.paymentservice.payment.service.CartService;
 import com.sobok.paymentservice.payment.service.PaymentService;
@@ -44,7 +45,7 @@ public class PaymentController {
      */
     @GetMapping("/get-cart")
     public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        PaymentResDto resDto = cartService.getCart(userInfo);
+        PaymentResDto resDto = cartService.getCart(userInfo,"cart");
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 
@@ -76,7 +77,7 @@ public class PaymentController {
      */
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> getPaymentDetail(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable("id") Long paymentId) {
-        paymentService.getPaymentDetail(userInfo, paymentId);
-        return ResponseEntity.ok().body(ApiResponse.ok(paymentId, "주문 상세 내역이 조회되었습니다."));
+        PaymentDetailResDto paymentDetail = paymentService.getPaymentDetail(userInfo, paymentId);
+        return ResponseEntity.ok().body(ApiResponse.ok(paymentDetail, "주문 상세 내역이 조회되었습니다."));
     }
 }
