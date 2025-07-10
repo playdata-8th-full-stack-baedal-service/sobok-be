@@ -56,7 +56,7 @@ public class CookService {
                 .name(dto.getName())
                 .allergy(dto.getAllergy())
                 .recipe(dto.getRecipe())
-                .category(dto.getCategory())
+                .category(CookCategory.valueOf(dto.getCategory().toUpperCase()))
                 .thumbnail(dto.getThumbnailUrl())
                 .build();
 

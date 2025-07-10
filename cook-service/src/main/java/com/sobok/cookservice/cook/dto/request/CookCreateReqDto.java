@@ -26,7 +26,7 @@ public class CookCreateReqDto {
     private String recipe;
 
     @NotNull(message = "카테고리는 필수입니다.")
-    private CookCategory category;
+    private String category;
 
     @NotBlank(message = "썸네일 URL은 필수입니다.")
     private String thumbnailUrl;
