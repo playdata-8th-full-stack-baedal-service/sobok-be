@@ -10,6 +10,7 @@ import com.sobok.adminservice.common.dto.ApiResponse;
 import com.sobok.adminservice.common.dto.TokenUserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -73,8 +74,10 @@ public class AdminController {
      * 관리자 전용 사용자 주문 전체 조회
      */
     @GetMapping("/orders")
-    public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        List<AdminPaymentResponseDto> result = adminService.getAllPayments(userInfo);
+    public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
+                                          @RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size) {
+        Page<AdminPaymentResponseDto> result = adminService.getAllPayments(userInfo, page, size);
         return ResponseEntity.ok(ApiResponse.ok(result, "전체 주문 조회 성공"));
     }
 

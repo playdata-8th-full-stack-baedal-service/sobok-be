@@ -111,5 +111,22 @@ public class UserController {
 
     // TODO : 사진 추가 변경 가능해야 함.
 
+    /**
+     * user 닉네임 중복 확인
+     */
+    @GetMapping("/check-nickname")
+    public ResponseEntity<?> checkNickname(@RequestParam String nickname) {
+        userService.checkNickname(nickname);
+        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 닉네임입니다."));
+    }
+
+    /**
+     * email 중복 확인
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        userService.checkEmail(email);
+        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 이메일입니다."));
+    }
 
 }

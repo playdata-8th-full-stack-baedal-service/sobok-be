@@ -16,13 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.sobok.cookservice.cook.service.CookService;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -85,4 +81,9 @@ public class CookFeignController {
     }
 
 
+    //주문 내역 조회용
+    @GetMapping("/cooks")
+    List<CookDetailResDto> getCookDetails(@RequestParam("id") List<Long> cookIds){
+        return cookService.getCookDetailList(cookIds);
+    }
 }

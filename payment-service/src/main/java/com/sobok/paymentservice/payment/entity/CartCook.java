@@ -10,6 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 @AllArgsConstructor
 @Table(name = "cart_cook")
 @Builder
+@ToString
 public class CartCook {
 
     @Id

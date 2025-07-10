@@ -7,6 +7,7 @@ import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
+import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
@@ -147,6 +148,21 @@ public class DeliveryService {
                 .build();
     }
 
+    /**
+     * 라이더 면허번호 중복 체크
+     */
+    public void checkPermission(String permission) {
+        if (riderRepository.existsByPermissionNumber(permission)) {
+            throw new CustomException("사용할 수 없는 면허번호 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 
 
+    public DeliveryResDto getDelivery(Long paymentId) {
+        Optional<Delivery> delivery = deliveryRepository.findByPaymentId(paymentId);
+        return DeliveryResDto.builder()
+                .shopId(delivery.get().getShopId())
+                .completeTime(delivery.get().getCompleteTime())
+                .build();
+    }
 }

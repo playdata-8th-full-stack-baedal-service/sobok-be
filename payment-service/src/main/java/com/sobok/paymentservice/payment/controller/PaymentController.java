@@ -4,15 +4,19 @@ import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
+import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.response.PaymentDetailResDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
 import com.sobok.paymentservice.payment.service.CartService;
-import com.sobok.paymentservice.payment.service.payment.PaymentService;
+import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/payment")
@@ -42,7 +46,7 @@ public class PaymentController {
      */
     @GetMapping("/get-cart")
     public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        PaymentResDto resDto = cartService.getCart(userInfo);
+        PaymentResDto resDto = cartService.getCart(userInfo,"cart");
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 
@@ -74,5 +78,23 @@ public class PaymentController {
     @DeleteMapping("/delete-payment")
     public void deletePayment(@RequestParam String orderId) {
         paymentService.cancelPayment(orderId);
+    }
+    /**
+     * 사용자 주문 전체 조회
+     */
+    @GetMapping("/get-myPayment")
+    public ResponseEntity<?> getPayment(@AuthenticationPrincipal TokenUserInfo userInfo,
+                                        @RequestParam Long pageNo, @RequestParam Long numOfRows) {
+        List<GetPaymentResDto> getPaymentResDtos = paymentService.getPayment(userInfo, pageNo, numOfRows);
+        return ResponseEntity.ok().body(ApiResponse.ok(getPaymentResDtos,"사용자의 주문 내역이 조회되었습니다."));
+    }
+
+    /**
+     * 사용자 주문 세부 조회
+     */
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<?> getPaymentDetail(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable("id") Long paymentId) {
+        PaymentDetailResDto paymentDetail = paymentService.getPaymentDetail(userInfo, paymentId);
+        return ResponseEntity.ok().body(ApiResponse.ok(paymentDetail, "주문 상세 내역이 조회되었습니다."));
     }
 }

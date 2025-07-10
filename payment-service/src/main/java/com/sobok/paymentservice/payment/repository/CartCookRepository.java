@@ -13,10 +13,12 @@ import java.util.List;
 public interface CartCookRepository extends JpaRepository<CartCook, Long> {
 
     List<CartCook> findByUserIdAndPaymentIdIsNull(Long userId);
+    List<CartCook> findByUserIdAndPaymentIdIsNotNull(Long userId);
 
     @Query("SELECT c FROM CartCook c WHERE c.id = :id AND c.paymentId IS NULL")
     Optional<CartCook> findUnpaidCartById(@Param("id") Long id);
 
     List<CartCook> findByPaymentId(Long paymentId);
 
+    List<CartCook> findByUserId(Long userId);
 }

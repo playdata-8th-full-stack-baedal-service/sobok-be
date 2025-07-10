@@ -32,7 +32,8 @@ public class SecurityConfig {
                 // 허용 URI 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/actuator/**", "/auth/check-shopName", "/auth/check-shopAddress"
+                                "/actuator/**", "/auth/check-shopName", "/auth/check-shopAddress",
+                                "/shop/check-shopName", "/shop/check-shopAddress"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

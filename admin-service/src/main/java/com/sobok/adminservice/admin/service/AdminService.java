@@ -9,6 +9,9 @@ import com.sobok.adminservice.common.dto.TokenUserInfo;
 import com.sobok.adminservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -57,16 +60,20 @@ public class AdminService {
     /**
      * 관리자 전용 사용자 주문 전체 조회
      */
-    public List<AdminPaymentResponseDto> getAllPayments(TokenUserInfo userInfo) {
+    public Page<AdminPaymentResponseDto> getAllPayments(TokenUserInfo userInfo, int page, int size) {
         if (!userInfo.getRole().equals("ADMIN")) {
             throw new CustomException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
-        List<AdminPaymentResDto> payments = adminPaymentClient.getAllPayments().getData();
+        // payment-service 로부터 PagedResponse<AdminPaymentResDto> 응답 받음
+        ApiResponse<PagedResponse<AdminPaymentResDto>> response = adminPaymentClient.getAllPayments(page, size);
+        PagedResponse<AdminPaymentResDto> payments = response.getData();
 
-        return payments.stream().map(payment -> {
+        // 각 결제에 필요한 정보 조합
+        List<AdminPaymentResponseDto> result = payments.getContent().stream().map(payment -> {
             // 유저 정보
             UserInfoResDto userInfoResDto = userFeignClient.getUserInfo(payment.getUserAddressId());
+
             // 라이더 정보
             RiderPaymentInfoResDto rider = adminRiderClient.getRiderName(payment.getId());
 
@@ -102,6 +109,9 @@ public class AdminService {
                     .loginId(loginId)
                     .build();
         }).toList();
+
+        // Page 객체로 감싸서 보냄
+        return new PageImpl<>(result, PageRequest.of(page, size), payments.getTotalElements());
     }
 
     /**

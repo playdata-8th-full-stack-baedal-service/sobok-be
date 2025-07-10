@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -201,6 +201,29 @@ public class CookService {
         return collect;
     }
 
+    //주문 내역 조회용
+    public List<CookDetailResDto> getCookDetailList(List<Long> cookIds) {
+        log.info("cookIds: " + cookIds);
+
+        // 요리 있는지부터 검증 없으면 예외
+        List<Cook> cooksList = new ArrayList<>();
+
+        for (Long id : cookIds) {
+            Cook cook = cookRepository.findById(id)
+                    .orElseThrow(() -> new CustomException("ID " + id + "에 해당하는 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+            cooksList.add(cook);
+        }
+
+        log.info("cooksList: " + cooksList);
+
+        return cooksList.stream()
+                .map(cook -> CookDetailResDto.builder()
+                        .cookId(cook.getId())
+                        .name(cook.getName())
+                        .thumbnail(cook.getThumbnail())
+                        .build())
+                .toList();
+    }
     /**
      * 요리이름 조회용 (주문 전체 조회)
      */
