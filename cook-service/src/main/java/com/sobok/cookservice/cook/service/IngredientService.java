@@ -57,13 +57,13 @@ public class IngredientService {
     /**
      * 통합 재료 검색
      */
-    public List<IngreResDto> ingreSearch(KeywordSearchReqDto keywordSearchReqDto) {
+    public List<IngreResDto> ingreSearch(String keyword) {
 
         BooleanBuilder builder = new BooleanBuilder();
 
         //재료 이름에 키워드가 포함된 것만 가져오기
-        if (keywordSearchReqDto.getKeyword() != null) {
-            builder.and(ingredient.ingreName.contains(keywordSearchReqDto.getKeyword()));
+        if (keyword != null) {
+            builder.and(ingredient.ingreName.contains(keyword));
         }
 
         //이름순 정렬 후 IngreResDto로 리턴
