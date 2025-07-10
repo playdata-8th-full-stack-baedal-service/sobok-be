@@ -5,10 +5,13 @@ import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
+import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
+
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
-import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
+import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.*;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
@@ -21,6 +24,8 @@ import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,8 +156,10 @@ public class PaymentService {
     /**
      * 주문 전체 조회 (결제)
      */
-    public List<AdminPaymentResDto> getAllPaymentsForAdmin() {
-        return paymentRepository.findAll().stream()
+    public PagedResponse<AdminPaymentResDto> getAllPaymentsForAdmin(Pageable pageable) {
+        Page<Payment> payments = paymentRepository.findAllByOrderByCreatedAtDesc(pageable);
+
+        List<AdminPaymentResDto> content = payments.getContent().stream()
                 .map(payment -> AdminPaymentResDto.builder()
                         .id(payment.getId())
                         .orderId(payment.getOrderId())
@@ -163,6 +170,16 @@ public class PaymentService {
                         .userAddressId(payment.getUserAddressId())
                         .build())
                 .toList();
+
+        return PagedResponse.<AdminPaymentResDto>builder()
+                .content(content)
+                .page(payments.getNumber())
+                .size(payments.getSize())
+                .totalPages(payments.getTotalPages())
+                .totalElements(payments.getTotalElements())
+                .first(payments.isFirst())
+                .last(payments.isLast())
+                .build();
     }
 
     /**
