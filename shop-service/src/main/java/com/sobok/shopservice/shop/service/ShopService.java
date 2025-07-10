@@ -1,7 +1,10 @@
 package com.sobok.shopservice.shop.service;
 
 
+import com.sobok.shopservice.common.dto.TokenUserInfo;
 import com.sobok.shopservice.common.exception.CustomException;
+import com.sobok.shopservice.shop.client.DeliveryFeignClient;
+import com.sobok.shopservice.shop.client.PaymentFeignClient;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
@@ -25,6 +28,8 @@ public class ShopService {
 
     private final ShopRepository shopRepository;
     private final ConvertAddressService convertAddressService;
+    private final DeliveryFeignClient deliveryClient;
+    private final PaymentFeignClient paymentFeignClient;
 
 
     public AuthShopResDto createShop(ShopSignupReqDto shopSignupReqDto) {
@@ -157,5 +162,13 @@ public class ShopService {
         if (shopRepository.existsByRoadFull(shopAddress)) {
             throw new CustomException("중복된 가게 주소 입니다.", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    public List<ShopPaymentResDto> getAllOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+        // delivery-service 가서 shopId로 paymentId 가져와
+        // 응답: 주문 번호, 주문 시간, 주문 상태
+        List<Long> paymentIdList = deliveryClient.getPaymentId(userInfo.getShopId());
+        log.info("들어온 결제 아이디 목록: {}", paymentIdList);
+        return paymentFeignClient.getPayment(paymentIdList);
     }
 }

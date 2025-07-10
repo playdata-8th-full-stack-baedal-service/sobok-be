@@ -16,6 +16,7 @@ import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.shop.AdminShopResDto;
+import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.Payment;
@@ -356,5 +357,17 @@ public class PaymentService {
                 .items(items)
                 .build();
 
+    }
+
+    public List<ShopPaymentResDto> getPaymentList(List<Long> ids) {
+        List<Payment> paymentList = paymentRepository.findAllById(ids);
+        return paymentList.stream()
+                .map(payment -> ShopPaymentResDto.builder()
+                        .paymentId(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .orderState(payment.getOrderState())
+                        .createdAt(payment.getCreatedAt())
+                        .build())
+                .toList();
     }
 }
