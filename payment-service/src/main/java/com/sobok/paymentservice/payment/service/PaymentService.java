@@ -16,7 +16,6 @@ import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.shop.AdminShopResDto;
 import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
-import com.sobok.paymentservice.payment.entity.CartIngredient;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
@@ -26,7 +25,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -275,7 +273,7 @@ public class PaymentService {
         return paymentDtos;
     }
 
-    public void getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
+    public PaymentDetailResDto getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
         //유저 검증
         Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
         if (!Boolean.TRUE.equals(matched)) {
@@ -302,7 +300,10 @@ public class PaymentService {
         );
 
         PaymentResDto paymentResDto = cartService.getCart(userInfo, "ordered");
-        log.info("카트 서비스에서 조회해온 paymentResDto: {}", paymentResDto);
+        List<PaymentItemResDto> items = paymentResDto.getItems().stream()
+                .filter(item -> item.getPaymentId().equals(paymentId))
+                .toList();
+        log.info("items: {}", items);
 
         // 배송지
         UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
@@ -314,10 +315,26 @@ public class PaymentService {
         // shopId로 shop 정보 얻기
         AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
 
+
         // payment: 주문 번호, 일자, 배송 상태, 결제 수단 및 총금액, 주소(id), 라이더 요청사항
         // cook: 포함된 모든 요리 정보, 추가 식재료,
         // 배송지 -> user_address_id 가지고 user-service로 가서 road_full과 addr_detail 가져와야함.
         // shop 정보: 이름, 주소
+        return PaymentDetailResDto.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .orderState(payment.getOrderState())
+                .totalPrice(payment.getTotalPrice())
+                .createdAt(payment.getCreatedAt())
+                .payMethod(payment.getPayMethod())
+                .riderRequest(payment.getRiderRequest())
+                .roadFull(userInfoResDto.getRoadFull())
+                .addrDetail(userInfoResDto.getAddress())
+                .shopName(shopInfo.getShopName())
+                .shopAddress(shopInfo.getShopAddress())
+                .completeTime(delivery.getCompleteTime())
+                .items(items)
+                .build();
 
     }
 }

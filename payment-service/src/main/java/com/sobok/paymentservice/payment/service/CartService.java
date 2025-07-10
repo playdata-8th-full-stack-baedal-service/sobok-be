@@ -209,6 +209,7 @@ public class CartService {
                     .quantity(cartCook.getCount())
                     .baseIngredients(baseIngredients) // 기본 식재료
                     .additionalIngredients(additionalDtos) // 추가 식재료
+                    .paymentId(cartCook.getPaymentId())
                     .build();
         }).toList();
 

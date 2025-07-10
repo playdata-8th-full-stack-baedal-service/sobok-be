@@ -2,8 +2,7 @@ package com.sobok.paymentservice.payment.dto.shop;
 
 import lombok.*;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
