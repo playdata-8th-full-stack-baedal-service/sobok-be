@@ -43,13 +43,23 @@ public class ShopController {
     }
 
     /**
-     * 가게에 들어온 전체 주문 조회
+     * 가게에 들어온 전체 주문 조회 (최신순)
      */
     @GetMapping("/all-order")
     public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
                                           @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<ShopPaymentResDto> allOrders = shopService.getAllOrders(userInfo, pageNo, numOfRows);
         return ResponseEntity.ok(ApiResponse.ok(allOrders, "들어온 모든 주문 목록을 조회하였습니다."));
+    }
+
+    /**
+     * 가게에 들어온 주문을 주문 상태에 따라 필터링 조회 (최신순)
+     */
+    @GetMapping("/filtering-order")
+    public ResponseEntity<?> getFilterOrders(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String orderState,
+                                          @RequestParam Long pageNo, @RequestParam Long numOfRows) {
+        List<ShopPaymentResDto> allOrders = shopService.getFilteringOrders(userInfo, orderState, pageNo, numOfRows);
+        return ResponseEntity.ok(ApiResponse.ok(allOrders, "주문 목록을 상태별로 조회하였습니다."));
     }
 
 }

@@ -2,6 +2,7 @@ package com.sobok.shopservice.shop.service;
 
 
 import com.sobok.shopservice.common.dto.TokenUserInfo;
+import com.sobok.shopservice.common.enums.OrderState;
 import com.sobok.shopservice.common.exception.CustomException;
 import com.sobok.shopservice.shop.client.DeliveryFeignClient;
 import com.sobok.shopservice.shop.client.PaymentFeignClient;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,11 +166,49 @@ public class ShopService {
         }
     }
 
+    /**
+     * 가게에 들어온 전체 주문 조회
+     */
     public List<ShopPaymentResDto> getAllOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
         // delivery-service 가서 shopId로 paymentId 가져와
         // 응답: 주문 번호, 주문 시간, 주문 상태
-        List<Long> paymentIdList = deliveryClient.getPaymentId(userInfo.getShopId());
-        log.info("들어온 결제 아이디 목록: {}", paymentIdList);
-        return paymentFeignClient.getPayment(paymentIdList);
+        return filterOrders(userInfo.getShopId(), "", pageNo, numOfRows);
+    }
+
+    public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState, Long pageNo, Long numOfRows) {
+        List<Long> paymentIdList = deliveryClient.getPaymentId(shopId);
+        log.info("들어온 결제 번호 목록: {}", paymentIdList);
+        List<ShopPaymentResDto> allOrders = paymentFeignClient.getPayment(paymentIdList);
+
+        OrderState filterState = null;
+        if (orderState != null && !orderState.isBlank()) {
+            try {
+                filterState = OrderState.valueOf(orderState);
+            } catch (IllegalArgumentException e) {
+                throw new CustomException("잘못된 주문 상태 값입니다.", HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        // orderState로 필터링 + 최신순 정렬 + 페이징 처리
+        Long offset = (pageNo - 1) * numOfRows;
+
+        OrderState finalFilterState = filterState;
+        List<ShopPaymentResDto> result = allOrders.stream()
+                .filter(order -> finalFilterState == null || order.getOrderState() == finalFilterState)
+                .sorted(Comparator.comparing(ShopPaymentResDto::getCreatedAt).reversed())
+                .skip(offset)
+                .limit(numOfRows)
+                .toList();
+
+        log.info("result: {}", result);
+
+        return result;
+    }
+
+    /**
+     * 가게에 들어온 주문을 주문 상태에 따라 필터링 조회 (최신순)
+     */
+    public List<ShopPaymentResDto> getFilteringOrders(TokenUserInfo userInfo, String orderState, Long pageNo, Long numOfRows) {
+        return filterOrders(userInfo.getShopId(), orderState, pageNo, numOfRows);
     }
 }
