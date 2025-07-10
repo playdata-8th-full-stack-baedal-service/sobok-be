@@ -139,7 +139,7 @@ public class CartService {
         cartCookRepository.save(cartCook);
 
 
-        startPay(userInfo,reqDto);
+        startPay(userInfo, reqDto);
 
 
         return cartCook.getId();
@@ -167,7 +167,7 @@ public class CartService {
         // 요리 삭제
         cartCookRepository.delete(cartCook);
 
-        startPay(userInfo,reqDto);
+        startPay(userInfo, reqDto);
 
         return cartCook.getId();
     }
@@ -175,23 +175,20 @@ public class CartService {
     // 장바구니 조회용
     public PaymentResDto getCart(TokenUserInfo userInfo, String status) {
         Long authId = userInfo.getId();
-
-        // 유저 검증
-        Boolean matched = userServiceClient.verifyUser(authId, userInfo.getUserId());
-        if (!Boolean.TRUE.equals(matched)) {
-            throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
-        }
-
-        List<CartCook> cartCookList = List.of();
+        List<CartCook> cartCookList;
 
         if ("cart".equals(status)) {
+            // 유저 검증
+            Boolean matched = userServiceClient.verifyUser(authId, userInfo.getUserId());
+            if (!Boolean.TRUE.equals(matched)) {
+                throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
+            }
             cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
-        } else if ("ordered".equals(status)) {
-            cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNotNull(userInfo.getUserId());
+        } else {
+            cartCookList = cartCookRepository.findByPaymentId(Long.parseLong(status));
         }
 
         log.info("주문된 카트 목록 cartCookList : {}", cartCookList);
-
 
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
