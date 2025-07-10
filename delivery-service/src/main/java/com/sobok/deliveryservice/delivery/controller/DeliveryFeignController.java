@@ -6,6 +6,7 @@ import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
+import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
 import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
@@ -91,5 +92,12 @@ public class DeliveryFeignController {
         return ResponseEntity.ok(delivery.getShopId());
     }
 
+    /**
+     * 주문 상세 조회에서 사용되는 paymentId로 배달 정보 조회
+     */
+    @GetMapping("/getDelivery")
+    DeliveryResDto getDelivery(@RequestParam Long paymentId) {
+        return deliveryService.getDelivery(paymentId);
+    }
 
 }

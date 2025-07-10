@@ -7,6 +7,7 @@ import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
+import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
@@ -148,5 +149,11 @@ public class DeliveryService {
     }
 
 
-
+    public DeliveryResDto getDelivery(Long paymentId) {
+        Optional<Delivery> delivery = deliveryRepository.findByPaymentId(paymentId);
+        return DeliveryResDto.builder()
+                .shopId(delivery.get().getShopId())
+                .completeTime(delivery.get().getCompleteTime())
+                .build();
+    }
 }

@@ -1,6 +1,7 @@
 package com.sobok.paymentservice.payment.client;
 
 import com.sobok.paymentservice.common.config.FeignConfig;
+import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,4 +13,10 @@ public interface UserServiceClient {
     @GetMapping("/api/verify-user")
     Boolean verifyUser(@RequestParam Long authId,
                        @RequestParam Long userId);
+
+    /**
+     * 유저 정보 조회
+     */
+    @GetMapping("/api/admin/user-info")
+    UserInfoResDto getUserInfo(@RequestParam("userAddressId") Long userAddressId);
 }
