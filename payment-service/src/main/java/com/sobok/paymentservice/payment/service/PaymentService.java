@@ -207,9 +207,6 @@ public class PaymentService {
             throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
 
-        long offset = (pageNo - 1) * numOfRows;
-
-
         //일단 userId로 cart_cook에서 조회
         List<CartCook> cartCookList = cartCookRepository.findByUserId((userInfo.getUserId()));
         log.info("userId로 찾아온 cartCookList : {}", cartCookList);
@@ -226,7 +223,7 @@ public class PaymentService {
         log.info("주문한 요리 정보 cookDetails : {}", cookDetails);
 
         //결제 정보 가져오기
-        List<Payment> payments = paymentRepository.findAllById(paymentIdList);
+        List<Payment> payments = paymentRepository.findAllByIdInOrderByCreatedAtDesc(paymentIdList);
         log.info("찾아온 payment: {}", payments);
 
         // 근데 여러개의 cart_cook이 하나의 paymentId를 가질 수 있음
