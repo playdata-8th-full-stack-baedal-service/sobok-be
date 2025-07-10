@@ -401,4 +401,22 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 주소에 연결된 유저를 찾을 수 없습니다."));
     }
 
+    /**
+     * nickname 중복 체크
+     */
+    public void checkNickname(String nickname) {
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CustomException("이미 사용 중인 닉네임입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * email 중복 체크
+     */
+    public void checkEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new CustomException("이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
