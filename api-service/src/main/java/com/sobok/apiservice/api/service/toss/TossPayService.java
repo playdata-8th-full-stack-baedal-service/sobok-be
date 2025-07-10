@@ -1,10 +1,8 @@
 package com.sobok.apiservice.api.service.toss;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sobok.apiservice.api.client.PaymentFeignClient;
 import com.sobok.apiservice.api.dto.toss.TossCancelReqDto;
-import com.sobok.apiservice.api.dto.toss.TossErrorDto;
 import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.common.exception.CustomException;
@@ -16,7 +14,6 @@ import org.apache.tomcat.util.json.JSONParser;
 import org.apache.tomcat.util.json.ParseException;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -25,10 +22,7 @@ import org.springframework.web.client.RestClient;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -88,11 +82,11 @@ public class TossPayService {
         } catch (FeignException e) {
             // paymentKey를 사용한 결제 취소
             cancelPayment(resDto.getPaymentKey(), "서비스 내부 주문 등록 오류");
-
+            paymentFeignClient.cancelPayment(reqDto.getOrderId());
             log.error("결제 정보를 등록하는 과정에서 오류가 발생함. | orderId = {}", reqDto.getOrderId());
             throw new CustomException("결제 정보를 등록하는 과정에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
-            paymentFeignClient.cancelPayment(reqDto.getOrderId());
+
         }
 
         return resDto;

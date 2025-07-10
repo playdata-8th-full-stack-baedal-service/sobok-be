@@ -184,6 +184,23 @@ public class PaymentService {
     }
 
     /**
+     * 주문 전체 조회 (결제)
+     */
+    public List<AdminPaymentResDto> getAllPaymentsForAdmin() {
+        return paymentRepository.findAll().stream()
+                .map(payment -> AdminPaymentResDto.builder()
+                        .id(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .totalPrice(payment.getTotalPrice())
+                        .payMethod(payment.getPayMethod())
+                        .orderState(payment.getOrderState())
+                        .createdAt(payment.getCreatedAt())
+                        .userAddressId(payment.getUserAddressId())
+                        .build())
+                .toList();
+    }
+
+    /**
      * 결제 정보에 맞는 요리 이름 조회용
      */
     public List<Long> getCookIdsByPaymentId(Long paymentId) {
@@ -356,5 +373,19 @@ public class PaymentService {
                 .items(items)
                 .build();
 
+    }
+
+    public String resetPayment(String orderId) {
+        Payment payment = paymentRepository.getPendingPaymentByOrderId(orderId, OrderState.ORDER_PENDING).orElseThrow(
+                () -> new CustomException("해당하는 결제 정보가 없습니다.", HttpStatus.BAD_REQUEST)
+        );
+
+        List<CartCook> cartCookList = cartCookRepository.findByPaymentId(payment.getId());
+        for (CartCook cartCook : cartCookList) {
+            cartCook.detachFromPayment();
+            cartCookRepository.save(cartCook);
+        }
+
+        return orderId;
     }
 }

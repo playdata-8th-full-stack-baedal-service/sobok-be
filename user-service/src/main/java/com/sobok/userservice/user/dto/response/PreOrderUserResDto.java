@@ -17,4 +17,6 @@ public class PreOrderUserResDto {
     private String phone;
     private String email;
     private List<UserAddressDto> addresses;
+    private int totalPrice;
+    private List<Long> selectedItems;
 }
