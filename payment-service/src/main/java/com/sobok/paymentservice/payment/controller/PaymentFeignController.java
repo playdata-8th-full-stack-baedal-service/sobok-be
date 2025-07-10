@@ -2,12 +2,16 @@ package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
+import com.sobok.paymentservice.payment.dto.payment.PagedResponse;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,9 +40,11 @@ public class PaymentFeignController {
      * 관리자 전용 전체 주문 조회
      */
     @GetMapping("/admin/payments")
-    public ApiResponse<List<AdminPaymentResDto>> getAllPayments() {
-        List<AdminPaymentResDto> result = paymentService.getAllPaymentsForAdmin();
-        return ApiResponse.ok(result, "전체 주문 조회 성공");
+    public ApiResponse<PagedResponse<AdminPaymentResDto>> getAllPayments(@RequestParam(defaultValue = "0") int page,
+                                                                         @RequestParam(defaultValue = "10") int size) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")); // 최신순 정렬
+        PagedResponse<AdminPaymentResDto> result = paymentService.getAllPaymentsForAdmin(pageable);
+        return ApiResponse.ok(result, "관리자 주문 페이징 조회 성공");
     }
 
     /**
