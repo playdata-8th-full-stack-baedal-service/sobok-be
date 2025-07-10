@@ -15,4 +15,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Payment p WHERE p.orderId = :orderId AND p.orderState = :state")
     Optional<Payment> getPendingPaymentByOrderId(@Param("orderId") String orderId, @Param("state") OrderState orderState);
+
 }

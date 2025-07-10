@@ -185,4 +185,17 @@ public class PaymentService {
                 .toList();
     }
 
+    public String resetPayment(String orderId) {
+        Payment payment = paymentRepository.getPendingPaymentByOrderId(orderId, OrderState.ORDER_PENDING).orElseThrow(
+                () -> new CustomException("해당하는 결제 정보가 없습니다.", HttpStatus.BAD_REQUEST)
+        );
+
+        List<CartCook> cartCookList = cartCookRepository.findByPaymentId(payment.getId());
+        for (CartCook cartCook : cartCookList) {
+            cartCook.detachFromPayment();
+            cartCookRepository.save(cartCook);
+        }
+
+        return orderId;
+    }
 }

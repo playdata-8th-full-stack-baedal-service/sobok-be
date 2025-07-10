@@ -12,6 +12,7 @@ import java.util.List;
 @Builder
 // 장바구니 조회
 public class PaymentItemResDto {
+    private Long id;
     private Long cookId;
     private String cookName;
     private String thumbnail;

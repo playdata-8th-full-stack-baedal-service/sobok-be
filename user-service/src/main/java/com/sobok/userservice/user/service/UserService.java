@@ -1,5 +1,7 @@
 package com.sobok.userservice.user.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.client.ApiServiceClient;
@@ -7,6 +9,7 @@ import com.sobok.userservice.user.client.CookServiceClient;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
+import com.sobok.userservice.user.dto.payment.CartStartPayDto;
 import com.sobok.userservice.user.dto.request.*;
 import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
@@ -19,6 +22,7 @@ import com.sobok.userservice.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,9 @@ public class UserService {
     private final UserBookmarkRepository userBookmarkRepository;
     private final CookServiceClient cookServiceClient;
     private final ApiServiceClient apiServiceClient;
+
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     public UserResDto findByPhoneNumber(String phoneNumber) {
         Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
@@ -275,6 +282,20 @@ public class UserService {
         if (email == null) {
             email = "example@gmail.com"; // 결제할 때 필요한 메일 정보 생성
         }
+        CartStartPayDto startPayDto = null;
+
+        try {
+            // redis에서 카트 정보 가져오기
+            String json = redisTemplate.opsForValue().get("START:PAYMENT:" + userInfo.getUserId());
+            startPayDto = objectMapper.readValue(json, CartStartPayDto.class);
+        } catch (JsonProcessingException e) {
+            log.error("JSON 파싱 과정에서 오류가 발생하였습니다.");
+            throw new CustomException("JSON 파싱 과정에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (startPayDto == null || startPayDto.getSelectedItems().isEmpty() || startPayDto.getTotalPrice() == 0) {
+            throw new CustomException("사용자의 카트 정보가 유효하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
 
         return PreOrderUserResDto.builder()
                 .userId(user.getId())
@@ -282,6 +303,8 @@ public class UserService {
                 .phone(user.getPhone())
                 .addresses(userAddress)
                 .email(email)
+                .totalPrice(startPayDto.getTotalPrice())
+                .selectedItems(startPayDto.getSelectedItems())
                 .build();
     }
 

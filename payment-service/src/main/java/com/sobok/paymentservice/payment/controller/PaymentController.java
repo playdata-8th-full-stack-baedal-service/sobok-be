@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.controller;
 import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
+import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
 import com.sobok.paymentservice.payment.service.CartService;
@@ -46,16 +47,32 @@ public class PaymentController {
     }
 
     @PatchMapping("/cart-count-edit")
-    public ResponseEntity<?> editCount(@RequestParam Long id, @RequestParam Integer count) {
+    public ResponseEntity<?> editCount(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id, @RequestParam Integer count, @RequestBody CartStartPayDto reqDto) {
         // cartCookId
-        Long cartCookId = cartService.editCartCookCount(id, count);
+        Long cartCookId = cartService.editCartCookCount(userInfo, id, count, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니 수량이 성공적으로 변경되었습니다."));
     }
 
     @DeleteMapping("/delete-cart/{id}")
-    public ResponseEntity<?> deleteCartCook(@PathVariable Long id) {
-        Long cartCookId = cartService.deleteCart(id);
+    public ResponseEntity<?> deleteCartCook(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable Long id, @RequestBody CartStartPayDto reqDto) {
+        Long cartCookId = cartService.deleteCart(userInfo, id, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니의 상품이 성공적으로 삭제되었습니다."));
     }
 
+    @PostMapping("/start-pay")
+    public ResponseEntity<?> startPay(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody CartStartPayDto reqDto) {
+        cartService.startPay(userInfo, reqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getUserId(),"성공적으로 장바구니의 정보가 저장되었습니다."));
+    }
+
+    @DeleteMapping("/fail-payment")
+    public ResponseEntity<?> cancelPayment(@RequestParam String orderId) {
+        String result = paymentService.resetPayment(orderId);
+        return ResponseEntity.ok().body(ApiResponse.ok(result,"성공적으로 결제가 취소되었습니다."));
+    }
+
+    @DeleteMapping("/delete-payment")
+    public void deletePayment(@RequestParam String orderId) {
+        paymentService.cancelPayment(orderId);
+    }
 }
