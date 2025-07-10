@@ -33,7 +33,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/actuator/**", "/user/findByPhoneNumber", "/auth/findLoginId",
-                                "/auth/check-nickname", "/auth/check-email", "/error"
+                                "/auth/check-nickname", "/auth/check-email", "/error",
+                                "/user/check-nickname","/user/check-email"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

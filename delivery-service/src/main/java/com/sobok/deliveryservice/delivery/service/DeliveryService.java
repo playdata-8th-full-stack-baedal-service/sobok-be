@@ -147,6 +147,13 @@ public class DeliveryService {
                 .build();
     }
 
-
+    /**
+     * 라이더 면허번호 중복 체크
+     */
+    public void checkPermission(String permission) {
+        if (riderRepository.existsByPermissionNumber(permission)) {
+            throw new CustomException("사용할 수 없는 면허번호 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 
 }

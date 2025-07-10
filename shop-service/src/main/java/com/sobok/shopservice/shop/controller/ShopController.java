@@ -8,10 +8,7 @@ import com.sobok.shopservice.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/shop")
@@ -19,7 +16,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ShopController {
 
+    private final ShopService shopService;
+    /**
+     * 가게 이름 중복 확인
+     */
+    @GetMapping("/check-shopName")
+    public ResponseEntity<?> checkShopName(@RequestParam String shopName) {
+        shopService.checkShopName(shopName);
+        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 지점명 입니다."));
+    }
 
-
+    /**
+     * 가게 주소 중복 확인
+     */
+    @GetMapping("/check-shopAddress")
+    public ResponseEntity<?> checkShopAddress(@RequestParam String shopAddress) {
+        shopService.checkShopAddress(shopAddress);
+        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 주소 입니다."));
+    }
 
 }

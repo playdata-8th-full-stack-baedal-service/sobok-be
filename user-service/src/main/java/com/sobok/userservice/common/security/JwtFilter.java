@@ -38,7 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     List<String> whiteList = List.of(
             "/actuator/**", "/user/findByPhoneNumber", "/auth/findLoginId", "/auth/check-nickname",
-            "/auth/check-email", "/error"
+            "/auth/check-email", "/error","/user/check-nickname","/user/check-email"
     );
 
     @Override

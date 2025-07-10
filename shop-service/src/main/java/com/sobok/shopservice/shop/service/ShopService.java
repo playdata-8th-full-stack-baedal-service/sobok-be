@@ -140,4 +140,22 @@ public class ShopService {
                 .shopPhone(shop.getPhone())
                 .build();
     }
+
+    /**
+     * 가게 이름 중복 체크
+     */
+    public void checkShopName(String shopName) {
+        if (shopRepository.existsByShopName(shopName)) {
+            throw new CustomException("이미 등록된 지점명 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * 가게 주소 중복 체크
+     */
+    public void checkShopAddress(String shopAddress) {
+        if (shopRepository.existsByRoadFull(shopAddress)) {
+            throw new CustomException("중복된 가게 주소 입니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
 }
