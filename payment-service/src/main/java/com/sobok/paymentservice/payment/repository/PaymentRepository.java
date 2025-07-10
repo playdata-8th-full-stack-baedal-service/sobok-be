@@ -23,4 +23,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Page<Payment> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
+
 }
