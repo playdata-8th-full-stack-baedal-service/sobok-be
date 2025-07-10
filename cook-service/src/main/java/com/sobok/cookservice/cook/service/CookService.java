@@ -1,16 +1,14 @@
 package com.sobok.cookservice.cook.service;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.*;
-import com.sobok.cookservice.cook.entity.Combination;
-import com.sobok.cookservice.cook.entity.Cook;
-import com.sobok.cookservice.cook.entity.Ingredient;
-import com.sobok.cookservice.cook.entity.QCook;
+import com.sobok.cookservice.cook.entity.*;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
@@ -19,11 +17,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.sobok.cookservice.cook.entity.QCombination.*;
 import static com.sobok.cookservice.cook.entity.QCook.cook;
+import static com.sobok.cookservice.cook.entity.QIngredient.*;
 
 @Service
 @Slf4j
@@ -224,6 +225,7 @@ public class CookService {
                         .build())
                 .toList();
     }
+
     /**
      * 요리이름 조회용 (주문 전체 조회)
      */
@@ -242,4 +244,60 @@ public class CookService {
         return cook.getName();
     }
 
+    public CookIndividualResDto getCookById(Long cookId) {
+        log.info("요리 단건 조회 시작 | cookId: " + cookId);
+
+        List<Tuple> tuple = factory.select(
+                        cook.id,
+                        cook.name,
+                        cook.allergy,
+                        cook.category,
+                        cook.recipe,
+                        cook.thumbnail,
+                        ingredient.id,
+                        ingredient.ingreName,
+                        ingredient.price,
+                        ingredient.unit,
+                        combination.unitQuantity
+                )
+                .from(cook)
+                .where(cook.id.eq(cookId))
+                .join(combination)
+                .on(combination.cookId.eq(cook.id))
+                .join(ingredient)
+                .on(ingredient.id.eq(combination.ingreId))
+                .fetch();
+
+        if (tuple.isEmpty()) {
+            log.error("일치하는 요리가 존재하지 않습니다.");
+            throw new CustomException("일치하는 요리가 존재하지 않습니다.",  HttpStatus.NOT_FOUND);
+        }
+
+        // 공통 Cook 정보는 첫 줄에서만 꺼내면 됨
+        Tuple first = tuple.get(0);
+
+        CookIndividualResDto.CookIndividualResDtoBuilder builder = CookIndividualResDto.builder()
+                .cookId(first.get(cook.id))
+                .cookName(first.get(cook.name))
+                .allergy(first.get(cook.allergy))
+                .category(first.get(cook.category).toString())
+                .recipe(first.get(cook.recipe))
+                .thumbnail(first.get(cook.thumbnail));
+
+        List<CookIndividualResDto.IngredientAll> ingredientList = tuple.stream()
+                .map(t -> CookIndividualResDto.IngredientAll.builder()
+                        .ingredientId(t.get(ingredient.id))
+                        .ingredientName(t.get(ingredient.ingreName))
+                        .price(Integer.parseInt(t.get(ingredient.price)))
+                        .unit(Integer.parseInt(t.get(ingredient.unit)))
+                        .unitQuantity(t.get(combination.unitQuantity))
+                        .build())
+                .collect(Collectors.toList());
+
+        return builder.ingredientList(ingredientList).build();
+
+
+
+
+    }
 }

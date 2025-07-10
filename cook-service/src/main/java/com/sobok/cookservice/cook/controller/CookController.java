@@ -56,5 +56,13 @@ public class CookController {
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "페이징으로 요청한 카테고리 검색이 정상적으로 조회되었습니다."));
     }
 
+    /**
+     * 요리 단건 조회
+     */
+    @GetMapping("/get-cook/{id}")
+    public ResponseEntity<?> getCookById(@PathVariable(name = "id") Long cookId) {
+        cookService.getCookById(cookId);
+    }
+
 
 }
