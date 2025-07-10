@@ -96,8 +96,16 @@ public class DeliveryFeignController {
      * 주문 상세 조회에서 사용되는 paymentId로 배달 정보 조회
      */
     @GetMapping("/getDelivery")
-    DeliveryResDto getDelivery(@RequestParam Long paymentId) {
+    public DeliveryResDto getDelivery(@RequestParam Long paymentId) {
         return deliveryService.getDelivery(paymentId);
+    }
+
+    /**
+     * 가게용 주문 전체 조회에서 사용되는 shopId로 paymentId 조회
+     */
+    @GetMapping("/getPaymentId")
+    public List<Long> getPaymentId(@RequestParam("shopId") Long shopId){
+        return deliveryService.getPaymentId(shopId);
     }
 
 }
