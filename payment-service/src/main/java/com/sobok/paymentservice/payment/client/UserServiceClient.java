@@ -9,11 +9,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "user-service", configuration = FeignConfig.class)
 public interface UserServiceClient {
 
-    // 유저 검증
+    /**
+     * 유저 검증
+     */
     @GetMapping("/api/verify-user")
     Boolean verifyUser(@RequestParam Long authId,
                        @RequestParam Long userId);
 
+    /**
+     * 게시글 등록(유저 조회)
+     */
+    @GetMapping("/api/admin/user-id")
+    Long getUserIdByAddress(@RequestParam Long userAddressId);
+    
     /**
      * 유저 정보 조회
      */

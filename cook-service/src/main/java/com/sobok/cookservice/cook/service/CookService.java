@@ -233,5 +233,13 @@ public class CookService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 게시글 등록(요리 조회)
+     */
+    public String getCookNameById(Long cookId) {
+        Cook cook = cookRepository.findById(cookId)
+                .orElseThrow(() -> new CustomException("해당 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        return cook.getName();
+    }
 
 }
