@@ -1,17 +1,23 @@
 package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.ApiResponse;
+import com.sobok.paymentservice.common.enums.OrderState;
+import com.sobok.paymentservice.common.exception.CustomException;
+import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PagedResponse;
 import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
+import com.sobok.paymentservice.payment.entity.Payment;
+import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +31,8 @@ import java.util.List;
 public class PaymentFeignController {
 
     private final PaymentService paymentService;
+    private final PaymentRepository paymentRepository;
+    private final UserServiceClient userServiceClient;
 
     @PostMapping("/register-payment")
     public void registerPayment(@RequestBody TossPayRegisterReqDto reqDto) {
@@ -69,4 +77,28 @@ public class PaymentFeignController {
     public List<CartIngredientResDto> getCartIngredients(@RequestParam Long cartCookId) {
         return paymentService.getIngredientsByCartCookId(cartCookId);
     }
+
+    @GetMapping("/payment/completed")
+    public Boolean isPaymentCompleted(@RequestParam Long paymentId, @RequestParam Long userId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException("결제가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        Long userAddressId = payment.getUserAddressId();
+        Long ownerUserId = userServiceClient.getUserIdByAddress(userAddressId);
+
+        return ownerUserId.equals(userId)
+                && payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
+    }
+
+    /**
+     * 결제 ID로 연결된 요리 중 하나의 cookId를 반환
+     */
+    @GetMapping("/payment/cook-id")
+    public Long getCookIdByPaymentId(@RequestParam Long paymentId) {
+        return paymentService.getCookIdsByPaymentId(paymentId)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new CustomException("해당 주문에 요리가 없습니다.", HttpStatus.NOT_FOUND));
+    }
+
 }

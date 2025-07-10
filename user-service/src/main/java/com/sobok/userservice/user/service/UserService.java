@@ -419,4 +419,13 @@ public class UserService {
         }
     }
 
+    /**
+     * 게시글 등록용(유저 정보 반환)
+     */
+    public Long getUserIdByAddress(Long userAddressId) {
+        return userAddressRepository.findById(userAddressId)
+                .orElseThrow(() -> new CustomException("주소가 존재하지 않습니다.", HttpStatus.NOT_FOUND))
+                .getUserId();
+    }
+
 }

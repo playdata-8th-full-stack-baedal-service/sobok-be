@@ -8,6 +8,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Table(name = "post_image")
 public class PostImage {
 
@@ -21,6 +22,6 @@ public class PostImage {
     @Column(name = "image_path", nullable = false)
     private String imagePath;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "`index`")
     private Integer index;
 }
