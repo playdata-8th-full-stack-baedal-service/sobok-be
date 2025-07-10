@@ -3,10 +3,7 @@ package com.sobok.paymentservice.payment.entity;
 import com.sobok.paymentservice.common.entity.BaseTimeEntity;
 import com.sobok.paymentservice.common.enums.OrderState;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 @Getter
@@ -15,6 +12,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "payment")
 @Builder
 @AllArgsConstructor
+@ToString
 public class Payment extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
