@@ -1,10 +1,13 @@
 package com.sobok.paymentservice.payment.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
+import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
 import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentItemResDto;
@@ -17,21 +20,27 @@ import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class CartService {
     private final CookFeignClient cookFeignClient;
     private final CartCookRepository cartCookRepository;
     private final CartIngreRepository cartIngreRepository;
     private final UserServiceClient userServiceClient;
+
+    private final ObjectMapper objectMapper;
+
+    private final RedisTemplate<String, String> redisObjectTemplate;
 
     /**
      * 장바구니 추가
@@ -109,7 +118,7 @@ public class CartService {
      *
      * @return
      */
-    public Long editCartCookCount(Long cartCookId, Integer count) {
+    public Long editCartCookCount(TokenUserInfo userInfo, Long cartCookId, Integer count, CartStartPayDto reqDto) {
         log.info("장바구니 수정 서비스 로직 시작! cook id : {}, count : {}", cartCookId, count);
 
         // 수량 검증
@@ -129,6 +138,10 @@ public class CartService {
         // 저장
         cartCookRepository.save(cartCook);
 
+
+        startPay(userInfo,reqDto);
+
+
         return cartCook.getId();
     }
 
@@ -140,7 +153,7 @@ public class CartService {
      *
      * @return
      */
-    public Long deleteCart(Long cookId) {
+    public Long deleteCart(TokenUserInfo userInfo, Long cookId, CartStartPayDto reqDto) {
         log.info("장바구니 삭제 서비스 로직 실행! id : {}", cookId);
 
         // 장바구니에 담겨 있는 지 확인
@@ -154,11 +167,13 @@ public class CartService {
         // 요리 삭제
         cartCookRepository.delete(cartCook);
 
+        startPay(userInfo,reqDto);
+
         return cartCook.getId();
     }
 
     // 장바구니 조회용
-    public PaymentResDto getCart(TokenUserInfo userInfo) {
+    public PaymentResDto getCart(TokenUserInfo userInfo, String status) {
         Long authId = userInfo.getId();
 
         // 유저 검증
@@ -167,7 +182,16 @@ public class CartService {
             throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
 
-        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
+        List<CartCook> cartCookList = List.of();
+
+        if ("cart".equals(status)) {
+            cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
+        } else if ("ordered".equals(status)) {
+            cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNotNull(userInfo.getUserId());
+        }
+
+        log.info("주문된 카트 목록 cartCookList : {}", cartCookList);
+
 
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
@@ -194,17 +218,27 @@ public class CartService {
 
             // 기본/추가 식재료 분리해서 넣기)
             return PaymentItemResDto.builder()
+                    .id(cartCook.getId())
                     .cookId(cook.getCookId())
                     .cookName(cook.getName())
                     .thumbnail(cook.getThumbnail())
                     .quantity(cartCook.getCount())
                     .baseIngredients(baseIngredients) // 기본 식재료
                     .additionalIngredients(additionalDtos) // 추가 식재료
+                    .paymentId(cartCook.getPaymentId())
                     .build();
         }).toList();
 
         return new PaymentResDto(userInfo.getUserId(), items);
     }
 
-
+    public void startPay(TokenUserInfo userInfo, CartStartPayDto reqDto) {
+        try {
+            String json = objectMapper.writeValueAsString(reqDto);
+            redisObjectTemplate.opsForValue().set("START:PAYMENT:" + userInfo.getUserId(), json, Duration.ofMinutes(10));
+        } catch (JsonProcessingException e) {
+            log.error("DTO를 Redis로 파싱하는 과정에서 오류가 발생하였습니다.");
+            throw new CustomException("Redis 파싱 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -9,8 +9,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @FeignClient(name = "delivery-service", configuration = FeignConfig.class)
 public interface DeliveryFeignClient {
     @PostMapping("/api/register-delivery")
     void registerDelivery(@RequestBody DeliveryRegisterDto deliveryRegisterDto);
+
+    @GetMapping("/api/getPaymentId")
+    List<Long> getPaymentId(@RequestParam Long shopId);
 }

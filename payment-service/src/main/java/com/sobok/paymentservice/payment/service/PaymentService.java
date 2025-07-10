@@ -4,24 +4,34 @@ import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
+import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
+import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
+
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.*;
+import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.payment.ShopAssignDto;
+import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.shop.AdminShopResDto;
+import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
+import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
-import com.sobok.paymentservice.payment.entity.CartIngredient;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +55,7 @@ public class PaymentService {
     private final CookFeignClient cookFeignClient;
     private final CartService cartService;
     private final CartIngreRepository CartIngreRepository;
+    private final DeliveryFeignClient deliveryFeignClient;
 
     /**
      * 결제 사전 정보 등록
@@ -174,6 +185,23 @@ public class PaymentService {
     }
 
     /**
+     * 주문 전체 조회 (결제)
+     */
+    public List<AdminPaymentResDto> getAllPaymentsForAdmin() {
+        return paymentRepository.findAll().stream()
+                .map(payment -> AdminPaymentResDto.builder()
+                        .id(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .totalPrice(payment.getTotalPrice())
+                        .payMethod(payment.getPayMethod())
+                        .orderState(payment.getOrderState())
+                        .createdAt(payment.getCreatedAt())
+                        .userAddressId(payment.getUserAddressId())
+                        .build())
+                .toList();
+    }
+
+    /**
      * 결제 정보에 맞는 요리 이름 조회용
      */
     public List<Long> getCookIdsByPaymentId(Long paymentId) {
@@ -218,9 +246,6 @@ public class PaymentService {
             throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
 
-        long offset = (pageNo - 1) * numOfRows;
-
-
         //일단 userId로 cart_cook에서 조회
         List<CartCook> cartCookList = cartCookRepository.findByUserId((userInfo.getUserId()));
         log.info("userId로 찾아온 cartCookList : {}", cartCookList);
@@ -237,7 +262,9 @@ public class PaymentService {
         log.info("주문한 요리 정보 cookDetails : {}", cookDetails);
 
         //결제 정보 가져오기
-        List<Payment> payments = paymentRepository.findAllById(paymentIdList);
+        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue(), Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Payment> pagedPayments = paymentRepository.findByIdIn(paymentIdList, pageable);
+        List<Payment> payments = pagedPayments.getContent();
         log.info("찾아온 payment: {}", payments);
 
         // 근데 여러개의 cart_cook이 하나의 paymentId를 가질 수 있음
@@ -284,36 +311,94 @@ public class PaymentService {
         return paymentDtos;
     }
 
-    public void getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
+    public PaymentDetailResDto getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
         //유저 검증
         Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
         if (!Boolean.TRUE.equals(matched)) {
             throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
 
-        // Cart Cook 리스트 가져오기
+        // paymentId로 Cart Cook 리스트 가져오기
         List<CartCook> cartCookList = cartCookRepository.findByPaymentId(paymentId);
         if (cartCookList.isEmpty()) {
             log.error("결제 내역에 해당하는 카트 정보가 존재하지 않습니다. | payment id : {}", paymentId);
             throw new CustomException("결제 내역에 해당하는 카트 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
+        // 로그인한 사용자 본인이 주문한게 맞는지 확인
         cartCookList.forEach(cart -> {
             if (!cart.getUserId().equals(userInfo.getUserId())) {
                 throw new CustomException("주문한 사용자만 조회가능합니다.", HttpStatus.FORBIDDEN);
             }
         });
 
+        // paymentId로 payment 정보 조회
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(
                 () -> new CustomException("주문 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
         );
 
-        PaymentResDto paymentResDto = cartService.getCart(userInfo);
-        log.info("카트 서비스에서 조회해온 paymentResDto: {}", paymentResDto);
+        PaymentResDto paymentResDto = cartService.getCart(userInfo, "ordered");
+        List<PaymentItemResDto> items = paymentResDto.getItems().stream()
+                .filter(item -> item.getPaymentId().equals(paymentId))
+                .toList();
+        log.info("items: {}", items);
+
+        // 배송지
+        UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
+        log.info("사용자 주소 정보를 얻기 위한 userInfoResDto: {}", userInfoResDto);
+
+        // shopId를 얻기 위해 delivery-service에 요청
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
+
+        // shopId로 shop 정보 얻기
+        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
+
 
         // payment: 주문 번호, 일자, 배송 상태, 결제 수단 및 총금액, 주소(id), 라이더 요청사항
         // cook: 포함된 모든 요리 정보, 추가 식재료,
-        // 배송지,
-        //user_address_id 가지고 user-service로 가서 road_full과 addr_detail 가져와야함.
+        // 배송지 -> user_address_id 가지고 user-service로 가서 road_full과 addr_detail 가져와야함.
+        // shop 정보: 이름, 주소
+        return PaymentDetailResDto.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .orderState(payment.getOrderState())
+                .totalPrice(payment.getTotalPrice())
+                .createdAt(payment.getCreatedAt())
+                .payMethod(payment.getPayMethod())
+                .riderRequest(payment.getRiderRequest())
+                .roadFull(userInfoResDto.getRoadFull())
+                .addrDetail(userInfoResDto.getAddress())
+                .shopName(shopInfo.getShopName())
+                .shopAddress(shopInfo.getShopAddress())
+                .completeTime(delivery.getCompleteTime())
+                .items(items)
+                .build();
+
+    }
+
+    public List<ShopPaymentResDto> getPaymentList(List<Long> ids) {
+        List<Payment> paymentList = paymentRepository.findAllById(ids);
+        return paymentList.stream()
+                .map(payment -> ShopPaymentResDto.builder()
+                        .paymentId(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .orderState(payment.getOrderState())
+                        .createdAt(payment.getCreatedAt())
+                        .build())
+                .toList();
+    }
+
+    public String resetPayment(String orderId) {
+        Payment payment = paymentRepository.getPendingPaymentByOrderId(orderId, OrderState.ORDER_PENDING).orElseThrow(
+                () -> new CustomException("해당하는 결제 정보가 없습니다.", HttpStatus.BAD_REQUEST)
+        );
+
+        List<CartCook> cartCookList = cartCookRepository.findByPaymentId(payment.getId());
+        for (CartCook cartCook : cartCookList) {
+            cartCook.detachFromPayment();
+            cartCookRepository.save(cartCook);
+        }
+
+        return orderId;
     }
 }

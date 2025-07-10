@@ -11,6 +11,7 @@ import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
+import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,7 @@ public class PaymentFeignController {
     public ResponseEntity<List<Long>> getCookIdsByPaymentId(@RequestParam Long paymentId) {
         return ResponseEntity.ok(paymentService.getCookIdsByPaymentId(paymentId));
     }
+
     /**
      * 결제 ID에 해당하는 모든 장바구니 요리 목록을 조회
      */
@@ -72,11 +74,12 @@ public class PaymentFeignController {
 
     /**
      * 특정 장바구니 요리에 포함된 재료 목록을 조회
-     */
+ */
     @GetMapping("/admin/cart-ingredients")
     public List<CartIngredientResDto> getCartIngredients(@RequestParam Long cartCookId) {
         return paymentService.getIngredientsByCartCookId(cartCookId);
     }
+
 
     @GetMapping("/payment/completed")
     public Boolean isPaymentCompleted(@RequestParam Long paymentId, @RequestParam Long userId) {
@@ -101,4 +104,11 @@ public class PaymentFeignController {
                 .orElseThrow(() -> new CustomException("해당 주문에 요리가 없습니다.", HttpStatus.NOT_FOUND));
     }
 
+    /**
+     * 가게에 들어온 전체 주문 조회용 paymentId로 주문 정보 받기
+     */
+    @GetMapping("/getPayment")
+    public List<ShopPaymentResDto> getPayment(@RequestParam List<Long> id) {
+        return paymentService.getPaymentList(id);
+    }
 }

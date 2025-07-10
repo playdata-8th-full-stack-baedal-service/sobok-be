@@ -7,6 +7,7 @@ import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
+import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -156,4 +158,21 @@ public class DeliveryService {
         }
     }
 
+
+    public DeliveryResDto getDelivery(Long paymentId) {
+        Optional<Delivery> delivery = deliveryRepository.findByPaymentId(paymentId);
+        return DeliveryResDto.builder()
+                .shopId(delivery.get().getShopId())
+                .completeTime(delivery.get().getCompleteTime())
+                .build();
+    }
+
+    public List<Long> getPaymentId(Long shopId) {
+        return deliveryRepository.findByShopId(shopId).stream()
+        .map(Delivery::getPaymentId)
+        .filter(Objects::nonNull)
+        .distinct()
+        .toList();
+
+    }
 }
