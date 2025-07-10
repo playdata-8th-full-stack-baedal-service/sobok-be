@@ -42,8 +42,8 @@ public class IngredientController {
      * 통합 재료 검색
      */
     @GetMapping("/keyword-search")
-    public ResponseEntity<?> ingreSearch(@RequestBody KeywordSearchReqDto keywordSearchReqDto) {
-        List<IngreResDto> ingredients = ingredientService.ingreSearch(keywordSearchReqDto);
+    public ResponseEntity<?> ingreSearch(@RequestParam String keyword) {
+        List<IngreResDto> ingredients = ingredientService.ingreSearch(keyword);
         if (ingredients.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
         }
@@ -56,8 +56,7 @@ public class IngredientController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/all-search")
     public ResponseEntity<?> allSearch() {
-        KeywordSearchReqDto keywordSearchReqDto = KeywordSearchReqDto.builder().keyword("").build();
-        List<IngreResDto> ingredients = ingredientService.ingreSearch(keywordSearchReqDto);
+        List<IngreResDto> ingredients = ingredientService.ingreSearch("");
         if (ingredients.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
         }
