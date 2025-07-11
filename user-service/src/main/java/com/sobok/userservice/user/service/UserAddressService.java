@@ -129,7 +129,7 @@ public class UserAddressService {
                 () -> new CustomException("존재하지 않는 주소입니다.", HttpStatus.NOT_FOUND)
         );
 
-        if(!userAddress.getUserId().equals(userInfo.getId())) {
+        if(!userAddress.getUserId().equals(userInfo.getUserId())) {
             throw new CustomException("잘못된 사용자 요청입니다.", HttpStatus.FORBIDDEN);
         }
 
