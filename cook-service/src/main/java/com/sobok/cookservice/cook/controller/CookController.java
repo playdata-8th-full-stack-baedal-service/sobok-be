@@ -3,6 +3,7 @@ package com.sobok.cookservice.cook.controller;
 import com.sobok.cookservice.common.dto.ApiResponse;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.CookCreateResDto;
+import com.sobok.cookservice.cook.dto.response.CookIndividualResDto;
 import com.sobok.cookservice.cook.dto.response.CookResDto;
 import com.sobok.cookservice.cook.service.CookService;
 import jakarta.validation.Valid;
@@ -54,6 +55,15 @@ public class CookController {
     public ResponseEntity<?> getCookCategory(@RequestParam String category, @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<CookResDto> resDto = cookService.getCookByCategory(category, pageNo, numOfRows);
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "페이징으로 요청한 카테고리 검색이 정상적으로 조회되었습니다."));
+    }
+
+    /**
+     * 요리 단건 조회
+     */
+    @GetMapping("/get-cook/{id}")
+    public ResponseEntity<?> getCookById(@PathVariable(name = "id") Long cookId) {
+        CookIndividualResDto resDto = cookService.getCookById(cookId);
+        return ResponseEntity.ok().body(ApiResponse.ok(resDto, "입력한 요리 아이디에 맞는 요리 정보가 조회되었습니다."));
     }
 
 
