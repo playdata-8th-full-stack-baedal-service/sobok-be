@@ -1,18 +1,16 @@
-package com.sobok.paymentservice.payment.dto.delivery;
+package com.sobok.shopservice.shop.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeliveryResDto {
+public class DeliveryAvailShopResDto {
     private Long shopId;
-    private LocalDateTime completeTime;
-    private Long riderId;
+    private String shopName;
+    private String roadFull;
 }

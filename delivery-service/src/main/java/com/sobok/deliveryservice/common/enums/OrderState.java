@@ -1,4 +1,4 @@
-package com.sobok.paymentservice.common.enums;
+package com.sobok.deliveryservice.common.enums;
 
 public enum OrderState {
     ORDER_PENDING,
@@ -20,19 +20,6 @@ public enum OrderState {
             case READY_FOR_DELIVERY -> DELIVERY_ASSIGNED;
             case DELIVERY_ASSIGNED -> DELIVERING;
             case DELIVERING -> DELIVERY_COMPLETE;
-            default -> this;
-        };
-    }
-
-    // 필요하다면
-    public OrderState previous() {
-        return switch (this) {
-            case DELIVERY_COMPLETE -> DELIVERING;
-            case DELIVERING -> DELIVERY_ASSIGNED;
-            case DELIVERY_ASSIGNED -> READY_FOR_DELIVERY;
-            case READY_FOR_DELIVERY -> PREPARING_INGREDIENTS;
-            case PREPARING_INGREDIENTS -> ORDER_COMPLETE;
-            case ORDER_COMPLETE -> ORDER_PENDING;
             default -> this;
         };
     }

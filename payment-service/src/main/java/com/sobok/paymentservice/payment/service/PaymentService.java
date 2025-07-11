@@ -7,7 +7,7 @@ import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
 import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
-
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.payment.*;
@@ -20,6 +20,7 @@ import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.Payment;
+import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,8 @@ public class PaymentService {
     private final CartService cartService;
     private final CartIngreRepository CartIngreRepository;
     private final DeliveryFeignClient deliveryFeignClient;
+    private final JPAQueryFactory factory;
+
 
     /**
      * 결제 사전 정보 등록
@@ -354,7 +357,7 @@ public class PaymentService {
         if ("HUB".equals(userInfo.getRole())) {
             //가게 검증
             if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
-                throw new CustomException("현재 사용자(authId:" + userInfo.getId()+", shopId:"+userInfo.getShopId()
+                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
                         + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
         }
@@ -414,5 +417,60 @@ public class PaymentService {
         }
 
         return orderId;
+    }
+
+    public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids) {
+        QPayment payment = QPayment.payment;
+
+        List<Payment> paymentList = factory
+                .selectFrom(payment)
+                .where(
+                        payment.id.in(ids),
+                        payment.orderState.in(
+                                OrderState.ORDER_COMPLETE,
+                                OrderState.PREPARING_INGREDIENTS,
+                                OrderState.READY_FOR_DELIVERY
+                        )
+                )
+                .fetch();
+
+        return paymentList.stream()
+                .map(p -> ShopPaymentResDto.builder()
+                        .paymentId(p.getId())
+                        .orderId(p.getOrderId())
+                        .orderState(p.getOrderState())
+                        .userAddressId(p.getUserAddressId())
+                        .createdAt(p.getCreatedAt())
+                        .build())
+                .toList();
+    }
+
+
+    public void changeOrderState(TokenUserInfo userInfo, ChangeOrderStateReqDto changeOrderState) {
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(changeOrderState.getPaymentId());
+
+        //가게 검증
+        if ("HUB".equals(userInfo.getRole())) {
+            if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
+                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
+                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+            }
+        }
+        //라이더 검증
+        if ("RIDER".equals(userInfo.getRole())) {
+            if (!Objects.equals(delivery.getRiderId(), userInfo.getRiderId())) {
+                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", riderId:" + userInfo.getRiderId()
+                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+            }
+        }
+
+        //해당 payment 주문 상태 가져오기
+        Payment payment = paymentRepository.findById(changeOrderState.getPaymentId()).orElseThrow(
+                () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
+        );
+
+        payment.nextState();
+        paymentRepository.save(payment);
+        log.info("해당 주문 상태가 변경되었습니다.");
     }
 }

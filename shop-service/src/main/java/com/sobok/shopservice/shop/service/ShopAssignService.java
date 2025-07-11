@@ -9,6 +9,7 @@ import com.sobok.shopservice.shop.client.UserFeignClient;
 import com.sobok.shopservice.shop.dto.payment.DeliveryRegisterDto;
 import com.sobok.shopservice.shop.dto.payment.LocationResDto;
 import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
+import com.sobok.shopservice.shop.dto.response.DeliveryAvailShopResDto;
 import com.sobok.shopservice.shop.entity.QShop;
 import com.sobok.shopservice.shop.entity.Shop;
 import feign.FeignException;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.sobok.shopservice.shop.entity.QShop.*;
@@ -85,5 +87,54 @@ public class ShopAssignService {
                 .fetchFirst();
 
         return Optional.ofNullable(nearestShop);
+    }
+
+
+    public List<DeliveryAvailShopResDto> findNearShop(double riderLatitude, double riderLongitude, double radiusKm) {
+        log.info("가게 주소와 라이더 주소 간 거리 비교 시작 | 라이더 위도 : {}, 라이더 경도 : {}, 최대 거리 : {}", riderLatitude, riderLongitude, radiusKm);
+
+        QShop shop = QShop.shop;
+
+        // 1. 경계 조건 설정
+        double latDiff = radiusKm / 111.0; // 위도 1도 = 약 111km
+        double lngDiff = radiusKm / (111.0 * Math.cos(Math.toRadians(riderLatitude))); // 위도에 따른 경도 보정
+
+        double minLat = riderLatitude - latDiff; // 위도 최소값
+        double maxLat = riderLatitude + latDiff; // 위도 최대값
+        double minLng = riderLongitude - lngDiff; // 경도 최소값
+        double maxLng = riderLongitude + lngDiff; // 경도 최대값
+
+        // 2. Haversine 수식 정의 (위도 경도 값을 통한 거리 계산식)
+        NumberTemplate<Double> distance = Expressions.numberTemplate(Double.class,
+                "6371 * acos(cos(radians({0})) * cos(radians({1}.latitude)) * cos(radians({1}.longitude) - radians({2})) + sin(radians({0})) * sin(radians({1}.latitude)))",
+                riderLatitude, shop, riderLongitude
+        );
+
+        // 3. 쿼리 실행
+        List<Shop> nearShop = factory
+                .select(shop)
+                .from(shop)
+                .where(
+                        shop.latitude.between(minLat, maxLat),
+                        shop.longitude.between(minLng, maxLng)
+                )
+                .orderBy(distance.asc())
+                .fetch();
+
+/*        nearShop.forEach(shops -> {
+            DeliveryAvailShopResDto.builder()
+                    .shopId(shops.getId())
+                    .shopName(shops.getShopName())
+                    .roadFull(shops.getRoadFull())
+                    .build();
+        });*/
+
+        return nearShop.stream().map(shops -> DeliveryAvailShopResDto.builder()
+                        .shopId(shops.getId())
+                        .shopName(shops.getShopName())
+                        .roadFull(shops.getRoadFull())
+                        .build())
+                .toList();
+
     }
 }

@@ -106,7 +106,7 @@ public class UserAddressService {
                 () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
-        return userAddressRepository.findByUserId(user.getId())
+        return userAddressRepository.findByActiveUserId(user.getId())
                 .stream()
                 .map(addr -> new UserAddressDto(addr.getId(), addr.getRoadFull(), addr.getAddrDetail()))
                 .collect(Collectors.toList());
@@ -129,17 +129,27 @@ public class UserAddressService {
                 () -> new CustomException("존재하지 않는 주소입니다.", HttpStatus.NOT_FOUND)
         );
 
-        if(!userAddress.getUserId().equals(userInfo.getId())) {
+        if (!userAddress.getUserId().equals(userInfo.getUserId())) {
             throw new CustomException("잘못된 사용자 요청입니다.", HttpStatus.FORBIDDEN);
         }
 
         String active = userAddress.getActive();
-        if (active == null || "Y".equals(active)) {
+        if (active == null || "N".equals(active)) {
             throw new CustomException("이미 비활성화된 주소입니다.", HttpStatus.BAD_REQUEST);
         } else {
             userAddress.convertActive(false);
         }
 
         return id;
+    }
+
+    public List<UserAddressDto> getAddressList(List<Long> id) {
+        List<UserAddress> userAddressList = userAddressRepository.findAllById(id);
+        log.info("주소 조회");
+
+        return userAddressList
+                .stream()
+                .map(addr -> new UserAddressDto(addr.getId(), addr.getRoadFull(), addr.getAddrDetail()))
+                .toList();
     }
 }
