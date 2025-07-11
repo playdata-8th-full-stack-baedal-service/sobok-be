@@ -72,6 +72,18 @@ public class PostController {
         return ResponseEntity.ok(postService.getCookPostsByCookId(cookId));
     }
 
+    /**
+     * 사용자별 게시글 조회
+     */
+    @GetMapping("/user-post")
+    public ResponseEntity<ApiResponse<PagedResponse<PostListResDto>>> getUserPosts(
+            @AuthenticationPrincipal TokenUserInfo userInfo,
+            @RequestParam int page,
+            @RequestParam int size) {
+
+        return ResponseEntity.ok(postService.getUserPost(userInfo, page, size));
+    }
+
 
 
 }

@@ -10,4 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface UserFeignClient {
     @GetMapping("/api/post-info")
     UserInfoResDto getUserInfo(@RequestParam Long userId);
+
+    @GetMapping("/api/user/nickname")
+    String getNicknameById(@RequestParam Long userId);
 }

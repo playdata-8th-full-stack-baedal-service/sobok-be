@@ -458,4 +458,12 @@ public class UserService {
                 .build();
     }
 
+    /**
+     * 사용자 게시글 조회용 (닉네임)
+     */
+    public String getNicknameById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        return user.getNickname();
+    }
 }

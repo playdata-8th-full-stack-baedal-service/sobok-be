@@ -6,6 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import static com.sobok.postservice.post.entity.QPost.post;
 import static com.sobok.postservice.post.entity.QPostImage.postImage;
 import static com.sobok.postservice.post.entity.QUserLike.userLike;
+
+import com.sobok.postservice.common.dto.ApiResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
 import com.sobok.postservice.post.client.CookFeignClient;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -209,7 +212,7 @@ public class PostService {
                     .title(post.getTitle())
                     .cookName(cookName)
                     .userId(user.getUserId())
-                    .userNickname(user.getNickname())
+                    .nickName(user.getNickname())
                     .likeCount(likeCount)
                     .thumbnail(thumbnail)
                     .updatedAt(post.getUpdatedAt())
@@ -256,6 +259,49 @@ public class PostService {
                 .cookId(cookId)
                 .posts(posts)
                 .build();
+    }
+    // todo s3 연결 필요 썸네일
+
+    /**
+     * 사용자별 게시글 조회
+     */
+    public ApiResponse<PagedResponse<PostListResDto>> getUserPost(TokenUserInfo userInfo, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
+
+        List<PostListResDto> posts = postPage.getContent().stream().map(post -> {
+            String cookName = cookClient.getCookNameById(post.getCookId());
+            String nickName = userClient.getNicknameById(post.getUserId());
+            int likeCount = userLikeRepository.countByPostId(post.getId());
+            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
+                    .map(PostImage::getImagePath).orElse(null);
+
+            return PostListResDto.builder()
+                    .postId(post.getId())
+                    .title(post.getTitle())
+                    .cookName(cookName)
+                    .nickName(nickName)
+                    .userId(post.getUserId())
+                    .likeCount(likeCount)
+                    .thumbnail(thumbnail)
+                    .updatedAt(post.getUpdatedAt())
+                    .build();
+        }).toList();
+
+        PagedResponse<PostListResDto> response = new PagedResponse<>(
+                posts,
+                page,
+                size,
+                postPage.getTotalElements(),
+                postPage.getTotalPages(),
+                postPage.isLast()
+        );
+
+        String message = posts.isEmpty() // 게시글 없어도 빈 배열로 보내기 위해 사용
+                ? "작성한 게시글이 없습니다."
+                : "사용자 게시글 조회 성공";
+
+        return ApiResponse.ok(response, message);
     }
     // todo s3 연결 필요 썸네일
 

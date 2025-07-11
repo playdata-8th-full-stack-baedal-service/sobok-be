@@ -138,4 +138,13 @@ public class UserFeignController {
         return ResponseEntity.ok(res);
     }
 
+    /**
+     * 사용자 게시글 조회용 (닉네임)
+     */
+    @GetMapping("/user/nickname")
+    public ResponseEntity<String> getNicknameById(@RequestParam Long userId) {
+        String nickname = userService.getNicknameById(userId);
+        return ResponseEntity.ok(nickname);
+    }
+
 }
