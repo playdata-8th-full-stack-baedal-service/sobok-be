@@ -417,12 +417,21 @@ public class PaymentService {
     }
 
     public void changeOrderState(TokenUserInfo userInfo, ChangeOrderStateReqDto changeOrderState) {
-        //가게 검증
         DeliveryResDto delivery = deliveryFeignClient.getDelivery(changeOrderState.getPaymentId());
 
-        if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
-            throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
-                    + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+        //가게 검증
+        if ("HUB".equals(userInfo.getRole())) {
+            if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
+                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
+                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+            }
+        }
+        //라이더 검증
+        if ("RIDER".equals(userInfo.getRole())) {
+            if (!Objects.equals(delivery.getRiderId(), userInfo.getRiderId())) {
+                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", riderId:" + userInfo.getRiderId()
+                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+            }
         }
 
         //해당 payment 주문 상태 가져오기

@@ -14,4 +14,5 @@ import java.time.LocalDateTime;
 public class DeliveryResDto {
     private Long shopId;
     private LocalDateTime completeTime;
+    private Long riderId;
 }
