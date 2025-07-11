@@ -106,7 +106,7 @@ public class UserAddressService {
                 () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
-        return userAddressRepository.findByUserId(user.getId())
+        return userAddressRepository.findByActiveUserId(user.getId())
                 .stream()
                 .map(addr -> new UserAddressDto(addr.getId(), addr.getRoadFull(), addr.getAddrDetail()))
                 .collect(Collectors.toList());
