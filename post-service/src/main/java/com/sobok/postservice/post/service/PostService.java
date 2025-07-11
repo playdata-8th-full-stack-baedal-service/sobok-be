@@ -106,7 +106,6 @@ public class PostService {
 
             savedImages = postImageRepository.saveAll(newImages); // 저장된 이미지 리스트 유지
         }
-
         return PostUpdateResDto.builder()
                 .postId(post.getId())
                 .title(post.getTitle())
@@ -118,5 +117,32 @@ public class PostService {
                 )
                 .build();
     }
+    /**
+     * todo: s3 연결 필요
+     */
+
+
+    /**
+     * 게시글 수정
+     */
+    @Transactional
+    public void deletePost(Long postId, TokenUserInfo userInfo) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        if (!post.getUserId().equals(userInfo.getUserId())) {
+            throw new CustomException("게시글 삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+
+        // 관련 이미지 먼저 삭제
+        postImageRepository.deleteByPostId(post.getId());
+
+        // 게시글 삭제
+        postRepository.delete(post);
+    }
+    /**
+     * todo: s3 연결 필요
+     */
+
 
 }
