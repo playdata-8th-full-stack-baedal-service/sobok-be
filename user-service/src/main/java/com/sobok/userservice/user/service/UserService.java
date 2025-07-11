@@ -451,4 +451,7 @@ public class UserService {
                 .getUserId();
     }
 
+    public boolean getBookmarkById(Long userId, Long cookId) {
+        return userBookmarkRepository.existsByUserIdAndCookId(userId, cookId);
+    }
 }
