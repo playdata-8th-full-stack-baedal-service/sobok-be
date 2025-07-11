@@ -19,6 +19,7 @@ import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
 import com.sobok.postservice.post.dto.response.*;
 import com.sobok.postservice.post.entity.Post;
 import com.sobok.postservice.post.entity.PostImage;
+import com.sobok.postservice.post.entity.UserLike;
 import com.sobok.postservice.post.repository.PostImageRepository;
 import com.sobok.postservice.post.repository.PostRepository;
 import com.sobok.postservice.post.repository.UserLikeRepository;
@@ -304,6 +305,48 @@ public class PostService {
         return ApiResponse.ok(response, message);
     }
     // todo s3 연결 필요 썸네일
+
+
+    /**
+     * 사용자가 좋아요한 게시글 조회
+     */
+    public PagedResponse<PostListResDto> getLikePost(TokenUserInfo userInfo, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Long userId = userInfo.getUserId();
+
+        Page<UserLike> userLikePage = userLikeRepository.findAllByUserId(userId, pageable);
+
+        List<PostListResDto> result = userLikePage.getContent().stream().map(userLike -> {
+            Post post = postRepository.findById(userLike.getPostId())
+                    .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+            String cookName = cookClient.getCookNameById(post.getCookId());
+            String nickName = userClient.getNicknameById(post.getUserId());
+            int likeCount = userLikeRepository.countByPostId(post.getId());
+            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
+                    .map(PostImage::getImagePath).orElse(null);
+
+            return PostListResDto.builder()
+                    .postId(post.getId())
+                    .title(post.getTitle())
+                    .cookName(cookName)
+                    .nickName(nickName)
+                    .userId(post.getUserId())
+                    .likeCount(likeCount)
+                    .thumbnail(thumbnail)
+                    .updatedAt(post.getUpdatedAt())
+                    .build();
+        }).toList();
+
+        return new PagedResponse<>(
+                result,
+                page,
+                size,
+                userLikePage.getTotalElements(),
+                userLikePage.getTotalPages(),
+                userLikePage.isLast()
+        );
+    }
 
 
 }

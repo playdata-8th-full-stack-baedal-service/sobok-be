@@ -84,6 +84,17 @@ public class PostController {
         return ResponseEntity.ok(postService.getUserPost(userInfo, page, size));
     }
 
+    /**
+     * 사용자가 좋아요한 게시글 조회
+     */
+    @GetMapping("/post-like")
+    public ResponseEntity<PagedResponse<PostListResDto>> getLikePost(
+            @AuthenticationPrincipal TokenUserInfo userInfo,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return ResponseEntity.ok(postService.getLikePost(userInfo, page, size));
+    }
 
 
 }
