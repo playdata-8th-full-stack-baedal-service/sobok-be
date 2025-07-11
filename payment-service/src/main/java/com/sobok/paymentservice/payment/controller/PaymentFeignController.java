@@ -74,7 +74,7 @@ public class PaymentFeignController {
 
     /**
      * 특정 장바구니 요리에 포함된 재료 목록을 조회
- */
+     */
     @GetMapping("/admin/cart-ingredients")
     public List<CartIngredientResDto> getCartIngredients(@RequestParam Long cartCookId) {
         return paymentService.getIngredientsByCartCookId(cartCookId);
@@ -110,5 +110,13 @@ public class PaymentFeignController {
     @GetMapping("/getPayment")
     public List<ShopPaymentResDto> getPayment(@RequestParam List<Long> id) {
         return paymentService.getPaymentList(id);
+    }
+
+    /**
+     * 배달 가능한 주문 목록 조회에 사용되는 paymentId로 주문 정보 받기
+     */
+    @GetMapping("/getRiderAvailPayment")
+    public List<ShopPaymentResDto> getRiderAvailPayment(@RequestParam List<Long> id) {
+        return paymentService.getRiderAvailPaymentList(id);
     }
 }
