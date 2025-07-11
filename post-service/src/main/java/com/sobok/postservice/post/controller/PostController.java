@@ -4,15 +4,14 @@ import com.sobok.postservice.common.dto.ApiResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
-import com.sobok.postservice.post.dto.response.PagedResponse;
-import com.sobok.postservice.post.dto.response.PostListResDto;
-import com.sobok.postservice.post.dto.response.PostRegisterResDto;
-import com.sobok.postservice.post.dto.response.PostUpdateResDto;
+import com.sobok.postservice.post.dto.response.*;
 import com.sobok.postservice.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/post")
@@ -65,6 +64,14 @@ public class PostController {
         PagedResponse<PostListResDto> result = postService.getPostList(page, size, sortBy);
         return ResponseEntity.ok(ApiResponse.ok(result, "전체 게시글 조회 성공"));
     }
+    /**
+     * 요리별 좋아요순 정렬 조회
+     */
+    @GetMapping("/cook-posts/{cookId}")
+    public ResponseEntity<CookPostGroupResDto> getCookPosts(@PathVariable Long cookId) {
+        return ResponseEntity.ok(postService.getCookPostsByCookId(cookId));
+    }
+
 
 
 }

@@ -1,7 +1,10 @@
 package com.sobok.postservice.post.service;
 
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import static com.sobok.postservice.post.entity.QPost.post;
+import static com.sobok.postservice.post.entity.QPostImage.postImage;
 import static com.sobok.postservice.post.entity.QUserLike.userLike;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
@@ -28,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -217,6 +221,35 @@ public class PostService {
                 result.size() < size
         );
     }
+
+    /**
+     * 요리별 좋아요순 게시글 조회
+     */
+    public CookPostGroupResDto getCookPostsByCookId(Long cookId) {
+        List<CookPostGroupResDto.PostSummaryDto> posts = queryFactory
+                .select(Projections.constructor(CookPostGroupResDto.PostSummaryDto.class,
+                        post.id,
+                        post.title,
+                        JPAExpressions
+                                .select(postImage.imagePath)
+                                .from(postImage)
+                                .where(postImage.postId.eq(post.id), postImage.index.eq(1))
+                                .limit(1),
+                        userLike.countDistinct().intValue()
+                ))
+                .from(post)
+                .leftJoin(userLike).on(userLike.postId.eq(post.id))
+                .where(post.cookId.eq(cookId))
+                .groupBy(post.id, post.title)
+                .orderBy(userLike.countDistinct().desc())
+                .fetch();
+
+        return CookPostGroupResDto.builder()
+                .cookId(cookId)
+                .posts(posts)
+                .build();
+    }
+    // todo s3 연결 필요 썸네일
 
 
 }
