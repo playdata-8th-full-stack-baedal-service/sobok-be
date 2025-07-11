@@ -5,24 +5,29 @@ import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.client.AuthFeignClient;
 import com.sobok.deliveryservice.delivery.client.PaymentFeignClient;
 import com.sobok.deliveryservice.delivery.client.ShopFeignClient;
+import com.sobok.deliveryservice.delivery.client.UserFeignClient;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
+import com.sobok.deliveryservice.delivery.dto.info.UserAddressDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
+import com.sobok.deliveryservice.delivery.dto.payment.ShopPaymentResDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.*;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
 import com.sobok.deliveryservice.delivery.entity.Rider;
 import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
 import com.sobok.deliveryservice.delivery.repository.RiderRepository;
-import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -35,6 +40,7 @@ public class DeliveryService {
     private final AuthFeignClient authFeignClient;
     private final ShopFeignClient shopFeignClient;
     private final PaymentFeignClient paymentFeignClient;
+    private final UserFeignClient userFeignClient;
 
     public RiderResDto riderCreate(RiderReqDto dto) {
 
@@ -180,37 +186,76 @@ public class DeliveryService {
 
     }
 
-    public void getAvailableOrders(TokenUserInfo userInfo, Double latitude, Double longitude) {
+    public List<DeliveryAvailOrderResDto> getAvailableOrders(
+            TokenUserInfo userInfo, Double latitude, Double longitude,
+            Long pageNo, Long numOfRows
+    ) {
         //라이더 검증
         log.info("userInfo: {}", userInfo);
         if (!riderRepository.existsById(userInfo.getRiderId())) {
             throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
-        //근처에 있는 가게 조회
+
+        //근처 가게 정보 목록 조회
         List<DeliveryAvailShopResDto> nearShop = shopFeignClient.getNearShop(latitude, longitude);
         log.info("nearShop: {}", nearShop);
 
-        //응답: paymentId, orderId, userAddress, 주문 시간, 가게 정보
-        //가게 하나에 들어온 주문 모두 가져와. 조건 orderState가 ORDER_COMPLETE, PREPARING_INGREDIENTS, READY_FOR_DELIVERY
-        //shopId로 paymentId 얻어와
-        List<Long> shopIdList = nearShop.stream()
-                .map(DeliveryAvailShopResDto::getShopId)
-                .toList();
+        if (nearShop.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        List<Delivery> deliveryList = deliveryRepository.findAllById(shopIdList);
-        log.info("deliveryList: {}", deliveryList);
+        Map<Long, DeliveryAvailShopResDto> shopMap = nearShop.stream()
+                .collect(Collectors.toMap(DeliveryAvailShopResDto::getShopId, Function.identity()));
+        List<Long> shopIdList = new ArrayList<>(shopMap.keySet());
 
-        List<Long> paymentIdList = deliveryList.stream()
-                .map(Delivery::getPaymentId)
-                .toList();
+        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
 
+        Page<Delivery> deliveryPage = deliveryRepository.findAllByShopIdIn(shopIdList, pageable);
+        log.info("deliveryPage: {}", deliveryPage);
+
+        Map<Long, Long> paymentToShopIdMap = deliveryPage.getContent().stream()
+                .collect(Collectors.toMap(Delivery::getPaymentId, Delivery::getShopId));
+
+        if (paymentToShopIdMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 배달 전인 주문 조회 (Payment 정보)
+        List<Long> paymentIdList = new ArrayList<>(paymentToShopIdMap.keySet());
         List<ShopPaymentResDto> riderAvailPayment = paymentFeignClient.getRiderAvailPayment(paymentIdList);
-        log.info("riderAvailPayment: {}", riderAvailPayment);
+        log.info("배달 가능한 주문들 Payment: {}", riderAvailPayment);
 
+        if (riderAvailPayment.isEmpty()) {
+            return Collections.emptyList();
+        }
 
+        // 주소 정보 조회
+        Set<Long> addressIdSet = riderAvailPayment.stream()
+                .map(ShopPaymentResDto::getUserAddressId)
+                .collect(Collectors.toSet());
 
+        Map<Long, UserAddressDto> addressMap = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIdSet)).stream()
+                .collect(Collectors.toMap(UserAddressDto::getId, Function.identity()));
 
+        return riderAvailPayment.stream()
+                .map(payment -> {
+                    Long shopId = paymentToShopIdMap.get(payment.getPaymentId());
+                    DeliveryAvailShopResDto shop = shopMap.get(shopId);
+                    UserAddressDto address = addressMap.get(payment.getUserAddressId());
+
+                    return DeliveryAvailOrderResDto.builder()
+                            .shopId(shopId)
+                            .shopName(shop != null ? shop.getShopName() : null)
+                            .shopRoadFull(shop != null ? shop.getRoadFull() : null)
+                            .paymentId(payment.getPaymentId())
+                            .orderId(payment.getOrderId())
+                            .orderState(payment.getOrderState())
+                            .createdAt(payment.getCreatedAt())
+                            .roadFull(address != null ? address.getRoadFull() : null)
+                            .addrDetail(address != null ? address.getAddrDetail() : null)
+                            .build();
+                })
+                .filter(dto -> dto.getShopName() != null && dto.getRoadFull() != null)
+                .toList();
     }
-
-
 }

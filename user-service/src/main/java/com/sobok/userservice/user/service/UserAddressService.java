@@ -129,7 +129,7 @@ public class UserAddressService {
                 () -> new CustomException("존재하지 않는 주소입니다.", HttpStatus.NOT_FOUND)
         );
 
-        if(!userAddress.getUserId().equals(userInfo.getId())) {
+        if (!userAddress.getUserId().equals(userInfo.getId())) {
             throw new CustomException("잘못된 사용자 요청입니다.", HttpStatus.FORBIDDEN);
         }
 
@@ -141,5 +141,15 @@ public class UserAddressService {
         }
 
         return id;
+    }
+
+    public List<UserAddressDto> getAddressList(List<Long> id) {
+        List<UserAddress> userAddressList = userAddressRepository.findAllById(id);
+        log.info("주소 조회");
+
+        return userAddressList
+                .stream()
+                .map(addr -> new UserAddressDto(addr.getId(), addr.getRoadFull(), addr.getAddrDetail()))
+                .toList();
     }
 }

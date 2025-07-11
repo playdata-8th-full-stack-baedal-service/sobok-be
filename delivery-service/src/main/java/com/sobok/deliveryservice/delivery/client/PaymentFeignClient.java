@@ -1,7 +1,7 @@
 package com.sobok.deliveryservice.delivery.client;
 
-import com.sobok.paymentservice.common.config.FeignConfig;
-import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
+import com.sobok.deliveryservice.common.config.FeignConfig;
+import com.sobok.deliveryservice.delivery.dto.payment.ShopPaymentResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

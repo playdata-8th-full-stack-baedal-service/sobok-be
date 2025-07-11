@@ -4,6 +4,7 @@ package com.sobok.deliveryservice.delivery.controller;
 import com.sobok.deliveryservice.common.dto.ApiResponse;
 import com.sobok.deliveryservice.common.dto.TokenUserInfo;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
+import com.sobok.deliveryservice.delivery.dto.response.DeliveryAvailOrderResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.service.DeliveryService;
 import jakarta.validation.Valid;
@@ -46,7 +47,7 @@ public class DeliveryController {
     public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
                                           @RequestParam Double latitude, @RequestParam Double longitude,
                                           @RequestParam Long pageNo, @RequestParam Long numOfRows) {
-        deliveryService.getAvailableOrders(userInfo, latitude, longitude);
-        return ResponseEntity.ok(ApiResponse.ok("배달 가능한 주문 목록을 조회하였습니다."));
+        List<DeliveryAvailOrderResDto> availableOrders = deliveryService.getAvailableOrders(userInfo, latitude, longitude, pageNo, numOfRows);
+        return ResponseEntity.ok(ApiResponse.ok(availableOrders, "배달 가능한 주문 목록을 조회하였습니다."));
     }
 }

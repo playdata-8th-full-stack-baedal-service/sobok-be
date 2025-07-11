@@ -3,6 +3,7 @@ package com.sobok.userservice.user.controller;
 import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
+import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import com.sobok.userservice.user.dto.response.UserInfoResDto;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -126,5 +129,13 @@ public class UserFeignController {
     @GetMapping("/admin/user-id")
     public Long getUserIdByAddress(@RequestParam Long userAddressId) {
         return userService.getUserIdByAddress(userAddressId);
+    }
+
+    /**
+     * userAddressId로 주소 정보를 찾음
+     */
+    @GetMapping("/findUserAddress")
+    public List<UserAddressDto> getRiderAuthInfo(@RequestParam List<Long> id) {
+        return userAddressService.getAddressList(id);
     }
 }
