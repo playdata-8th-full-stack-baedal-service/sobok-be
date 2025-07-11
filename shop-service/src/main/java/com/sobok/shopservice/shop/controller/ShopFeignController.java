@@ -95,4 +95,13 @@ public class ShopFeignController {
         return shopAssignService.findNearShop(latitude, longitude, 10);
     }
 
+    /**
+     * 요리별로 좋아요 순으로 조회
+     */
+    @GetMapping("/cook-posts/{cookId}")
+    public ResponseEntity<CookPostGroupResDto> getCookPosts(@PathVariable Long cookId) {
+        return ResponseEntity.ok(shopService.getPostsByCookId(cookId));
+    }
+
+
 }

@@ -23,4 +23,17 @@ public enum OrderState {
             default -> this;
         };
     }
+
+    // 필요하다면
+    public OrderState previous() {
+        return switch (this) {
+            case DELIVERY_COMPLETE -> DELIVERING;
+            case DELIVERING -> DELIVERY_ASSIGNED;
+            case DELIVERY_ASSIGNED -> READY_FOR_DELIVERY;
+            case READY_FOR_DELIVERY -> PREPARING_INGREDIENTS;
+            case PREPARING_INGREDIENTS -> ORDER_COMPLETE;
+            case ORDER_COMPLETE -> ORDER_PENDING;
+            default -> this;
+        };
+    }
 }

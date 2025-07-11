@@ -63,31 +63,53 @@ public class TossPayService {
 
         // TossPay로 부터 결제가 완료되었는지 검증
         TossPayResDto resDto = null;
+        boolean isError = false;
         try {
             resDto = tosspayConfirm(reqDto);
         } catch (ParseException e) {
             log.error("파싱 실패 : {}", e.getMessage(), e);
-            throw new RuntimeException(e);
+            isError = true;
         } catch (IOException e) {
             log.error("IO 실패 : {}", e.getMessage(), e);
-            throw new RuntimeException(e);
+            isError = true;
         } catch (JSONException e) {
             log.error("JSON 실패 : {}", e.getMessage(), e);
-            throw new RuntimeException(e);
+            isError = true;
+        }
+
+        if (isError) {
+            throw new CustomException("승인 과정에서 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         try {
             // payment-service에 주문 정보 등록
             paymentFeignClient.registerPayment(resDto);
-        } catch (FeignException e) {
-            // paymentKey를 사용한 결제 취소
-            cancelPayment(resDto.getPaymentKey(), "서비스 내부 주문 등록 오류");
-            paymentFeignClient.cancelPayment(reqDto.getOrderId());
-            log.error("결제 정보를 등록하는 과정에서 오류가 발생함. | orderId = {}", reqDto.getOrderId());
-            throw new CustomException("결제 정보를 등록하는 과정에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-        } finally {
-
+        } catch (Exception e) {
+            isError = true;
         }
+
+        // 결제 취소 로직
+        if (isError) {
+            try {
+                // paymentKey를 사용한 결제 취소
+                cancelPayment(resDto.getPaymentKey(), "서비스 내부 주문 등록 오류");
+                log.error("결제 정보를 등록하는 과정에서 오류가 발생함. | orderId = {}", reqDto.getOrderId());
+            } catch (Exception e) {
+                log.error("결제를 취소하는 과정에서 문제가 발생했습니다.");
+                throw new CustomException("결제를 취소하는 과정에서 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            try {
+                // 결국 취소는 해야함.
+                paymentFeignClient.cancelPayment(reqDto.getOrderId());
+            } catch (Exception e) {
+                log.error("결제 취소 Feign 과정에서 오류가 발생하였습니다.");
+                throw new CustomException("결제를 취소하는 과정에서 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            throw new CustomException("결제 정보를 등록하는 과정에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
 
         return resDto;
     }

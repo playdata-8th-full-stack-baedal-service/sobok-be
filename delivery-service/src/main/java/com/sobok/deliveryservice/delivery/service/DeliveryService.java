@@ -174,6 +174,7 @@ public class DeliveryService {
         return DeliveryResDto.builder()
                 .shopId(delivery.get().getShopId())
                 .completeTime(delivery.get().getCompleteTime())
+                .riderId(delivery.get().getRiderId())
                 .build();
     }
 
