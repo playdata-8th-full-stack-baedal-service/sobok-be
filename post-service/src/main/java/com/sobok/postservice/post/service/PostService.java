@@ -190,6 +190,10 @@ public class PostService {
             total = postPage.getTotalElements();
         }
 
+        if (content.isEmpty()) {
+            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
         List<PostListResDto> result = content.stream().map(post -> {
             String cookName = cookClient.getCookNameById(post.getCookId());
             UserInfoResDto user = userClient.getUserInfo(post.getUserId());
@@ -243,6 +247,10 @@ public class PostService {
                 .groupBy(post.id, post.title)
                 .orderBy(userLike.countDistinct().desc())
                 .fetch();
+
+        if (posts.isEmpty()) {
+            throw new CustomException("해당 요리에 대한 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
 
         return CookPostGroupResDto.builder()
                 .cookId(cookId)
