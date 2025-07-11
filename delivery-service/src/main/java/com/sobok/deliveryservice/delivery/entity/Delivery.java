@@ -28,4 +28,8 @@ public class Delivery {
 
     @Column(nullable = true)
     private LocalDateTime completeTime;
+
+    public void updateRiderId(Long riderId) {
+        this.riderId = riderId;
+    }
 }

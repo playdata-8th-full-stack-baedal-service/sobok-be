@@ -11,6 +11,7 @@ import com.sobok.deliveryservice.delivery.dto.info.UserAddressDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.ShopPaymentResDto;
+import com.sobok.deliveryservice.delivery.dto.request.AcceptOrderReqDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.*;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
@@ -192,7 +194,6 @@ public class DeliveryService {
             Long pageNo, Long numOfRows
     ) {
         //라이더 검증
-        log.info("userInfo: {}", userInfo);
         if (!riderRepository.existsById(userInfo.getRiderId())) {
             throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
@@ -258,5 +259,29 @@ public class DeliveryService {
                 })
                 .filter(dto -> dto.getShopName() != null && dto.getRoadFull() != null)
                 .toList();
+    }
+
+    @Transactional
+    public void acceptDelivery(TokenUserInfo userInfo, AcceptOrderReqDto acceptOrderReqDto) {
+        //라이더 검증
+        if (!riderRepository.existsById(userInfo.getRiderId())) {
+            throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        //delivery 테이블에 riderId, completeTime 널인지 확인
+        Delivery delivery = deliveryRepository.findById(acceptOrderReqDto.getDeliveryId())
+                .orElseThrow(() -> new CustomException("해당 배달 목록이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        if (delivery.getRiderId() != null || delivery.getCompleteTime() != null) {
+            throw new CustomException("이미 지정된 주문입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        //payment-service로 가서 orderState가 READY_FOR_DELIVERY가 맞으면 다음 단계로 update
+        paymentFeignClient.acceptDelivery(delivery.getPaymentId());
+
+
+        delivery.updateRiderId(userInfo.getRiderId());
+        deliveryRepository.save(delivery);
+        log.info("riderId 업데이트 완료");
     }
 }
