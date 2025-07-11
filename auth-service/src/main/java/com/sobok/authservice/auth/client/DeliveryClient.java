@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "delivery-service", configuration = FeignConfig.class)
 public interface DeliveryClient {
 
-    @PostMapping("/delivery/signup")
+    @PostMapping("/api/signup")
     ApiResponse<AuthRiderResDto> registerRider(@RequestBody RiderReqDto dto);
 
     @PostMapping("/api/findByPhoneNumber")
