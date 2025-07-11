@@ -73,15 +73,6 @@ public class AuthController {
     }
 
     /**
-     * 라이더 면허 번호 중복 확인
-     */
-    @GetMapping("/check-permission")
-    public ResponseEntity<?> checkPermission(@RequestParam String permission) {
-        authService.checkPermission(permission);
-        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 면허번호 입니다."));
-    }
-
-    /**
      * 가게 이름 중복 확인
      */
     @GetMapping("/check-shopName")
