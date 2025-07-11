@@ -8,11 +8,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "cook-service", configuration = FeignConfig.class)
 public interface CookFeignClient {
 
-
     /**
      * 요리 ID로 요리 이름을 조회
      */
     @GetMapping("/api/cook/name")
     String getCookNameById(@RequestParam Long cookId);
+
+
 }
 

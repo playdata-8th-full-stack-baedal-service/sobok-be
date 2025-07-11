@@ -4,10 +4,7 @@ import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
-import com.sobok.shopservice.shop.dto.response.AdminShopResDto;
-import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
-import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
-import com.sobok.shopservice.shop.dto.response.ShopResDto;
+import com.sobok.shopservice.shop.dto.response.*;
 import com.sobok.shopservice.shop.repository.ShopRepository;
 import com.sobok.shopservice.shop.service.ShopAssignService;
 import com.sobok.shopservice.shop.service.ShopService;
@@ -89,5 +86,14 @@ public class ShopFeignController {
     public ResponseEntity<AdminShopResDto> getShopInfo(@RequestParam Long shopId) {
         return ResponseEntity.ok(shopService.getShopInfo(shopId));
     }
+
+    /**
+     * 요리별로 좋아요 순으로 조회
+     */
+    @GetMapping("/cook-posts/{cookId}")
+    public ResponseEntity<CookPostGroupResDto> getCookPosts(@PathVariable Long cookId) {
+        return ResponseEntity.ok(shopService.getPostsByCookId(cookId));
+    }
+
 
 }
