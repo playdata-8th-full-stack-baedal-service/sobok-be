@@ -213,15 +213,14 @@ public class DeliveryService {
         Page<Delivery> deliveryPage = deliveryRepository.findAllByShopIdIn(shopIdList, pageable);
         log.info("deliveryPage: {}", deliveryPage);
 
-        Map<Long, Long> paymentToShopIdMap = deliveryPage.getContent().stream()
-                .collect(Collectors.toMap(Delivery::getPaymentId, Delivery::getShopId));
-
-        if (paymentToShopIdMap.isEmpty()) {
+        Map<Long, Delivery> paymentIdToDeliveryMap = deliveryPage.getContent().stream()
+                .collect(Collectors.toMap(Delivery::getPaymentId, Function.identity()));
+        if (paymentIdToDeliveryMap.isEmpty()) {
             return Collections.emptyList();
         }
 
         // 배달 전인 주문 조회 (Payment 정보)
-        List<Long> paymentIdList = new ArrayList<>(paymentToShopIdMap.keySet());
+        List<Long> paymentIdList = new ArrayList<>(paymentIdToDeliveryMap.keySet());
         List<ShopPaymentResDto> riderAvailPayment = paymentFeignClient.getRiderAvailPayment(paymentIdList);
         log.info("배달 가능한 주문들 Payment: {}", riderAvailPayment);
 
@@ -239,14 +238,15 @@ public class DeliveryService {
 
         return riderAvailPayment.stream()
                 .map(payment -> {
-                    Long shopId = paymentToShopIdMap.get(payment.getPaymentId());
-                    DeliveryAvailShopResDto shop = shopMap.get(shopId);
+                    Delivery delivery = paymentIdToDeliveryMap.get(payment.getPaymentId());
+                    DeliveryAvailShopResDto shop = shopMap.get(delivery.getShopId());
                     UserAddressDto address = addressMap.get(payment.getUserAddressId());
 
                     return DeliveryAvailOrderResDto.builder()
-                            .shopId(shopId)
-                            .shopName(shop != null ? shop.getShopName() : null)
-                            .shopRoadFull(shop != null ? shop.getRoadFull() : null)
+                            .deliveryId(delivery.getId())
+                            .shopId(shop.getShopId())
+                            .shopName(shop.getShopName())
+                            .shopRoadFull(shop.getRoadFull())
                             .paymentId(payment.getPaymentId())
                             .orderId(payment.getOrderId())
                             .orderState(payment.getOrderState())

@@ -16,6 +16,7 @@ public class DeliveryAvailOrderResDto {
     private String shopName;
     private String shopRoadFull;
     //주문 정보
+    private Long deliveryId;
     private Long paymentId;
     private String orderId;
     private OrderState orderState;
