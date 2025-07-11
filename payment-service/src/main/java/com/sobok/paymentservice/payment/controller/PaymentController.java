@@ -4,6 +4,7 @@ import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
+import com.sobok.paymentservice.payment.dto.payment.ChangeOrderStateReqDto;
 import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentDetailResDto;
@@ -46,7 +47,7 @@ public class PaymentController {
      */
     @GetMapping("/get-cart")
     public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        PaymentResDto resDto = cartService.getCart(userInfo,"cart");
+        PaymentResDto resDto = cartService.getCart(userInfo, "cart");
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 
@@ -66,19 +67,20 @@ public class PaymentController {
     @PostMapping("/start-pay")
     public ResponseEntity<?> startPay(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody CartStartPayDto reqDto) {
         cartService.startPay(userInfo, reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getUserId(),"성공적으로 장바구니의 정보가 저장되었습니다."));
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getUserId(), "성공적으로 장바구니의 정보가 저장되었습니다."));
     }
 
     @DeleteMapping("/fail-payment")
     public ResponseEntity<?> cancelPayment(@RequestParam String orderId) {
         String result = paymentService.resetPayment(orderId);
-        return ResponseEntity.ok().body(ApiResponse.ok(result,"성공적으로 결제가 취소되었습니다."));
+        return ResponseEntity.ok().body(ApiResponse.ok(result, "성공적으로 결제가 취소되었습니다."));
     }
 
     @DeleteMapping("/delete-payment")
     public void deletePayment(@RequestParam String orderId) {
         paymentService.cancelPayment(orderId);
     }
+
     /**
      * 사용자 주문 전체 조회
      */
@@ -86,7 +88,7 @@ public class PaymentController {
     public ResponseEntity<?> getPayment(@AuthenticationPrincipal TokenUserInfo userInfo,
                                         @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<GetPaymentResDto> getPaymentResDtos = paymentService.getPayment(userInfo, pageNo, numOfRows);
-        return ResponseEntity.ok().body(ApiResponse.ok(getPaymentResDtos,"사용자의 주문 내역이 조회되었습니다."));
+        return ResponseEntity.ok().body(ApiResponse.ok(getPaymentResDtos, "사용자의 주문 내역이 조회되었습니다."));
     }
 
     /**
@@ -96,5 +98,14 @@ public class PaymentController {
     public ResponseEntity<?> getPaymentDetail(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable("id") Long paymentId) {
         PaymentDetailResDto paymentDetail = paymentService.getPaymentDetail(userInfo, paymentId);
         return ResponseEntity.ok().body(ApiResponse.ok(paymentDetail, "주문 상세 내역이 조회되었습니다."));
+    }
+
+    /**
+     * 주문 상태 변경
+     */
+    @PatchMapping("/change-orderState")
+    public ResponseEntity<?> changeOrderState(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody ChangeOrderStateReqDto changeOrderState) {
+        paymentService.changeOrderState(userInfo, changeOrderState);
+        return ResponseEntity.ok().body(ApiResponse.ok(changeOrderState, "주문 상태가 변경되었습니다."));
     }
 }
