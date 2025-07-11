@@ -1,19 +1,20 @@
 package com.sobok.deliveryservice.delivery.service;
 
+import com.sobok.deliveryservice.common.dto.TokenUserInfo;
 import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.client.AuthFeignClient;
+import com.sobok.deliveryservice.delivery.client.PaymentFeignClient;
+import com.sobok.deliveryservice.delivery.client.ShopFeignClient;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
-import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
-import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
-import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
-import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
+import com.sobok.deliveryservice.delivery.dto.response.*;
 import com.sobok.deliveryservice.delivery.entity.Delivery;
 import com.sobok.deliveryservice.delivery.entity.Rider;
 import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
 import com.sobok.deliveryservice.delivery.repository.RiderRepository;
+import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -31,6 +33,8 @@ public class DeliveryService {
     private final RiderRepository riderRepository;
     private final DeliveryRepository deliveryRepository;
     private final AuthFeignClient authFeignClient;
+    private final ShopFeignClient shopFeignClient;
+    private final PaymentFeignClient paymentFeignClient;
 
     public RiderResDto riderCreate(RiderReqDto dto) {
 
@@ -169,10 +173,44 @@ public class DeliveryService {
 
     public List<Long> getPaymentId(Long shopId) {
         return deliveryRepository.findByShopId(shopId).stream()
-        .map(Delivery::getPaymentId)
-        .filter(Objects::nonNull)
-        .distinct()
-        .toList();
+                .map(Delivery::getPaymentId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
     }
+
+    public void getAvailableOrders(TokenUserInfo userInfo, Double latitude, Double longitude) {
+        //라이더 검증
+        log.info("userInfo: {}", userInfo);
+        if (!riderRepository.existsById(userInfo.getRiderId())) {
+            throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+        //근처에 있는 가게 조회
+        List<DeliveryAvailShopResDto> nearShop = shopFeignClient.getNearShop(latitude, longitude);
+        log.info("nearShop: {}", nearShop);
+
+        //응답: paymentId, orderId, userAddress, 주문 시간, 가게 정보
+        //가게 하나에 들어온 주문 모두 가져와. 조건 orderState가 ORDER_COMPLETE, PREPARING_INGREDIENTS, READY_FOR_DELIVERY
+        //shopId로 paymentId 얻어와
+        List<Long> shopIdList = nearShop.stream()
+                .map(DeliveryAvailShopResDto::getShopId)
+                .toList();
+
+        List<Delivery> deliveryList = deliveryRepository.findAllById(shopIdList);
+        log.info("deliveryList: {}", deliveryList);
+
+        List<Long> paymentIdList = deliveryList.stream()
+                .map(Delivery::getPaymentId)
+                .toList();
+
+        List<ShopPaymentResDto> riderAvailPayment = paymentFeignClient.getRiderAvailPayment(paymentIdList);
+        log.info("riderAvailPayment: {}", riderAvailPayment);
+
+
+
+
+    }
+
+
 }

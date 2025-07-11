@@ -4,10 +4,7 @@ import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
-import com.sobok.shopservice.shop.dto.response.AdminShopResDto;
-import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
-import com.sobok.shopservice.shop.dto.response.ByPhoneResDto;
-import com.sobok.shopservice.shop.dto.response.ShopResDto;
+import com.sobok.shopservice.shop.dto.response.*;
 import com.sobok.shopservice.shop.repository.ShopRepository;
 import com.sobok.shopservice.shop.service.ShopAssignService;
 import com.sobok.shopservice.shop.service.ShopService;
@@ -88,6 +85,14 @@ public class ShopFeignController {
     @GetMapping("/shop-info-all")
     public ResponseEntity<AdminShopResDto> getShopInfo(@RequestParam Long shopId) {
         return ResponseEntity.ok(shopService.getShopInfo(shopId));
+    }
+
+    /**
+     * 라이더 근처에 위치한 가게 조회
+     */
+    @GetMapping("/find-near-shop")
+    public List<DeliveryAvailShopResDto> getNearShop(@RequestParam Double latitude, @RequestParam Double longitude) {
+        return shopAssignService.findNearShop(latitude, longitude, 10);
     }
 
 }
