@@ -22,6 +22,6 @@ public class CookPostGroupResDto {
         private Long postId;
         private String title;
         private String thumbnail;
-        private int likeCount;
+        private Long likeCount;
     }
 }

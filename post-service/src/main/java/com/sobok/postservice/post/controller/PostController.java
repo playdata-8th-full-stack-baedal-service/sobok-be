@@ -65,11 +65,14 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.ok(result, "전체 게시글 조회 성공"));
     }
     /**
-     * 요리별 좋아요순 정렬 조회
+     * 요리별 요리별 좋아요순, 최신순 정렬 조회
      */
     @GetMapping("/cook-posts/{cookId}")
-    public ResponseEntity<CookPostGroupResDto> getCookPosts(@PathVariable Long cookId) {
-        return ResponseEntity.ok(postService.getCookPostsByCookId(cookId));
+    public ResponseEntity<CookPostGroupResDto> getCookPosts(
+            @PathVariable Long cookId,
+            @RequestParam(defaultValue = "like") String sortBy
+    ) {
+        return ResponseEntity.ok(postService.getCookPostsByCookId(cookId, sortBy));
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.sobok.postservice.post.service;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import static com.sobok.postservice.post.entity.QPost.post;
@@ -17,9 +18,7 @@ import com.sobok.postservice.post.dto.request.PostImageDto;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
 import com.sobok.postservice.post.dto.response.*;
-import com.sobok.postservice.post.entity.Post;
-import com.sobok.postservice.post.entity.PostImage;
-import com.sobok.postservice.post.entity.UserLike;
+import com.sobok.postservice.post.entity.*;
 import com.sobok.postservice.post.repository.PostImageRepository;
 import com.sobok.postservice.post.repository.PostRepository;
 import com.sobok.postservice.post.repository.UserLikeRepository;
@@ -231,9 +230,15 @@ public class PostService {
     }
 
     /**
-     * 요리별 좋아요순 게시글 조회
+     * 요리별 좋아요순, 최신순 게시글 조회
      */
-    public CookPostGroupResDto getCookPostsByCookId(Long cookId) {
+    public CookPostGroupResDto getCookPostsByCookId(Long cookId, String sortBy) {
+        QPost post = QPost.post;
+        QUserLike userLike = QUserLike.userLike;
+        QPostImage postImage = QPostImage.postImage;
+
+        NumberExpression<Long> likeCount = userLike.countDistinct();
+
         List<CookPostGroupResDto.PostSummaryDto> posts = queryFactory
                 .select(Projections.constructor(CookPostGroupResDto.PostSummaryDto.class,
                         post.id,
@@ -243,14 +248,19 @@ public class PostService {
                                 .from(postImage)
                                 .where(postImage.postId.eq(post.id), postImage.index.eq(1))
                                 .limit(1),
-                        userLike.countDistinct().intValue()
+                        likeCount
                 ))
                 .from(post)
                 .leftJoin(userLike).on(userLike.postId.eq(post.id))
                 .where(post.cookId.eq(cookId))
-                .groupBy(post.id, post.title)
-                .orderBy(userLike.countDistinct().desc())
+                .groupBy(post.id, post.title, post.updatedAt)
+                .orderBy(
+                        "like".equalsIgnoreCase(sortBy)
+                                ? likeCount.desc()
+                                : post.updatedAt.desc()
+                )
                 .fetch();
+
 
         if (posts.isEmpty()) {
             throw new CustomException("해당 요리에 대한 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
@@ -261,6 +271,7 @@ public class PostService {
                 .posts(posts)
                 .build();
     }
+
     // todo s3 연결 필요 썸네일
 
     /**
