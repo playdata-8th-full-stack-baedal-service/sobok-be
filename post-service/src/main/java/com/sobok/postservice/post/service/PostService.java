@@ -271,22 +271,7 @@ public class PostService {
         Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
 
         List<PostListResDto> posts = postPage.getContent().stream().map(post -> {
-            String cookName = cookClient.getCookNameById(post.getCookId());
-            String nickName = userClient.getNicknameById(post.getUserId());
-            int likeCount = userLikeRepository.countByPostId(post.getId());
-            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
-                    .map(PostImage::getImagePath).orElse(null);
-
-            return PostListResDto.builder()
-                    .postId(post.getId())
-                    .title(post.getTitle())
-                    .cookName(cookName)
-                    .nickName(nickName)
-                    .userId(post.getUserId())
-                    .likeCount(likeCount)
-                    .thumbnail(thumbnail)
-                    .updatedAt(post.getUpdatedAt())
-                    .build();
+            return getPostListResDto(post);
         }).toList();
 
         PagedResponse<PostListResDto> response = new PagedResponse<>(
@@ -320,22 +305,7 @@ public class PostService {
             Post post = postRepository.findById(userLike.getPostId())
                     .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
-            String cookName = cookClient.getCookNameById(post.getCookId());
-            String nickName = userClient.getNicknameById(post.getUserId());
-            int likeCount = userLikeRepository.countByPostId(post.getId());
-            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
-                    .map(PostImage::getImagePath).orElse(null);
-
-            return PostListResDto.builder()
-                    .postId(post.getId())
-                    .title(post.getTitle())
-                    .cookName(cookName)
-                    .nickName(nickName)
-                    .userId(post.getUserId())
-                    .likeCount(likeCount)
-                    .thumbnail(thumbnail)
-                    .updatedAt(post.getUpdatedAt())
-                    .build();
+            return getPostListResDto(post);
         }).toList();
 
         return new PagedResponse<>(
@@ -346,6 +316,26 @@ public class PostService {
                 userLikePage.getTotalPages(),
                 userLikePage.isLast()
         );
+    }
+
+    //게시글 목록 조회 시 필요한 정보(공통된 응답이라 분리)
+    private PostListResDto getPostListResDto(Post post) {
+        String cookName = cookClient.getCookNameById(post.getCookId());
+        String nickName = userClient.getNicknameById(post.getUserId());
+        int likeCount = userLikeRepository.countByPostId(post.getId());
+        String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
+                .map(PostImage::getImagePath).orElse(null);
+
+        return PostListResDto.builder()
+                .postId(post.getId())
+                .title(post.getTitle())
+                .cookName(cookName)
+                .nickName(nickName)
+                .userId(post.getUserId())
+                .likeCount(likeCount)
+                .thumbnail(thumbnail)
+                .updatedAt(post.getUpdatedAt())
+                .build();
     }
 
 
