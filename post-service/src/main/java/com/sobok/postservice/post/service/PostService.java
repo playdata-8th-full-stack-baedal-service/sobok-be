@@ -1,5 +1,8 @@
 package com.sobok.postservice.post.service;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import static com.sobok.postservice.post.entity.QPost.post;
+import static com.sobok.postservice.post.entity.QUserLike.userLike;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
 import com.sobok.postservice.post.client.CookFeignClient;
@@ -24,18 +27,21 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+
 import java.util.List;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class PostService {
+
     private final PostRepository postRepository;
     private final PaymentFeignClient paymentClient;
     private final PostImageRepository postImageRepository;
     private final CookFeignClient cookClient;
     private final UserFeignClient userClient;
     private final UserLikeRepository userLikeRepository;
+    private final JPAQueryFactory queryFactory;
 
     /**
      * 게시글 등록
@@ -154,20 +160,40 @@ public class PostService {
     /**
      * 게시글 조회
      */
-    public PagedResponse<PostListResDto> getPostList(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
-        Page<Post> postPage = postRepository.findAll(pageable);
+    public PagedResponse<PostListResDto> getPostList(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<PostListResDto> content = postPage.getContent().stream().map(post -> {
+        List<Post> content;
+        long total;
+
+        if ("like".equalsIgnoreCase(sortBy)) {
+            // 좋아요 순 정렬
+            content = queryFactory
+                    .selectFrom(post)
+                    .leftJoin(userLike).on(post.id.eq(userLike.postId))
+                    .groupBy(post.id)
+                    .orderBy(userLike.count().desc())
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetch();
+
+            total = queryFactory.select(post.count()).from(post).fetchOne();
+
+        } else {
+            // 최신순 정렬
+            Page<Post> postPage = postRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt")));
+            content = postPage.getContent();
+            total = postPage.getTotalElements();
+        }
+
+        List<PostListResDto> result = content.stream().map(post -> {
             String cookName = cookClient.getCookNameById(post.getCookId());
             UserInfoResDto user = userClient.getUserInfo(post.getUserId());
 
-            // 썸네일 (index = 1)
             String thumbnail = postImageRepository.findByPostIdAndIndex(post.getId(), 1)
                     .map(PostImage::getImagePath)
                     .orElse(null);
 
-            // 좋아요 수
             int likeCount = userLikeRepository.countByPostId(post.getId());
 
             return PostListResDto.builder()
@@ -182,12 +208,14 @@ public class PostService {
                     .build();
         }).toList();
 
-        return new PagedResponse<>(content,
-                postPage.getNumber(),
-                postPage.getSize(),
-                postPage.getTotalElements(),
-                postPage.getTotalPages(),
-                postPage.isLast());
+        return new PagedResponse<>(
+                result,
+                page,
+                size,
+                total,
+                (int) Math.ceil((double) total / size),
+                result.size() < size
+        );
     }
 
 

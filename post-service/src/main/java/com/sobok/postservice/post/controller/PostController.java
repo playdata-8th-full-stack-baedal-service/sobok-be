@@ -57,11 +57,12 @@ public class PostController {
      * 게시글 조회
      */
     @GetMapping("/post-list")
-    public ResponseEntity<ApiResponse<PagedResponse<PostListResDto>>> getPublicPostList(
+    public ResponseEntity<ApiResponse<PagedResponse<PostListResDto>>> getPostList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "updated") String sortBy
     ) {
-        PagedResponse<PostListResDto> result = postService.getPostList(page, size);
+        PagedResponse<PostListResDto> result = postService.getPostList(page, size, sortBy);
         return ResponseEntity.ok(ApiResponse.ok(result, "전체 게시글 조회 성공"));
     }
 
