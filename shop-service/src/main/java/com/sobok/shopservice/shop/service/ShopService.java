@@ -183,6 +183,7 @@ public class ShopService {
         OrderState filterState = null;
         if (orderState != null && !orderState.isBlank()) {
             try {
+                orderState = orderState.toUpperCase();
                 filterState = OrderState.valueOf(orderState);
             } catch (IllegalArgumentException e) {
                 throw new CustomException("잘못된 주문 상태 값입니다.", HttpStatus.BAD_REQUEST);
