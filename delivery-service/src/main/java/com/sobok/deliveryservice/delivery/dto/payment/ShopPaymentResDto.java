@@ -1,6 +1,6 @@
-package com.sobok.paymentservice.payment.dto.shop;
+package com.sobok.deliveryservice.delivery.dto.payment;
 
-import com.sobok.paymentservice.common.enums.OrderState;
+import com.sobok.deliveryservice.common.enums.OrderState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

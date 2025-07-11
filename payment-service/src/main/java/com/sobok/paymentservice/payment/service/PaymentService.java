@@ -7,7 +7,7 @@ import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
 import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
-
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.paymentservice.payment.client.ShopFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.payment.*;
@@ -20,6 +20,7 @@ import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.Payment;
+import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,8 @@ public class PaymentService {
     private final CartService cartService;
     private final CartIngreRepository CartIngreRepository;
     private final DeliveryFeignClient deliveryFeignClient;
+    private final JPAQueryFactory factory;
+
 
     /**
      * 결제 사전 정보 등록
@@ -415,6 +418,33 @@ public class PaymentService {
 
         return orderId;
     }
+
+    public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids) {
+        QPayment payment = QPayment.payment;
+
+        List<Payment> paymentList = factory
+                .selectFrom(payment)
+                .where(
+                        payment.id.in(ids),
+                        payment.orderState.in(
+                                OrderState.ORDER_COMPLETE,
+                                OrderState.PREPARING_INGREDIENTS,
+                                OrderState.READY_FOR_DELIVERY
+                        )
+                )
+                .fetch();
+
+        return paymentList.stream()
+                .map(p -> ShopPaymentResDto.builder()
+                        .paymentId(p.getId())
+                        .orderId(p.getOrderId())
+                        .orderState(p.getOrderState())
+                        .userAddressId(p.getUserAddressId())
+                        .createdAt(p.getCreatedAt())
+                        .build())
+                .toList();
+    }
+
 
     public void changeOrderState(TokenUserInfo userInfo, ChangeOrderStateReqDto changeOrderState) {
         DeliveryResDto delivery = deliveryFeignClient.getDelivery(changeOrderState.getPaymentId());

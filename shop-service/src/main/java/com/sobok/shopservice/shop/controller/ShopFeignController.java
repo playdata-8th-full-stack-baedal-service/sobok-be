@@ -88,6 +88,14 @@ public class ShopFeignController {
     }
 
     /**
+     * 라이더 근처에 위치한 가게 조회
+     */
+    @GetMapping("/find-near-shop")
+    public List<DeliveryAvailShopResDto> getNearShop(@RequestParam Double latitude, @RequestParam Double longitude) {
+        return shopAssignService.findNearShop(latitude, longitude, 10);
+    }
+
+    /**
      * 요리별로 좋아요 순으로 조회
      */
     @GetMapping("/cook-posts/{cookId}")
