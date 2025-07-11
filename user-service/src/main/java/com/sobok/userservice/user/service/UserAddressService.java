@@ -134,7 +134,7 @@ public class UserAddressService {
         }
 
         String active = userAddress.getActive();
-        if (active == null || "Y".equals(active)) {
+        if (active == null || "N".equals(active)) {
             throw new CustomException("이미 비활성화된 주소입니다.", HttpStatus.BAD_REQUEST);
         } else {
             userAddress.convertActive(false);
