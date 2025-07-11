@@ -4,6 +4,8 @@ import com.sobok.postservice.common.dto.ApiResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
+import com.sobok.postservice.post.dto.response.PagedResponse;
+import com.sobok.postservice.post.dto.response.PostListResDto;
 import com.sobok.postservice.post.dto.response.PostRegisterResDto;
 import com.sobok.postservice.post.dto.response.PostUpdateResDto;
 import com.sobok.postservice.post.service.PostService;
@@ -49,6 +51,18 @@ public class PostController {
             @AuthenticationPrincipal TokenUserInfo userInfo) {
         postService.deletePost(postId, userInfo);
         return ResponseEntity.ok(ApiResponse.ok("게시글 삭제 성공"));
+    }
+
+    /**
+     * 게시글 조회
+     */
+    @GetMapping("/post-list")
+    public ResponseEntity<ApiResponse<PagedResponse<PostListResDto>>> getPublicPostList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PagedResponse<PostListResDto> result = postService.getPostList(page, size);
+        return ResponseEntity.ok(ApiResponse.ok(result, "전체 게시글 조회 성공"));
     }
 
 

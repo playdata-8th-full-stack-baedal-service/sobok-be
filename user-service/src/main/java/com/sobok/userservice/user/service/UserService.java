@@ -11,9 +11,7 @@ import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.payment.CartStartPayDto;
 import com.sobok.userservice.user.dto.request.*;
-import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
-import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
-import com.sobok.userservice.user.dto.response.UserInfoResDto;
+import com.sobok.userservice.user.dto.response.*;
 import com.sobok.userservice.user.entity.UserAddress;
 import com.sobok.userservice.user.entity.UserBookmark;
 import com.sobok.userservice.user.repository.UserAddressRepository;
@@ -27,7 +25,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -449,6 +446,16 @@ public class UserService {
         return userAddressRepository.findById(userAddressId)
                 .orElseThrow(() -> new CustomException("주소가 존재하지 않습니다.", HttpStatus.NOT_FOUND))
                 .getUserId();
+    }
+
+    public UserPostInfoResDto getPostUserInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException("사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        return UserPostInfoResDto.builder()
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .build();
     }
 
 }

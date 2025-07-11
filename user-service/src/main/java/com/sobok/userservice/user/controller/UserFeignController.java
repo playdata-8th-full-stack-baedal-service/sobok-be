@@ -6,6 +6,7 @@ import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import com.sobok.userservice.user.dto.response.UserInfoResDto;
+import com.sobok.userservice.user.dto.response.UserPostInfoResDto;
 import com.sobok.userservice.user.dto.response.UserResDto;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserRepository;
@@ -127,4 +128,14 @@ public class UserFeignController {
     public Long getUserIdByAddress(@RequestParam Long userAddressId) {
         return userService.getUserIdByAddress(userAddressId);
     }
+
+    /**
+     * 게시글 조회용(유저 정보)
+     */
+    @GetMapping("/post-info")
+    public ResponseEntity<UserPostInfoResDto> getPostInfo(@RequestParam Long userId) {
+        UserPostInfoResDto res = userService.getPostUserInfo(userId);
+        return ResponseEntity.ok(res);
+    }
+
 }

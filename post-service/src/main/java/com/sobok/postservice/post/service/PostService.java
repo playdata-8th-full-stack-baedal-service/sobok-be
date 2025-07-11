@@ -4,18 +4,23 @@ import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
 import com.sobok.postservice.post.client.CookFeignClient;
 import com.sobok.postservice.post.client.PaymentFeignClient;
+import com.sobok.postservice.post.client.UserFeignClient;
 import com.sobok.postservice.post.dto.request.PostImageDto;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
-import com.sobok.postservice.post.dto.response.PostRegisterResDto;
-import com.sobok.postservice.post.dto.response.PostUpdateResDto;
+import com.sobok.postservice.post.dto.response.*;
 import com.sobok.postservice.post.entity.Post;
 import com.sobok.postservice.post.entity.PostImage;
 import com.sobok.postservice.post.repository.PostImageRepository;
 import com.sobok.postservice.post.repository.PostRepository;
+import com.sobok.postservice.post.repository.UserLikeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +34,8 @@ public class PostService {
     private final PaymentFeignClient paymentClient;
     private final PostImageRepository postImageRepository;
     private final CookFeignClient cookClient;
+    private final UserFeignClient userClient;
+    private final UserLikeRepository userLikeRepository;
 
     /**
      * 게시글 등록
@@ -69,7 +76,7 @@ public class PostService {
             }
         }
 
-        return new PostRegisterResDto(post.getId(),cookName);
+        return new PostRegisterResDto(post.getId(), cookName);
     }
 
 
@@ -143,6 +150,45 @@ public class PostService {
     /**
      * todo: s3 연결 필요
      */
+
+    /**
+     * 게시글 조회
+     */
+    public PagedResponse<PostListResDto> getPostList(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        Page<Post> postPage = postRepository.findAll(pageable);
+
+        List<PostListResDto> content = postPage.getContent().stream().map(post -> {
+            String cookName = cookClient.getCookNameById(post.getCookId());
+            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
+
+            // 썸네일 (index = 1)
+            String thumbnail = postImageRepository.findByPostIdAndIndex(post.getId(), 1)
+                    .map(PostImage::getImagePath)
+                    .orElse(null);
+
+            // 좋아요 수
+            int likeCount = userLikeRepository.countByPostId(post.getId());
+
+            return PostListResDto.builder()
+                    .postId(post.getId())
+                    .title(post.getTitle())
+                    .cookName(cookName)
+                    .userId(user.getUserId())
+                    .userNickname(user.getNickname())
+                    .likeCount(likeCount)
+                    .thumbnail(thumbnail)
+                    .updatedAt(post.getUpdatedAt())
+                    .build();
+        }).toList();
+
+        return new PagedResponse<>(content,
+                postPage.getNumber(),
+                postPage.getSize(),
+                postPage.getTotalElements(),
+                postPage.getTotalPages(),
+                postPage.isLast());
+    }
 
 
 }
