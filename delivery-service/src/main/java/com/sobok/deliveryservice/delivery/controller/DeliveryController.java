@@ -19,13 +19,6 @@ public class DeliveryController {
 
     private final DeliveryService deliveryService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<RiderResDto> signup(@RequestBody @Valid RiderReqDto dto) {
-        log.info("rider signup 요청 들어옴");
-        RiderResDto response = deliveryService.riderCreate(dto);
-        return ResponseEntity.ok(response);
-    }
-
     /**
      * 라이더 면허 번호 중복 확인
      */
