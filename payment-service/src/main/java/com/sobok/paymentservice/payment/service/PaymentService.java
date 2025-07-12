@@ -416,6 +416,8 @@ public class PaymentService {
             cartCookRepository.save(cartCook);
         }
 
+        paymentRepository.delete(payment);
+
         return orderId;
     }
 

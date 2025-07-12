@@ -97,14 +97,9 @@ public class TossPayService {
             } catch (Exception e) {
                 log.error("결제를 취소하는 과정에서 문제가 발생했습니다.");
                 throw new CustomException("결제를 취소하는 과정에서 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-            try {
+            } finally {
                 // 결국 취소는 해야함.
                 paymentFeignClient.cancelPayment(reqDto.getOrderId());
-            } catch (Exception e) {
-                log.error("결제 취소 Feign 과정에서 오류가 발생하였습니다.");
-                throw new CustomException("결제를 취소하는 과정에서 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             throw new CustomException("결제 정보를 등록하는 과정에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
