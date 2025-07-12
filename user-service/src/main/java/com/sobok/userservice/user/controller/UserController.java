@@ -97,6 +97,12 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(bookmark, "즐겨찾기 요리가 조회되었습니다."));
     }
 
+    @GetMapping("/getBookmark/{id}")
+    public ResponseEntity<?> getBookmarkById(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable(name = "id") Long cookId) {
+        boolean response = userService.getBookmarkById(userInfo.getUserId(), cookId);
+        return ResponseEntity.ok().body(ApiResponse.ok(response, "사용자의 즐겨찾기 상태가 조회되었습니다.."));
+    }
+
     @GetMapping("/preOrderUser")
     public ResponseEntity<?> preOrderUser(@AuthenticationPrincipal TokenUserInfo userInfo) {
         PreOrderUserResDto preOrderUser = userService.getPreOrderUser(userInfo);
