@@ -448,6 +448,11 @@ public class UserService {
                 .getUserId();
     }
 
+
+    public boolean getBookmarkById(Long userId, Long cookId) {
+        return userBookmarkRepository.existsByUserIdAndCookId(userId, cookId);
+    }
+
     public UserPostInfoResDto getPostUserInfo(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
