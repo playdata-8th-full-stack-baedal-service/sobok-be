@@ -221,4 +221,19 @@ public class ShopService {
     public CookPostGroupResDto getPostsByCookId(Long cookId) {
         return postFeignClient.getCookPosts(cookId);
     }
+
+    /**
+     * shopId로 가게 정보 조회 (리스트)
+     */
+    public List<DeliveryAvailShopResDto> getShopInfoList(List<Long> ids) {
+
+        List<Shop> shopList = shopRepository.findAllById(ids);
+
+        return shopList.stream().map(shops -> DeliveryAvailShopResDto.builder()
+                        .shopId(shops.getId())
+                        .shopName(shops.getShopName())
+                        .roadFull(shops.getRoadFull())
+                        .build())
+                .toList();
+    }
 }

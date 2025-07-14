@@ -1,12 +1,11 @@
 package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.ApiResponse;
+import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
-import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
-import com.sobok.paymentservice.payment.dto.payment.PagedResponse;
-import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
@@ -113,7 +112,15 @@ public class PaymentFeignController {
      */
     @GetMapping("/getRiderAvailPayment")
     public List<ShopPaymentResDto> getRiderAvailPayment(@RequestParam List<Long> id) {
-        return paymentService.getRiderAvailPaymentList(id);
+        return paymentService.getRiderAvailPaymentList(id, List.of(OrderState.READY_FOR_DELIVERY));
+    }
+
+    /**
+     * 배달 목록 조회에 사용되는 paymentId로 주문 정보 받기
+     */
+    @GetMapping("/getRiderPayment")
+    public List<ShopPaymentResDto> getRiderPayment(@RequestParam List<Long> id) {
+        return paymentService.getRiderAvailPaymentList(id, null);
     }
 
     /**
