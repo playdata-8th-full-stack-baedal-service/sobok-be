@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
@@ -108,7 +110,7 @@ public class ApiController {
                                     id: '%s',
                                     role: '%s',
                                     provider: 'KAKAO'
-                                }, window.location.origin);
+                                },'http://localhost:5173');
                                 window.close();
                             } else {
                                 window.location.href = 'http://localhost:5173';
@@ -124,6 +126,12 @@ public class ApiController {
             log.info("새로운 사용자입니다. 추가 회원가입을 진행합니다.");
             // 프론트엔드에 '신규 가입자'임을 알리고 추가 정보 입력 페이지로 이동하도록 메시지를 보냅니다.
             // 이때 카카오에서 받은 정보(닉네임 등)를 함께 넘겨주어 회원가입 폼을 미리 채울 수 있습니다.
+            String encodedNickname = URLEncoder.encode(kakaoUserDto.getProperties().getNickname(), StandardCharsets.UTF_8);
+            String encodedEmail = URLEncoder.encode(kakaoUserDto.getAccount().getEmail(), StandardCharsets.UTF_8);
+            String redirectUrl = String.format(
+                    "http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&oauthId=%s&nickname=%s&email=%s",
+                    oauthResDto.getId(), encodedNickname, encodedEmail
+            );
             html = String.format("""
                             <!DOCTYPE html>
                             <html>
@@ -140,15 +148,15 @@ public class ApiController {
                                         }, 'http://localhost:5173');
                                         window.close();
                                     } else {
-                                        window.location.href = 'http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&kakaoId=%s';
-//                                        window.location.href = `http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&oauthId=${oauthResDto.getId()}&nickname=${encodeURIComponent(kakaoUserDto.getProperties().getNickname())}&email=${encodeURIComponent(kakaoUserDto.getAccount().getEmail())}`;
+                                        window.location.href = '%s';
                                     }
                                 </script>
                                 <p>회원가입 페이지로 이동 중...</p>
                             </body>
                             </html>
                             """, oauthResDto.getId(), kakaoUserDto.getProperties().getNickname(),
-                    kakaoUserDto.getAccount().getEmail(), kakaoUserDto.getId());
+                    kakaoUserDto.getAccount().getEmail(), redirectUrl);
+                    //, kakaoUserDto.getId());
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(html);
         }
