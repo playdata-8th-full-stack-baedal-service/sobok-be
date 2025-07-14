@@ -511,7 +511,6 @@ public class PaymentService {
                 .riderId(userInfo.getRiderId())
                 .build();
 
-
         // delivery-service에 riderId 설정 요청
         deliveryFeignClient.assignRider(reqDto);
 

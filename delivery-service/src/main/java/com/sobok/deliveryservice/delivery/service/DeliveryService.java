@@ -381,6 +381,10 @@ public class DeliveryService {
             throw new CustomException("이미 배달 완료된 주문입니다.", HttpStatus.BAD_REQUEST);
         }
 
+        if(!Objects.equals(acceptOrderReqDto.getRiderId(), delivery.getRiderId())) {
+            throw new CustomException("본인 담당 주문이 아닙니다.", HttpStatus.BAD_REQUEST);
+        }
+
         delivery.setCompleteTime(LocalDateTime.now());
         deliveryRepository.save(delivery);
         log.info("completeTime 업데이트 완료");
