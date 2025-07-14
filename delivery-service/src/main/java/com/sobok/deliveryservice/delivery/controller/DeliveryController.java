@@ -52,8 +52,8 @@ public class DeliveryController {
     @GetMapping("/delivering-order")
     public ResponseEntity<?> getDeliveringOrders(@AuthenticationPrincipal TokenUserInfo userInfo
             , @RequestParam Long pageNo, @RequestParam Long numOfRows) {
-        deliveryService.getDeliveringOrders(userInfo, pageNo, numOfRows);
-        return ResponseEntity.ok(ApiResponse.ok("배달 중인 목록을 조회하였습니다."));
+        List<DeliveryOrderResDto> deliveringOrders = deliveryService.getDeliveringOrders(userInfo, pageNo, numOfRows);
+        return ResponseEntity.ok(ApiResponse.ok(deliveringOrders, "배달 중인 목록을 조회하였습니다."));
 
     }
 
@@ -73,6 +73,6 @@ public class DeliveryController {
     @PatchMapping("/accept-delivery")
     public ResponseEntity<?> acceptOrder(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AcceptOrderReqDto acceptOrderReqDto) {
         deliveryService.acceptDelivery(userInfo, acceptOrderReqDto);
-        return ResponseEntity.ok(ApiResponse.ok( "배달을 수락하였습니다."));
+        return ResponseEntity.ok(ApiResponse.ok("배달을 수락하였습니다."));
     }
 }

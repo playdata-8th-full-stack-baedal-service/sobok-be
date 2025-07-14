@@ -189,6 +189,9 @@ public class DeliveryService {
 
     }
 
+    /**
+     * 배달 가능 주문 목록 조회
+     */
     public List<DeliveryAvailOrderResDto> getAvailableOrders(
             TokenUserInfo userInfo, Double latitude, Double longitude,
             Long pageNo, Long numOfRows
@@ -261,22 +264,25 @@ public class DeliveryService {
                 .toList();
     }
 
-    public void getDeliveringOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
-        //라이더 검증
-        if (!riderRepository.existsById(userInfo.getRiderId())) {
-            throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
-        }
-        // 배달 목록 조회 (페이징 포함)
-        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
-        Page<Delivery> deliveryList = deliveryRepository.findByRiderIdAndCompleteTimeIsNull((userInfo.getRiderId()), pageable);
+    /**
+     * 배달 중인 목록 조회
+     */
+     public List<DeliveryOrderResDto> getDeliveringOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+        return getRiderDeliveries(userInfo, pageNo, numOfRows, true);
+    }
 
+    /**
+     * 배달 전체 목록 조회
+     */
+    public List<DeliveryOrderResDto> getDeliveryOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+        return getRiderDeliveries(userInfo, pageNo, numOfRows, false);
     }
 
     // 응답: 주문 번호, 가게 이름, 가게 주소, 배달지, 완료 시간
     // payment: paymentId, orderId, userAddressId
     // user-service: userAddressId로 주소 가져오기
     // shop-service: deliveryList.getShopId로 가게 이름, 가게 주소 가져오기
-    public List<DeliveryOrderResDto> getDeliveryOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+    private List<DeliveryOrderResDto> getRiderDeliveries(TokenUserInfo userInfo, Long pageNo, Long numOfRows, boolean delivering) {
         // 1. 라이더 검증
         if (!riderRepository.existsById(userInfo.getRiderId())) {
             throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
@@ -284,27 +290,18 @@ public class DeliveryService {
 
         // 2. 배달 목록 조회 (페이징 포함)
         Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
-        Page<Delivery> deliveryPage = deliveryRepository.findAllByRiderId(userInfo.getRiderId(), pageable);
+
+        Page<Delivery> deliveryPage = delivering
+                ? deliveryRepository.findAllByRiderIdAndCompleteTimeIsNull(userInfo.getRiderId(), pageable)
+                : deliveryRepository.findAllByRiderId(userInfo.getRiderId(), pageable);
+
         List<Delivery> deliveryList = deliveryPage.getContent();
-
-        if (deliveryList.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        log.info("deliveryList: {}", deliveryList);
+        if (deliveryList.isEmpty()) return Collections.emptyList();
 
         // 3. paymentId 리스트로 Payment 정보 조회
-        List<Long> paymentIds = deliveryList.stream()
-                .map(Delivery::getPaymentId)
-                .collect(Collectors.toList());
-
+        List<Long> paymentIds = deliveryList.stream().map(Delivery::getPaymentId).toList();
         List<ShopPaymentResDto> paymentList = paymentFeignClient.getRiderPayment(paymentIds);
-
-        if (paymentList.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        log.info("paymentList: {}", paymentList);
+        if (paymentList.isEmpty()) return Collections.emptyList();
 
         Map<Long, ShopPaymentResDto> paymentMap = paymentList.stream()
                 .collect(Collectors.toMap(ShopPaymentResDto::getPaymentId, Function.identity()));
@@ -313,17 +310,12 @@ public class DeliveryService {
         Set<Long> addressIds = paymentList.stream()
                 .map(ShopPaymentResDto::getUserAddressId)
                 .collect(Collectors.toSet());
-
         Map<Long, UserAddressDto> addressMap = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIds)).stream()
                 .collect(Collectors.toMap(UserAddressDto::getId, Function.identity()));
 
         // 5. shopId → 가게 정보 조회
-        Set<Long> shopIds = deliveryList.stream()
-                .map(Delivery::getShopId)
-                .collect(Collectors.toSet());
-
+        Set<Long> shopIds = deliveryList.stream().map(Delivery::getShopId).collect(Collectors.toSet());
         List<DeliveryAvailShopResDto> shopList = shopFeignClient.getShopInfoByIds(new ArrayList<>(shopIds));
-        log.info("shopList: {}", shopList);
         Map<Long, DeliveryAvailShopResDto> shopMap = shopList.stream()
                 .collect(Collectors.toMap(DeliveryAvailShopResDto::getShopId, Function.identity()));
 
@@ -347,8 +339,10 @@ public class DeliveryService {
                 .filter(dto -> dto.getShopName() != null && dto.getRoadFull() != null)
                 .toList();
     }
-
-
+    
+    /**
+     * 라이더 주문 선택
+     */
     @Transactional
     public void acceptDelivery(TokenUserInfo userInfo, AcceptOrderReqDto acceptOrderReqDto) {
         //라이더 검증
