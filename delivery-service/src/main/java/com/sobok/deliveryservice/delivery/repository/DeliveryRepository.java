@@ -14,4 +14,10 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     List<Delivery> findByShopId(Long shopId);
 
     Page<Delivery> findAllByShopIdIn(List<Long> shopIdList, Pageable pageable);
+
+    Page<Delivery> findAllByRiderIdAndCompleteTimeIsNull(Long riderId, Pageable pageable);
+
+    Page<Delivery> findAllByRiderId(Long riderId, Pageable pageable);
+
+
 }
