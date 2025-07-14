@@ -1,5 +1,6 @@
 package com.sobok.paymentservice.payment.service;
 
+import com.querydsl.core.BooleanBuilder;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
@@ -23,6 +24,7 @@ import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -416,20 +418,22 @@ public class PaymentService {
         return orderId;
     }
 
-    public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids) {
+    public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids, @Nullable List<OrderState> filterStates) {
         QPayment payment = QPayment.payment;
+
+        BooleanBuilder builder = new BooleanBuilder()
+                .and(payment.id.in(ids));
+
+        if (filterStates != null && !filterStates.isEmpty()) {
+            builder.and(payment.orderState.in(filterStates));
+        }
 
         List<Payment> paymentList = factory
                 .selectFrom(payment)
-                .where(
-                        payment.id.in(ids),
-                        payment.orderState.in(
-//                                OrderState.ORDER_COMPLETE,
-//                                OrderState.PREPARING_INGREDIENTS,
-                                OrderState.READY_FOR_DELIVERY
-                        )
-                )
+                .where(builder)
                 .fetch();
+
+        log.info("paymentList: {}", paymentList);
 
         return paymentList.stream()
                 .map(p -> ShopPaymentResDto.builder()
@@ -468,8 +472,8 @@ public class PaymentService {
             flag.addAll(List.of(OrderState.READY_FOR_DELIVERY, OrderState.DELIVERY_ASSIGNED, OrderState.DELIVERING));
         }
 
-        if(flag.contains(payment.getOrderState())) {
-                throw new CustomException("주문 상태가 유효하지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        if (flag.contains(payment.getOrderState())) {
+            throw new CustomException("주문 상태가 유효하지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         //해당 payment 주문 상태 변경

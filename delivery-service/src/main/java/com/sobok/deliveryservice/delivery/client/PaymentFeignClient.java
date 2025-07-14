@@ -3,8 +3,6 @@ package com.sobok.deliveryservice.delivery.client;
 import com.sobok.deliveryservice.common.config.FeignConfig;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderChangeOrderStateReqDto;
 import com.sobok.deliveryservice.delivery.dto.payment.ShopPaymentResDto;
-import com.sobok.paymentservice.common.dto.TokenUserInfo;
-import com.sobok.paymentservice.payment.dto.payment.ChangeOrderStateReqDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,6 +16,9 @@ public interface PaymentFeignClient {
 
     @GetMapping("/api/getRiderAvailPayment")
     List<ShopPaymentResDto> getRiderAvailPayment(@RequestParam List<Long> id);
+
+    @GetMapping("/api/getRiderPayment")
+    List<ShopPaymentResDto> getRiderPayment(@RequestParam List<Long> id);
 
     @PatchMapping("/api/accept-delivery")
     void acceptDelivery(@RequestBody RiderChangeOrderStateReqDto changeOrderState);

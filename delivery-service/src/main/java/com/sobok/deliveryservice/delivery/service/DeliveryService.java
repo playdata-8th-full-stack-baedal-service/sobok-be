@@ -298,7 +298,7 @@ public class DeliveryService {
                 .map(Delivery::getPaymentId)
                 .collect(Collectors.toList());
 
-        List<ShopPaymentResDto> paymentList = paymentFeignClient.getRiderAvailPayment(paymentIds);
+        List<ShopPaymentResDto> paymentList = paymentFeignClient.getRiderPayment(paymentIds);
 
         if (paymentList.isEmpty()) {
             return Collections.emptyList();
@@ -327,7 +327,6 @@ public class DeliveryService {
         Map<Long, DeliveryAvailShopResDto> shopMap = shopList.stream()
                 .collect(Collectors.toMap(DeliveryAvailShopResDto::getShopId, Function.identity()));
 
-        // 6. 응답 생성
         return deliveryList.stream()
                 .map(delivery -> {
                     ShopPaymentResDto payment = paymentMap.get(delivery.getPaymentId());
