@@ -1,12 +1,11 @@
 package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.ApiResponse;
+import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
-import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
-import com.sobok.paymentservice.payment.dto.payment.PagedResponse;
-import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 import com.sobok.paymentservice.payment.entity.Payment;
@@ -112,5 +111,13 @@ public class PaymentFeignController {
     @GetMapping("/getRiderAvailPayment")
     public List<ShopPaymentResDto> getRiderAvailPayment(@RequestParam List<Long> id) {
         return paymentService.getRiderAvailPaymentList(id);
+    }
+
+    /**
+     * 라이더용 배달 승인
+     */
+    @PatchMapping("/accept-delivery")
+    public void acceptDelivery(@RequestBody RiderChangeOrderStateReqDto changeOrderState){
+        paymentService.checkUserInfo(changeOrderState.getUserInfo(), changeOrderState.getPaymentId());
     }
 }

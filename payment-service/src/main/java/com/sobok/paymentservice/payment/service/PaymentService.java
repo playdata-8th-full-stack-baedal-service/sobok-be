@@ -33,10 +33,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -427,8 +424,8 @@ public class PaymentService {
                 .where(
                         payment.id.in(ids),
                         payment.orderState.in(
-                                OrderState.ORDER_COMPLETE,
-                                OrderState.PREPARING_INGREDIENTS,
+//                                OrderState.ORDER_COMPLETE,
+//                                OrderState.PREPARING_INGREDIENTS,
                                 OrderState.READY_FOR_DELIVERY
                         )
                 )
@@ -445,30 +442,37 @@ public class PaymentService {
                 .toList();
     }
 
+    @Transactional
+    public void checkUserInfo(TokenUserInfo userInfo, Long paymentId) {
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
-    public void changeOrderState(TokenUserInfo userInfo, ChangeOrderStateReqDto changeOrderState) {
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(changeOrderState.getPaymentId());
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(
+                () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
+        );
 
+        List<OrderState> flag = new ArrayList<>();
         //가게 검증
         if ("HUB".equals(userInfo.getRole())) {
             if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
                 throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
-                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
+            flag.add(OrderState.PREPARING_INGREDIENTS);
         }
         //라이더 검증
         if ("RIDER".equals(userInfo.getRole())) {
             if (!Objects.equals(delivery.getRiderId(), userInfo.getRiderId())) {
                 throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", riderId:" + userInfo.getRiderId()
-                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
+            flag.addAll(List.of(OrderState.READY_FOR_DELIVERY, OrderState.DELIVERY_ASSIGNED, OrderState.DELIVERING));
         }
 
-        //해당 payment 주문 상태 가져오기
-        Payment payment = paymentRepository.findById(changeOrderState.getPaymentId()).orElseThrow(
-                () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
-        );
+        if(flag.contains(payment.getOrderState())) {
+                throw new CustomException("주문 상태가 유효하지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
+        //해당 payment 주문 상태 변경
         payment.nextState();
         paymentRepository.save(payment);
         log.info("해당 주문 상태가 변경되었습니다.");

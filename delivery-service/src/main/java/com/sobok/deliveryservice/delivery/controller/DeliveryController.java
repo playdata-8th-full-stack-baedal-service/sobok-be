@@ -3,6 +3,7 @@ package com.sobok.deliveryservice.delivery.controller;
 
 import com.sobok.deliveryservice.common.dto.ApiResponse;
 import com.sobok.deliveryservice.common.dto.TokenUserInfo;
+import com.sobok.deliveryservice.delivery.dto.request.AcceptOrderReqDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryAvailOrderResDto;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryOrderResDto;
@@ -64,5 +65,14 @@ public class DeliveryController {
             , @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<DeliveryOrderResDto> deliveryOrders = deliveryService.getDeliveryOrders(userInfo, pageNo, numOfRows);
         return ResponseEntity.ok(ApiResponse.ok(deliveryOrders, "배달 전체 목록을 조회하였습니다."));
+    }
+
+    /**
+     * 라이더 주문 수락
+     */
+    @PatchMapping("/accept-delivery")
+    public ResponseEntity<?> acceptOrder(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AcceptOrderReqDto acceptOrderReqDto) {
+        deliveryService.acceptDelivery(userInfo, acceptOrderReqDto);
+        return ResponseEntity.ok(ApiResponse.ok( "배달을 수락하였습니다."));
     }
 }
