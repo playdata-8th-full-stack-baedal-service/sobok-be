@@ -105,7 +105,7 @@ public class PaymentController {
      */
     @PatchMapping("/change-orderState")
     public ResponseEntity<?> changeOrderState(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody ChangeOrderStateReqDto changeOrderState) {
-        paymentService.checkUserInfo(userInfo, changeOrderState);
+        paymentService.checkUserInfo(userInfo, changeOrderState.getPaymentId());
         return ResponseEntity.ok().body(ApiResponse.ok(changeOrderState, "주문 상태가 변경되었습니다."));
     }
 }

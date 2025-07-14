@@ -8,6 +8,7 @@ import com.sobok.deliveryservice.delivery.client.ShopFeignClient;
 import com.sobok.deliveryservice.delivery.client.UserFeignClient;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.info.UserAddressDto;
+import com.sobok.deliveryservice.delivery.dto.payment.RiderChangeOrderStateReqDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.ShopPaymentResDto;
@@ -23,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -275,9 +275,13 @@ public class DeliveryService {
         if (delivery.getRiderId() != null || delivery.getCompleteTime() != null) {
             throw new CustomException("이미 지정된 주문입니다.", HttpStatus.BAD_REQUEST);
         }
+        RiderChangeOrderStateReqDto reqDto = RiderChangeOrderStateReqDto.builder()
+                .userInfo(userInfo)
+                .paymentId(delivery.getPaymentId()).build();
+
 
         //payment-service로 가서 orderState가 READY_FOR_DELIVERY가 맞으면 다음 단계로 update
-        paymentFeignClient.acceptDelivery(delivery.getPaymentId());
+        paymentFeignClient.acceptDelivery(reqDto);
 
 
         delivery.updateRiderId(userInfo.getRiderId());

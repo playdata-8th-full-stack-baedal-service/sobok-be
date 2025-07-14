@@ -443,10 +443,10 @@ public class PaymentService {
     }
 
     @Transactional
-    public void checkUserInfo(TokenUserInfo userInfo, ChangeOrderStateReqDto changeOrderState) {
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(changeOrderState.getPaymentId());
+    public void checkUserInfo(TokenUserInfo userInfo, Long paymentId) {
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
-        Payment payment = paymentRepository.findById(changeOrderState.getPaymentId()).orElseThrow(
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(
                 () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
         );
 
@@ -455,7 +455,7 @@ public class PaymentService {
         if ("HUB".equals(userInfo.getRole())) {
             if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
                 throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
-                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
             flag.add(OrderState.PREPARING_INGREDIENTS);
         }
@@ -463,7 +463,7 @@ public class PaymentService {
         if ("RIDER".equals(userInfo.getRole())) {
             if (!Objects.equals(delivery.getRiderId(), userInfo.getRiderId())) {
                 throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", riderId:" + userInfo.getRiderId()
-                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
             flag.addAll(List.of(OrderState.READY_FOR_DELIVERY, OrderState.DELIVERY_ASSIGNED, OrderState.DELIVERING));
         }
