@@ -4,6 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import static com.sobok.postservice.post.entity.QPost.post;
 import static com.sobok.postservice.post.entity.QPostImage.postImage;
 import static com.sobok.postservice.post.entity.QUserLike.userLike;
@@ -349,5 +350,49 @@ public class PostService {
                 .build();
     }
 
+    /**
+     * 게시글 좋아요 등록
+     */
+    public UserLikeResDto likePost(TokenUserInfo userInfo, Long postId) {
+        Long userId = userInfo.getUserId();
+
+        if (!postRepository.existsById(postId)) {
+            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        if (userLikeRepository.findByUserIdAndPostId(userId, postId).isPresent()) {
+            throw new CustomException("이미 좋아요한 게시글입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        userLikeRepository.save(
+                UserLike.builder()
+                        .userId(userId)
+                        .postId(postId)
+                        .build()
+        );
+        return UserLikeResDto.builder()
+                .postId(postId)
+                .build();
+    }
+
+    /**
+     * 게시글 좋아요 해제
+     */
+    public UserLikeResDto unlikePost(TokenUserInfo userInfo, Long postId) {
+        Long userId = userInfo.getUserId();
+
+        if (!postRepository.existsById(postId)) {
+            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId)
+                .orElseThrow(() -> new CustomException("좋아요 정보가 없습니다.", HttpStatus.NOT_FOUND));
+
+        userLikeRepository.delete(like);
+
+        return UserLikeResDto.builder()
+                .postId(postId)
+                .build();
+    }
 
 }

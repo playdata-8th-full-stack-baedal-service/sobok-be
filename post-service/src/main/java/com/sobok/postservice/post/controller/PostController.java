@@ -2,6 +2,7 @@ package com.sobok.postservice.post.controller;
 
 import com.sobok.postservice.common.dto.ApiResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
+import com.sobok.postservice.post.dto.request.PostIdRequestDto;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
 import com.sobok.postservice.post.dto.response.*;
@@ -98,6 +99,27 @@ public class PostController {
     ) {
         return ResponseEntity.ok(postService.getLikePost(userInfo, page, size));
     }
+
+    /**
+     * 게시글 좋아요 등록
+     */
+    @PostMapping("user-like")
+    public ResponseEntity<?> likePost(@RequestBody PostIdRequestDto dto,
+                                      @AuthenticationPrincipal TokenUserInfo userInfo) {
+        UserLikeResDto res = postService.likePost(userInfo, dto.getPostId());
+        return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 등록 성공"));
+    }
+
+    /**
+     * 게시글 좋아요 해제
+     */
+    @DeleteMapping("user-unlike")
+    public ResponseEntity<?> unlikePost(@RequestBody PostIdRequestDto dto,
+                                        @AuthenticationPrincipal TokenUserInfo userInfo) {
+        UserLikeResDto res = postService.unlikePost(userInfo, dto.getPostId());
+        return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 해제 성공"));
+    }
+
 
 
 }
