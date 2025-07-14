@@ -1,9 +1,12 @@
 package com.sobok.postservice.post.client;
 
 import com.sobok.postservice.common.config.FeignConfig;
+import com.sobok.postservice.post.dto.response.IngredientResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @FeignClient(name = "payment-service", configuration = FeignConfig.class)
 public interface PaymentFeignClient {
@@ -19,5 +22,19 @@ public interface PaymentFeignClient {
      */
     @GetMapping("/api/payment/cook-id")
     Long getCookIdByPaymentId(@RequestParam Long paymentId);
+
+    @GetMapping("/api/payment/cook-name")
+    String getCookName(@RequestParam Long cookId);
+
+
+    @GetMapping("/api/payment/default-ingredients")
+    List<IngredientResDto> getDefaultIngredients(@RequestParam Long cookId);
+
+    @GetMapping("/api/payment/extra-ingredients")
+    List<IngredientResDto> getExtraIngredients(@RequestParam Long cartCookId);
+
+    @GetMapping("/api/payment/cart-cook-id")
+    Long getCartCookIdByPaymentId(@RequestParam Long paymentId);
+
 
 }
