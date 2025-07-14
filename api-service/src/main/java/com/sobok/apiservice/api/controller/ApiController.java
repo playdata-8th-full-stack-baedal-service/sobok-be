@@ -9,6 +9,7 @@ import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import com.sobok.apiservice.api.service.s3.S3Service;
+import com.sobok.apiservice.api.service.s3.S3UploadService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
 import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
@@ -28,6 +29,7 @@ import java.io.IOException;
 public class ApiController {
 
     private final S3Service s3Service;
+    private final S3UploadService s3UploadService;
     private final TossPayService tossPayService;
     private final ConvertAddressService convertAddressService;
     private final KakaoLoginService kakaoLoginService;
@@ -55,9 +57,22 @@ public class ApiController {
         return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
     }
 
-    @PutMapping("/upload-image")
-    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @RequestPart S3ImgMetaDto reqDto) {
-        s3Service.putS3Image(image, reqDto);
+    /**
+     * S3 이미지 업로드 - 10분 내 register 필요
+     */
+    @PutMapping("/upload-image/{category}")
+    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category) {
+        String imgUrl = s3UploadService.uploadImage(image, category);
+        return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
+    }
+
+    /**
+     * FEIGN
+     * S3 이미지 등록 - 업로드 후 실제 정보 저장이 완료되면 실행
+     */
+    @PostMapping("/register-image")
+    public String registerImg(@RequestParam String url) {
+        return s3UploadService.registerImage(url);
     }
 
     /**

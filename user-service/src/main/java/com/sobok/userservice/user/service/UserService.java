@@ -325,6 +325,7 @@ public class UserService {
             // 원래 있던 사진 삭제
             String oldPhoto = user.getPhoto();
             apiServiceClient.deleteS3Image(oldPhoto);
+
         } catch (Exception e) {
             // 이미 없어진 걸수도 있으니까 예외 처리 X
             log.error("사진을 삭제하는 과정에서 오류가 발생했습니다.");

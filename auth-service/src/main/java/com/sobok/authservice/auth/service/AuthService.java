@@ -151,6 +151,14 @@ public class AuthService {
                     throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
                 });
 
+        String photoUrl = null;
+        try {
+            photoUrl = apiServiceClient.registerImg(authUserReqDto.getPhoto());
+        } catch (Exception e) {
+            log.error("임시 저장소에서 사진을 등록하는데 실패하였습니다.", e);
+            throw new CustomException("임시 저장소에서 사진을 등록하는데 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         Auth authEntity = Auth.builder()
                 .loginId(authUserReqDto.getLoginId())
                 .password(passwordEncoder.encode(authUserReqDto.getPassword()))
@@ -167,7 +175,7 @@ public class AuthService {
                 .nickname(authUserReqDto.getNickname())
                 .email(authUserReqDto.getEmail())
                 .phone(authUserReqDto.getPhone())
-                .photo(authUserReqDto.getPhoto())
+                .photo(photoUrl)
                 .roadFull(authUserReqDto.getRoadFull())
                 .addrDetail(authUserReqDto.getAddrDetail())
                 .build();
