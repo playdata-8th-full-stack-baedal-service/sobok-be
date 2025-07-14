@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.sobok.authservice.common.util.Constants.*;
@@ -817,5 +818,15 @@ public class AuthService {
         return authRepository.findById(authId)
                 .map(Auth::getLoginId)
                 .orElseThrow(() -> new CustomException("authId에 해당하는 유저가 없습니다.", HttpStatus.NOT_FOUND));
+    }
+
+    public List<Long> getInactiveRidersInfo() {
+        List<Auth> inactiveRiders = authRepository.findInactiveRiders();
+        if (inactiveRiders == null) {
+            log.error("비활성화된 라이더가 존재하지 않습니다.");
+            return new ArrayList<>();
+        }
+
+        return inactiveRiders.stream().map(Auth::getId).collect(Collectors.toList());
     }
 }

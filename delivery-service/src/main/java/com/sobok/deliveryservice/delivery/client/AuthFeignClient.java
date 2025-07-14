@@ -7,6 +7,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @FeignClient(name = "auth-service", configuration = FeignConfig.class)
 public interface AuthFeignClient {
 
@@ -15,4 +17,7 @@ public interface AuthFeignClient {
      */
     @GetMapping("/api/auth/info")
     RiderInfoResDto getRiderAuthInfo(@RequestParam Long authId);
+
+    @GetMapping("/api/get-rider-inactive")
+    List<Long> getInactiveRidersInfo();
 }

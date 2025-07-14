@@ -1,5 +1,6 @@
 package com.sobok.apiservice.api.controller;
 
+import com.sobok.apiservice.api.dto.S3.S3ImgMetaDto;
 import com.sobok.apiservice.api.dto.address.LocationResDto;
 import com.sobok.apiservice.api.dto.kakao.AuthLoginResDto;
 import com.sobok.apiservice.api.dto.kakao.OauthResDto;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -51,6 +53,11 @@ public class ApiController {
     public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
         s3Service.deleteS3Image(key);
         return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
+    }
+
+    @PutMapping("/upload-image")
+    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @RequestPart S3ImgMetaDto reqDto) {
+        s3Service.putS3Image(image, reqDto);
     }
 
     /**

@@ -117,4 +117,8 @@ public class DeliveryFeignController {
         return deliveryService.getPaymentId(shopId);
     }
 
+    @GetMapping("/get-pending-rider")
+    public List<RiderResDto> getPendingRiders() {
+        return deliveryService.getPendingRiders();
+    }
 }
