@@ -5,8 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface UserLikeRepository extends JpaRepository<UserLike, Long> {
     int countByPostId(Long postId); // 좋아요 수
 
     Page<UserLike> findAllByUserId(Long userId, Pageable pageable);
+
+    Optional<UserLike> findByUserIdAndPostId(Long userId, Long postId);
+
 }
