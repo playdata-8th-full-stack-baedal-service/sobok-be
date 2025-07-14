@@ -61,7 +61,7 @@ public class ApiController {
      * S3 이미지 업로드 - 10분 내 register 필요
      */
     @PutMapping("/upload-image/{category}")
-    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category) {
+    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category, @RequestParam Boolean notTemp) {
         String imgUrl = s3UploadService.uploadImage(image, category);
         return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
     }
@@ -73,6 +73,15 @@ public class ApiController {
     @PostMapping("/register-image")
     public String registerImg(@RequestParam String url) {
         return s3UploadService.registerImage(url);
+    }
+
+    /**
+     * FEIGN
+     * S3 이미지 변경
+     */
+    @PatchMapping("/change-image")
+    public String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
+        return s3UploadService.changeImage(image, category, oldPhoto);
     }
 
     /**

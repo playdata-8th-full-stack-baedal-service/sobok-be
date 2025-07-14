@@ -5,9 +5,8 @@ import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @FeignClient(name = "api-service", configuration = FeignConfig.class)
 public interface ApiServiceClient {
@@ -20,4 +19,7 @@ public interface ApiServiceClient {
 
     @GetMapping("/api/presignFeign")
     String generatePresignedUrlFeign(@RequestParam String fileName, @RequestParam String category);
+
+    @PatchMapping("/api/change-image")
+    String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto);
 }
