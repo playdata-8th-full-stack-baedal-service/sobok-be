@@ -1,10 +1,12 @@
 package com.sobok.paymentservice.payment.service;
 
+import com.querydsl.core.BooleanBuilder;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
+import com.sobok.paymentservice.payment.dto.delivery.AcceptOrderReqDto;
 import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,10 +21,12 @@ import com.sobok.paymentservice.payment.dto.shop.AdminShopResDto;
 import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
+import com.sobok.paymentservice.payment.entity.CartIngredient;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,10 +37,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,8 @@ import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 
 import com.sobok.paymentservice.payment.repository.CartIngreRepository;
+
+import static com.sobok.paymentservice.payment.entity.QPayment.payment;
 
 @Service
 @Slf4j
@@ -421,20 +425,22 @@ public class PaymentService {
         return orderId;
     }
 
-    public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids) {
+    public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids, @Nullable List<OrderState> filterStates) {
         QPayment payment = QPayment.payment;
+
+        BooleanBuilder builder = new BooleanBuilder()
+                .and(payment.id.in(ids));
+
+        if (filterStates != null && !filterStates.isEmpty()) {
+            builder.and(payment.orderState.in(filterStates));
+        }
 
         List<Payment> paymentList = factory
                 .selectFrom(payment)
-                .where(
-                        payment.id.in(ids),
-                        payment.orderState.in(
-                                OrderState.ORDER_COMPLETE,
-                                OrderState.PREPARING_INGREDIENTS,
-                                OrderState.READY_FOR_DELIVERY
-                        )
-                )
+                .where(builder)
                 .fetch();
+
+        log.info("paymentList: {}", paymentList);
 
         return paymentList.stream()
                 .map(p -> ShopPaymentResDto.builder()
@@ -447,32 +453,147 @@ public class PaymentService {
                 .toList();
     }
 
+    @Transactional
+    public void checkUserInfo(TokenUserInfo userInfo, Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(
+                () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
+        );
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
-    public void changeOrderState(TokenUserInfo userInfo, ChangeOrderStateReqDto changeOrderState) {
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(changeOrderState.getPaymentId());
-
+        List<OrderState> flag = new ArrayList<>();
         //가게 검증
         if ("HUB".equals(userInfo.getRole())) {
             if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
                 throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
-                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
+            flag.add(OrderState.PREPARING_INGREDIENTS);
         }
         //라이더 검증
         if ("RIDER".equals(userInfo.getRole())) {
             if (!Objects.equals(delivery.getRiderId(), userInfo.getRiderId())) {
                 throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", riderId:" + userInfo.getRiderId()
-                        + ")는 해당 주문(paymentId=" + changeOrderState.getPaymentId() + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
+                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
+            flag.add(OrderState.DELIVERY_ASSIGNED);
         }
 
-        //해당 payment 주문 상태 가져오기
-        Payment payment = paymentRepository.findById(changeOrderState.getPaymentId()).orElseThrow(
-                () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
-        );
+        // 현재 상태가 허용되지 않으면 예외
+        if (!flag.contains(payment.getOrderState())) {
+            throw new CustomException("현재 상태에서는 상태 변경이 허용되지 않습니다. (현재 상태: " + payment.getOrderState() + ")", HttpStatus.BAD_REQUEST);
+        }
 
+        //해당 payment 주문 상태 변경
         payment.nextState();
         paymentRepository.save(payment);
         log.info("해당 주문 상태가 변경되었습니다.");
     }
+
+    public Boolean isPaymentCompleted(Long paymentId, Long userId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new CustomException("결제가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        Long userAddressId = payment.getUserAddressId();
+        Long ownerUserId = userServiceClient.getUserIdByAddress(userAddressId);
+
+        return ownerUserId.equals(userId)
+                && payment.getOrderState() == OrderState.ORDER_COMPLETE;
+    }
+
+    /**
+     * paymentId에 해당하는 CartCook의 ID를 반환
+     */
+    public Long getCartCookIdByPaymentId(Long paymentId) {
+        return cartCookRepository.findByPaymentId(paymentId).stream()
+                .findFirst()
+                .orElseThrow(() -> new CustomException("결제 ID에 해당하는 CartCook이 없습니다. id=" + paymentId, HttpStatus.NOT_FOUND))
+                .getId();
+    }
+
+    /**
+     * 요리 ID로 기본 식재료 목록 조회
+     */
+    public List<IngredientTwoResDto> getDefaultIngredients(Long cookId) {
+        return cookFeignClient.getBaseIngredients(cookId);
+    }
+
+    /**
+     * cartCookId로 추가 식재료 목록 조회
+     */
+    public List<IngredientTwoResDto> getExtraIngredients(Long cartCookId) {
+        List<CartIngredient> ingredients = CartIngreRepository.findByCartCookIdAndDefaultIngre(cartCookId, "N");
+
+        return ingredients.stream().map(cartIngre -> {
+            IngredientTwoResDto info = cookFeignClient.getIngredientInfo(cartIngre.getIngreId());
+            if (info == null) {
+                throw new CustomException("식재료 정보를 가져오지 못했습니다. id=" + cartIngre.getIngreId(), HttpStatus.NOT_FOUND);
+            }
+            info.setQuantity(cartIngre.getUnitQuantity());
+            info.setDefaultFlag(false);
+            return info;
+        }).toList();
+    }
+
+    /**
+     * 요리 ID로 요리 이름을 조회
+     */
+    public String getCookName(Long cookId) {
+        return cookFeignClient.getCookNameById(cookId);
+    }
+
+    @Transactional
+    public void assignDelivery(TokenUserInfo userInfo, Long paymentId) {
+        //배달 선택하러 온 요청이면 delivery에 riderId를 넣어야함. orderState가 READY_FOR_DELIVERY인 상태
+        Payment payment = getAndValidatePayment(userInfo, paymentId);
+
+        if (payment.getOrderState() != OrderState.READY_FOR_DELIVERY) {
+            throw new CustomException("READY_FOR_DELIVERY 상태에서만 배달 승인이 가능합니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
+                .paymentId(payment.getId())
+                .riderId(userInfo.getRiderId())
+                .build();
+
+        // delivery-service에 riderId 설정 요청
+        deliveryFeignClient.assignRider(reqDto);
+
+        // 상태 변경
+        payment.nextState();
+        paymentRepository.save(payment);
+    }
+
+    @Transactional
+    public void completeDelivery(TokenUserInfo userInfo, Long paymentId) {
+        Payment payment = getAndValidatePayment(userInfo, paymentId);
+
+        if (payment.getOrderState() != OrderState.DELIVERING) {
+            throw new CustomException("DELIVERING 상태에서만 배달 승인이 가능합니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
+                .paymentId(payment.getId())
+                .riderId(userInfo.getRiderId())
+                .build();
+
+        // delivery-service에 completeTime 설정 요청
+        deliveryFeignClient.completeDelivery(reqDto);
+
+        // 상태 변경
+        payment.nextState();
+        paymentRepository.save(payment);
+    }
+
+    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
+                new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        if (!"RIDER".equals(userInfo.getRole())) {
+            throw new CustomException("라이더만 수행 가능한 작업입니다.", HttpStatus.FORBIDDEN);
+        }
+
+        return payment;
+    }
+
+
 }

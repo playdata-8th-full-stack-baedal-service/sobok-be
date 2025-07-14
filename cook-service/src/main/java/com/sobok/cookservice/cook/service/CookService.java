@@ -296,8 +296,47 @@ public class CookService {
 
         return builder.ingredientList(ingredientList).build();
 
-
-
-
     }
+
+    /**
+     * 특정 요리에 포함된 기본 식재료 목록을 조회
+     */
+    public List<CookWithIngredientResDto> getBaseIngredients(Long cookId) {
+        List<Combination> combinations = combinationRepository.findByCookId(cookId);
+        return combinations.stream().map(comb -> {
+            Ingredient ingre = comb.getIngredient();
+
+            if (ingre == null) {
+                throw new CustomException("식재료가 존재하지 않습니다. id=" + comb.getIngreId(), HttpStatus.NOT_FOUND);
+            }
+
+            return CookWithIngredientResDto.builder()
+                    .ingredientId(ingre.getId())
+                    .ingredientName(ingre.getIngreName())
+                    .unit(String.valueOf(ingre.getUnit()))
+                    .quantity(comb.getUnitQuantity())
+                    .price(ingre.getPrice() != null ? Integer.parseInt(ingre.getPrice()) : 0)
+                    .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
+                    .isDefault(true)
+                    .build();
+        }).toList();
+    }
+
+    /**
+     * 식재료 ID로 식재료 상세 정보를 조회
+     */
+    public IngredientInfoResDto getIngredientInfo(Long ingreId) {
+        Ingredient ingre = ingredientRepository.findById(ingreId)
+                .orElseThrow(() -> new CustomException("식재료가 존재하지 않습니다. id=" + ingreId, HttpStatus.NOT_FOUND));
+
+        return IngredientInfoResDto.builder()
+                .ingredientId(ingre.getId())
+                .ingredientName(ingre.getIngreName())
+                .unit(String.valueOf(ingre.getUnit()))
+                .price(ingre.getPrice() != null ? Integer.parseInt(ingre.getPrice()) : 0)
+                .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
+                .build();
+    }
+
 }
+

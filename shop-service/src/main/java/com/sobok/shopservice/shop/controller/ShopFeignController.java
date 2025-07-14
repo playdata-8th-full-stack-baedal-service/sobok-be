@@ -46,6 +46,7 @@ public class ShopFeignController {
     public ResponseEntity<Boolean> checkShopName(@RequestParam String shopName) {
         return ResponseEntity.ok((shopRepository.existsByShopName(shopName)));
     }
+
     /**
      * 가게 주소 중복 확인
      */
@@ -103,5 +104,12 @@ public class ShopFeignController {
         return ResponseEntity.ok(shopService.getPostsByCookId(cookId));
     }
 
+    /**
+     * shopId로 가게 정보 조회 (리스트)
+     */
+    @GetMapping("/find-shopInfo")
+    public List<DeliveryAvailShopResDto> getShopInfoByIds(@RequestParam List<Long> ids) {
+        return shopService.getShopInfoList(ids);
+    }
 
 }

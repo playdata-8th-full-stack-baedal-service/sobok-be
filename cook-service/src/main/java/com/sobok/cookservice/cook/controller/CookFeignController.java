@@ -1,25 +1,16 @@
 package com.sobok.cookservice.cook.controller;
 
 
-import com.sobok.cookservice.common.exception.CustomException;
-import com.sobok.cookservice.cook.dto.response.CookDetailResDto;
-import com.sobok.cookservice.cook.dto.response.CookIngredientResDto;
-import com.sobok.cookservice.cook.dto.response.CookNameResDto;
-import com.sobok.cookservice.cook.dto.response.IngreResDto;
-import com.sobok.cookservice.cook.dto.response.UserBookmarkResDto;
-import com.sobok.cookservice.cook.dto.response.IngredientNameResDto;
-import com.sobok.cookservice.cook.repository.CombinationRepository;
+import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.service.CombinationService;
 import com.sobok.cookservice.cook.service.CookService;
 import com.sobok.cookservice.cook.service.IngredientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -97,5 +88,22 @@ public class CookFeignController {
     @GetMapping("/cook/name")
     public String getCookNameById(@RequestParam Long cookId) {
         return cookService.getCookNameById(cookId);
+    }
+
+
+    /**
+     * 특정 요리 ID에 대한 기본 식재료 목록을 조회 (게시글 상세 조회용)
+     */
+    @GetMapping("/cook/base-ingredients")
+    public List<CookWithIngredientResDto> getBaseIngredients(@RequestParam Long cookId) {
+        return cookService.getBaseIngredients(cookId);
+    }
+
+    /**
+     * 특정 식재료 ID에 대한 상세 정보를 조회 ( 게시글 상세 조회용)
+     */
+    @GetMapping("/cook/ingredient-info")
+    public IngredientInfoResDto getIngredientInfo(@RequestParam Long ingreId) {
+        return cookService.getIngredientInfo(ingreId);
     }
 }

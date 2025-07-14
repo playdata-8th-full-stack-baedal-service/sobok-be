@@ -4,6 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import static com.sobok.postservice.post.entity.QPost.post;
 import static com.sobok.postservice.post.entity.QPostImage.postImage;
 import static com.sobok.postservice.post.entity.QUserLike.userLike;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -349,5 +351,90 @@ public class PostService {
                 .build();
     }
 
+    /**
+     * 게시글 좋아요 등록
+     */
+    public UserLikeResDto likePost(TokenUserInfo userInfo, Long postId) {
+        Long userId = userInfo.getUserId();
+
+        if (!postRepository.existsById(postId)) {
+            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        if (userLikeRepository.findByUserIdAndPostId(userId, postId).isPresent()) {
+            throw new CustomException("이미 좋아요한 게시글입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        userLikeRepository.save(
+                UserLike.builder()
+                        .userId(userId)
+                        .postId(postId)
+                        .build()
+        );
+        return UserLikeResDto.builder()
+                .postId(postId)
+                .build();
+    }
+
+    /**
+     * 게시글 좋아요 해제
+     */
+    public UserLikeResDto unlikePost(TokenUserInfo userInfo, Long postId) {
+        Long userId = userInfo.getUserId();
+
+        if (!postRepository.existsById(postId)) {
+            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId)
+                .orElseThrow(() -> new CustomException("좋아요 정보가 없습니다.", HttpStatus.NOT_FOUND));
+
+        userLikeRepository.delete(like);
+
+        return UserLikeResDto.builder()
+                .postId(postId)
+                .build();
+    }
+
+    /**
+     * 게시글 상세 조회
+     */
+    public PostDetailResDto getPostDetail(Long postId) {
+        // 게시글 조회
+        Post post = postRepository.findById(postId).orElseThrow(() ->
+                new CustomException("게시글을 찾을 수 없습니다. id=" + postId, HttpStatus.NOT_FOUND));
+
+        // 요리 이름, 작성자 닉네임, 좋아요 수 조회
+        String cookName = paymentClient.getCookName(post.getCookId());
+        String nickname = userClient.getNicknameById(post.getUserId());
+        int likeCount = userLikeRepository.countByPostId(postId);
+
+        // 이미지 목록 조회 및 정렬
+        List<String> imagePaths = postImageRepository.findAllByPostId(postId).stream()
+                .sorted(Comparator.comparingInt(PostImage::getIndex))
+                .map(PostImage::getImagePath)
+                .toList();
+
+        // 결제 - cartCookId 조회
+        Long cartCookId = paymentClient.getCartCookIdByPaymentId(post.getPaymentId());
+
+        // 기본 식재료 및 추가 식재료 조회
+        List<IngredientResDto> defaultIngredients = paymentClient.getDefaultIngredients(post.getCookId());
+        List<IngredientResDto> extraIngredients = paymentClient.getExtraIngredients(cartCookId);
+
+        return PostDetailResDto.builder()
+                .postId(postId)
+                .title(post.getTitle())
+                .cookName(cookName)
+                .nickname(nickname)
+                .userId(post.getUserId())
+                .likeCount(likeCount)
+                .images(imagePaths)
+                .updatedAt(post.getUpdatedAt())
+                .content(post.getContent())
+                .defaultIngredients(defaultIngredients)
+                .extraIngredients(extraIngredients)
+                .build();
+    }
 
 }

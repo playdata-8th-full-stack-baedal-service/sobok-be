@@ -26,6 +26,11 @@ public class Delivery {
     @Column(nullable = false)
     private Long paymentId;
 
+    @Setter
     @Column(nullable = true)
     private LocalDateTime completeTime;
+
+    public void updateRiderId(Long riderId) {
+        this.riderId = riderId;
+    }
 }

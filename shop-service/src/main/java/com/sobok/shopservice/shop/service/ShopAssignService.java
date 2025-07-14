@@ -121,14 +121,6 @@ public class ShopAssignService {
                 .orderBy(distance.asc())
                 .fetch();
 
-/*        nearShop.forEach(shops -> {
-            DeliveryAvailShopResDto.builder()
-                    .shopId(shops.getId())
-                    .shopName(shops.getShopName())
-                    .roadFull(shops.getRoadFull())
-                    .build();
-        });*/
-
         return nearShop.stream().map(shops -> DeliveryAvailShopResDto.builder()
                         .shopId(shops.getId())
                         .shopName(shops.getShopName())

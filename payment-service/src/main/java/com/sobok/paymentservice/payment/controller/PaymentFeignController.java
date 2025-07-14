@@ -1,14 +1,15 @@
 package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.ApiResponse;
+import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
-import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
-import com.sobok.paymentservice.payment.dto.payment.PagedResponse;
-import com.sobok.paymentservice.payment.dto.payment.TossPayRegisterReqDto;
+import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
+import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
+import com.sobok.paymentservice.payment.dto.response.IngredientTwoResDto;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
@@ -83,15 +84,9 @@ public class PaymentFeignController {
 
     @GetMapping("/payment/completed")
     public Boolean isPaymentCompleted(@RequestParam Long paymentId, @RequestParam Long userId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new CustomException("결제가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-
-        Long userAddressId = payment.getUserAddressId();
-        Long ownerUserId = userServiceClient.getUserIdByAddress(userAddressId);
-
-        return ownerUserId.equals(userId)
-                && payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
+        return paymentService.isPaymentCompleted(paymentId, userId);
     }
+
 
     /**
      * 결제 ID로 연결된 요리 중 하나의 cookId를 반환
@@ -117,6 +112,47 @@ public class PaymentFeignController {
      */
     @GetMapping("/getRiderAvailPayment")
     public List<ShopPaymentResDto> getRiderAvailPayment(@RequestParam List<Long> id) {
-        return paymentService.getRiderAvailPaymentList(id);
+        return paymentService.getRiderAvailPaymentList(id, List.of(OrderState.READY_FOR_DELIVERY));
     }
+
+    /**
+     * 배달 목록 조회에 사용되는 paymentId로 주문 정보 받기
+     */
+    @GetMapping("/getRiderPayment")
+    public List<ShopPaymentResDto> getRiderPayment(@RequestParam List<Long> id) {
+        return paymentService.getRiderAvailPaymentList(id, null);
+    }
+
+    /**
+     *  요리 ID로 기본 식재료 목록 조회
+     */
+    @GetMapping("/payment/cart-cook-id")
+    public Long getCartCookIdByPaymentId(@RequestParam Long paymentId) {
+        return paymentService.getCartCookIdByPaymentId(paymentId);
+    }
+
+    /**
+     * cartCookId 기준으로 추가 식재료 목록 조회
+     */
+    @GetMapping("/payment/default-ingredients")
+    public List<IngredientTwoResDto> getDefaultIngredients(@RequestParam Long cookId) {
+        return paymentService.getDefaultIngredients(cookId);
+    }
+
+    /**
+     * 요리 ID로 요리 이름 조회
+     */
+    @GetMapping("/payment/extra-ingredients")
+    public List<IngredientTwoResDto> getExtraIngredients(@RequestParam Long cartCookId) {
+        return paymentService.getExtraIngredients(cartCookId);
+    }
+
+    /**
+     * 요리 ID(cookId)를 기반으로 요리 이름을 조회
+     */
+    @GetMapping("/payment/cook-name")
+    public String getCookName(@RequestParam Long cookId) {
+        return paymentService.getCookName(cookId);
+    }
+
 }
