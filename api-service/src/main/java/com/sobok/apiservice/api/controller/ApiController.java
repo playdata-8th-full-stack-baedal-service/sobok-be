@@ -1,6 +1,5 @@
 package com.sobok.apiservice.api.controller;
 
-import com.sobok.apiservice.api.dto.S3.S3ImgMetaDto;
 import com.sobok.apiservice.api.dto.address.LocationResDto;
 import com.sobok.apiservice.api.dto.kakao.AuthLoginResDto;
 import com.sobok.apiservice.api.dto.kakao.OauthResDto;
@@ -9,7 +8,7 @@ import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import com.sobok.apiservice.api.service.s3.S3Service;
-import com.sobok.apiservice.api.service.s3.S3UploadService;
+import com.sobok.apiservice.api.service.s3.S3PutService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
 import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
@@ -29,31 +28,17 @@ import java.io.IOException;
 public class ApiController {
 
     private final S3Service s3Service;
-    private final S3UploadService s3UploadService;
     private final TossPayService tossPayService;
     private final ConvertAddressService convertAddressService;
     private final KakaoLoginService kakaoLoginService;
 
-    /**
-     * S3 등록용 URL 발급
-     */
-    @GetMapping("/presign")
-    public ResponseEntity<?> generatePresignedUrl(@RequestParam String fileName, @RequestParam String category) {
-        String presignedUrl = s3Service.getS3PresignUrl(fileName, category);
-        return ResponseEntity.ok(ApiResponse.ok(presignedUrl, "S3 버킷에 사진을 넣을 수 있는 URL이 성공적으로 발급되었습니다."));
-    }
-
-    @GetMapping("/presignFeign")
-    public String generatePresignedUrlFeign(@RequestParam String fileName, @RequestParam String category) {
-        return s3Service.getS3PresignUrl(fileName, category);
-    }
 
     /**
      * S3 사진 삭제
      */
     @DeleteMapping("/delete-S3-image")
     public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
-        s3Service.deleteS3Image(key);
+        s3Service.deleteImage(key);
         return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
     }
 
@@ -62,7 +47,7 @@ public class ApiController {
      */
     @PutMapping("/upload-image/{category}")
     public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category, @RequestParam Boolean notTemp) {
-        String imgUrl = s3UploadService.uploadImage(image, category);
+        String imgUrl = s3Service.uploadImage(image, category);
         return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
     }
 
@@ -72,7 +57,7 @@ public class ApiController {
      */
     @PostMapping("/register-image")
     public String registerImg(@RequestParam String url) {
-        return s3UploadService.registerImage(url);
+        return s3Service.registerImage(url);
     }
 
     /**
@@ -81,7 +66,7 @@ public class ApiController {
      */
     @PatchMapping("/change-image")
     public String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
-        return s3UploadService.changeImage(image, category, oldPhoto);
+        return s3Service.changeImage(image, category, oldPhoto);
     }
 
     /**
