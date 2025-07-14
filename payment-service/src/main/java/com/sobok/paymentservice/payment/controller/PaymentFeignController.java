@@ -82,15 +82,9 @@ public class PaymentFeignController {
 
     @GetMapping("/payment/completed")
     public Boolean isPaymentCompleted(@RequestParam Long paymentId, @RequestParam Long userId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new CustomException("결제가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-
-        Long userAddressId = payment.getUserAddressId();
-        Long ownerUserId = userServiceClient.getUserIdByAddress(userAddressId);
-
-        return ownerUserId.equals(userId)
-                && payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
+        return paymentService.isPaymentCompleted(paymentId, userId);
     }
+
 
     /**
      * 결제 ID로 연결된 요리 중 하나의 cookId를 반환
