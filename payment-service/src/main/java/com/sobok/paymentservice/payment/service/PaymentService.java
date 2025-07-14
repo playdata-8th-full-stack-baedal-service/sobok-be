@@ -19,6 +19,7 @@ import com.sobok.paymentservice.payment.dto.shop.AdminShopResDto;
 import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import com.sobok.paymentservice.payment.entity.CartCook;
+import com.sobok.paymentservice.payment.entity.CartIngredient;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
@@ -483,6 +484,47 @@ public class PaymentService {
 
         return ownerUserId.equals(userId)
                 && payment.getOrderState() == OrderState.ORDER_COMPLETE;
+    }
+
+    /**
+     * paymentId에 해당하는 CartCook의 ID를 반환
+     */
+    public Long getCartCookIdByPaymentId(Long paymentId) {
+        return cartCookRepository.findByPaymentId(paymentId).stream()
+                .findFirst()
+                .orElseThrow(() -> new CustomException("결제 ID에 해당하는 CartCook이 없습니다. id=" + paymentId, HttpStatus.NOT_FOUND))
+                .getId();
+    }
+
+    /**
+     * 요리 ID로 기본 식재료 목록 조회
+     */
+    public List<IngredientTwoResDto> getDefaultIngredients(Long cookId) {
+        return cookFeignClient.getBaseIngredients(cookId);
+    }
+
+    /**
+     * cartCookId로 추가 식재료 목록 조회
+     */
+    public List<IngredientTwoResDto> getExtraIngredients(Long cartCookId) {
+        List<CartIngredient> ingredients = CartIngreRepository.findByCartCookIdAndDefaultIngre(cartCookId, "N");
+
+        return ingredients.stream().map(cartIngre -> {
+            IngredientTwoResDto info = cookFeignClient.getIngredientInfo(cartIngre.getIngreId());
+            if (info == null) {
+                throw new CustomException("식재료 정보를 가져오지 못했습니다. id=" + cartIngre.getIngreId(), HttpStatus.NOT_FOUND);
+            }
+            info.setQuantity(cartIngre.getUnitQuantity());
+            info.setDefaultFlag(false);
+            return info;
+        }).toList();
+    }
+
+    /**
+     * 요리 ID로 요리 이름을 조회
+     */
+    public String getCookName(Long cookId) {
+        return cookFeignClient.getCookNameById(cookId);
     }
 
 }

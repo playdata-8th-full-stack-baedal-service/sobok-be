@@ -120,6 +120,14 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 해제 성공"));
     }
 
+    /**
+     * 게시글 상세 조회
+     */
+    @GetMapping("/{postId}")
+    public ApiResponse<PostDetailResDto> getPostDetail(@PathVariable Long postId) {
+        return ApiResponse.ok(postService.getPostDetail(postId));
+    }
+
 
 
 }
