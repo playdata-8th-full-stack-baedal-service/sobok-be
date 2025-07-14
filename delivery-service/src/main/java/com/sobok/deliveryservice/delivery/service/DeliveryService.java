@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -259,4 +258,93 @@ public class DeliveryService {
                 .filter(dto -> dto.getShopName() != null && dto.getRoadFull() != null)
                 .toList();
     }
+
+    public void getDeliveringOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+        //라이더 검증
+        if (!riderRepository.existsById(userInfo.getRiderId())) {
+            throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+        // 배달 목록 조회 (페이징 포함)
+        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
+        Page<Delivery> deliveryList = deliveryRepository.findByRiderIdAndCompleteTimeIsNull((userInfo.getRiderId()), pageable);
+
+    }
+
+    // 응답: 주문 번호, 가게 이름, 가게 주소, 배달지, 완료 시간
+    // payment: paymentId, orderId, userAddressId
+    // user-service: userAddressId로 주소 가져오기
+    // shop-service: deliveryList.getShopId로 가게 이름, 가게 주소 가져오기
+    public List<DeliveryOrderResDto> getDeliveryOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+        // 1. 라이더 검증
+        if (!riderRepository.existsById(userInfo.getRiderId())) {
+            throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 2. 배달 목록 조회 (페이징 포함)
+        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
+        Page<Delivery> deliveryPage = deliveryRepository.findAllByRiderId(userInfo.getRiderId(), pageable);
+        List<Delivery> deliveryList = deliveryPage.getContent();
+
+        if (deliveryList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        log.info("deliveryList: {}", deliveryList);
+
+        // 3. paymentId 리스트로 Payment 정보 조회
+        List<Long> paymentIds = deliveryList.stream()
+                .map(Delivery::getPaymentId)
+                .collect(Collectors.toList());
+
+        List<ShopPaymentResDto> paymentList = paymentFeignClient.getRiderAvailPayment(paymentIds);
+
+        if (paymentList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        log.info("paymentList: {}", paymentList);
+
+        Map<Long, ShopPaymentResDto> paymentMap = paymentList.stream()
+                .collect(Collectors.toMap(ShopPaymentResDto::getPaymentId, Function.identity()));
+
+        // 4. userAddressId → 주소 정보 조회
+        Set<Long> addressIds = paymentList.stream()
+                .map(ShopPaymentResDto::getUserAddressId)
+                .collect(Collectors.toSet());
+
+        Map<Long, UserAddressDto> addressMap = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIds)).stream()
+                .collect(Collectors.toMap(UserAddressDto::getId, Function.identity()));
+
+        // 5. shopId → 가게 정보 조회
+        Set<Long> shopIds = deliveryList.stream()
+                .map(Delivery::getShopId)
+                .collect(Collectors.toSet());
+
+        List<DeliveryAvailShopResDto> shopList = shopFeignClient.getShopInfoByIds(new ArrayList<>(shopIds));
+        log.info("shopList: {}", shopList);
+        Map<Long, DeliveryAvailShopResDto> shopMap = shopList.stream()
+                .collect(Collectors.toMap(DeliveryAvailShopResDto::getShopId, Function.identity()));
+
+        // 6. 응답 생성
+        return deliveryList.stream()
+                .map(delivery -> {
+                    ShopPaymentResDto payment = paymentMap.get(delivery.getPaymentId());
+                    UserAddressDto address = addressMap.get(payment.getUserAddressId());
+                    DeliveryAvailShopResDto shop = shopMap.get(delivery.getShopId());
+
+                    return DeliveryOrderResDto.builder()
+                            .orderId(payment.getOrderId())
+                            .paymentId(payment.getPaymentId())
+                            .orderState(payment.getOrderState())
+                            .shopName(shop.getShopName())
+                            .shopRoadFull(shop.getRoadFull())
+                            .roadFull(address != null ? address.getRoadFull() : null)
+                            .addrDetail(address != null ? address.getAddrDetail() : null)
+                            .completeTime(delivery.getCompleteTime())
+                            .build();
+                })
+                .filter(dto -> dto.getShopName() != null && dto.getRoadFull() != null)
+                .toList();
+    }
+
 }
