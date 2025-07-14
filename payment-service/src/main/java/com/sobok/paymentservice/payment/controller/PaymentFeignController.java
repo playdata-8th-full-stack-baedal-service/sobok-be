@@ -120,12 +120,4 @@ public class PaymentFeignController {
     public List<ShopPaymentResDto> getRiderPayment(@RequestParam List<Long> id) {
         return paymentService.getRiderAvailPaymentList(id, null);
     }
-
-    /**
-     * 라이더용 배달 승인
-     */
-    @PatchMapping("/accept-delivery")
-    public void acceptDelivery(@RequestBody RiderChangeOrderStateReqDto changeOrderState) {
-        paymentService.checkUserInfo(changeOrderState.getUserInfo(), changeOrderState.getPaymentId());
-    }
 }

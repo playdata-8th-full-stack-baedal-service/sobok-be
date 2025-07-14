@@ -6,6 +6,7 @@ import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
+import com.sobok.paymentservice.payment.dto.delivery.AcceptOrderReqDto;
 import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -35,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,6 +45,8 @@ import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 
 import com.sobok.paymentservice.payment.repository.CartIngreRepository;
+
+import static com.sobok.paymentservice.payment.entity.QPayment.payment;
 
 @Service
 @Slf4j
@@ -448,11 +452,10 @@ public class PaymentService {
 
     @Transactional
     public void checkUserInfo(TokenUserInfo userInfo, Long paymentId) {
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
-
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(
                 () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
         );
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
         List<OrderState> flag = new ArrayList<>();
         //가게 검증
@@ -469,11 +472,12 @@ public class PaymentService {
                 throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", riderId:" + userInfo.getRiderId()
                         + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
             }
-            flag.addAll(List.of(OrderState.READY_FOR_DELIVERY, OrderState.DELIVERY_ASSIGNED, OrderState.DELIVERING));
+            flag.add(OrderState.DELIVERY_ASSIGNED);
         }
 
-        if (flag.contains(payment.getOrderState())) {
-            throw new CustomException("주문 상태가 유효하지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        // 현재 상태가 허용되지 않으면 예외
+        if (!flag.contains(payment.getOrderState())) {
+            throw new CustomException("현재 상태에서는 상태 변경이 허용되지 않습니다. (현재 상태: " + payment.getOrderState() + ")", HttpStatus.BAD_REQUEST);
         }
 
         //해당 payment 주문 상태 변경
@@ -492,5 +496,61 @@ public class PaymentService {
         return ownerUserId.equals(userId)
                 && payment.getOrderState() == OrderState.ORDER_COMPLETE;
     }
+
+    @Transactional
+    public void assignDelivery(TokenUserInfo userInfo, Long paymentId) {
+        //배달 선택하러 온 요청이면 delivery에 riderId를 넣어야함. orderState가 READY_FOR_DELIVERY인 상태
+        Payment payment = getAndValidatePayment(userInfo, paymentId);
+
+        if (payment.getOrderState() != OrderState.READY_FOR_DELIVERY) {
+            throw new CustomException("READY_FOR_DELIVERY 상태에서만 배달 승인이 가능합니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
+                .paymentId(payment.getId())
+                .riderId(userInfo.getRiderId())
+                .build();
+
+
+        // delivery-service에 riderId 설정 요청
+        deliveryFeignClient.assignRider(reqDto);
+
+        // 상태 변경
+        payment.nextState();
+        paymentRepository.save(payment);
+    }
+
+    @Transactional
+    public void completeDelivery(TokenUserInfo userInfo, Long paymentId) {
+        Payment payment = getAndValidatePayment(userInfo, paymentId);
+
+        if (payment.getOrderState() != OrderState.DELIVERING) {
+            throw new CustomException("DELIVERING 상태에서만 배달 승인이 가능합니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
+                .paymentId(payment.getId())
+                .riderId(userInfo.getRiderId())
+                .build();
+
+        // delivery-service에 completeTime 설정 요청
+        deliveryFeignClient.completeDelivery(reqDto);
+
+        // 상태 변경
+        payment.nextState();
+        paymentRepository.save(payment);
+    }
+
+    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
+                new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        if (!"RIDER".equals(userInfo.getRole())) {
+            throw new CustomException("라이더만 수행 가능한 작업입니다.", HttpStatus.FORBIDDEN);
+        }
+
+        return payment;
+    }
+
 
 }

@@ -108,4 +108,22 @@ public class PaymentController {
         paymentService.checkUserInfo(userInfo, changeOrderState.getPaymentId());
         return ResponseEntity.ok().body(ApiResponse.ok(changeOrderState, "주문 상태가 변경되었습니다."));
     }
+
+    /**
+     * 라이더용 배달 승인
+     */
+    @PatchMapping("/accept-delivery")
+    public ResponseEntity<?> acceptDelivery(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id) {
+        paymentService.assignDelivery(userInfo, id);
+        return ResponseEntity.ok().body(ApiResponse.ok(id, "배달이 승인되었습니다."));
+    }
+
+    /**
+     * 라이더용 배달 완료
+     */
+    @PatchMapping("/complete-delivery")
+    public ResponseEntity<?> completeDelivery(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id) {
+        paymentService.completeDelivery(userInfo, id);
+        return ResponseEntity.ok().body(ApiResponse.ok(id, "배달이 완료되었습니다."));
+    }
 }

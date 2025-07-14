@@ -1,10 +1,12 @@
 package com.sobok.deliveryservice.delivery.controller;
 
 import com.sobok.deliveryservice.common.dto.ApiResponse;
+import com.sobok.deliveryservice.common.dto.TokenUserInfo;
 import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
+import com.sobok.deliveryservice.delivery.dto.request.AcceptOrderReqDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -113,8 +116,23 @@ public class DeliveryFeignController {
      * 가게용 주문 전체 조회에서 사용되는 shopId로 paymentId 조회
      */
     @GetMapping("/getPaymentId")
-    public List<Long> getPaymentId(@RequestParam("shopId") Long shopId){
+    public List<Long> getPaymentId(@RequestParam("shopId") Long shopId) {
         return deliveryService.getPaymentId(shopId);
     }
 
+    /**
+     * 라이더 주문 수락
+     */
+    @PostMapping("/accept-delivery")
+    public void acceptOrder(@RequestBody AcceptOrderReqDto acceptOrderReqDto) {
+        deliveryService.acceptDelivery(acceptOrderReqDto);
+    }
+
+    /**
+     * 라이더 배달 완료
+     */
+    @PostMapping("/complete-delivery")
+    public void deliveryComplete(@RequestBody AcceptOrderReqDto acceptOrderReqDto) {
+        deliveryService.deliveryComplete(acceptOrderReqDto);
+    }
 }

@@ -66,13 +66,4 @@ public class DeliveryController {
         List<DeliveryOrderResDto> deliveryOrders = deliveryService.getDeliveryOrders(userInfo, pageNo, numOfRows);
         return ResponseEntity.ok(ApiResponse.ok(deliveryOrders, "배달 전체 목록을 조회하였습니다."));
     }
-
-    /**
-     * 라이더 주문 수락
-     */
-    @PatchMapping("/accept-delivery")
-    public ResponseEntity<?> acceptOrder(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AcceptOrderReqDto acceptOrderReqDto) {
-        deliveryService.acceptDelivery(userInfo, acceptOrderReqDto);
-        return ResponseEntity.ok(ApiResponse.ok("배달을 수락하였습니다."));
-    }
 }

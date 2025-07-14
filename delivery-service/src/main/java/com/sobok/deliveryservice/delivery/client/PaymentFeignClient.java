@@ -20,7 +20,4 @@ public interface PaymentFeignClient {
     @GetMapping("/api/getRiderPayment")
     List<ShopPaymentResDto> getRiderPayment(@RequestParam List<Long> id);
 
-    @PatchMapping("/api/accept-delivery")
-    void acceptDelivery(@RequestBody RiderChangeOrderStateReqDto changeOrderState);
-
 }

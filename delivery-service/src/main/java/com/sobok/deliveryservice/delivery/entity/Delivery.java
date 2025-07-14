@@ -26,6 +26,7 @@ public class Delivery {
     @Column(nullable = false)
     private Long paymentId;
 
+    @Setter
     @Column(nullable = true)
     private LocalDateTime completeTime;
 
