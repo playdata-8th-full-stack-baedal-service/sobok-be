@@ -9,5 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public abstract class AuthBaseInfoResDto {
+    Long authId;
     String loginId;
 }

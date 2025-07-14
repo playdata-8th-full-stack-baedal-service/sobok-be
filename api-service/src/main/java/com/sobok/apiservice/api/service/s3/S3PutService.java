@@ -85,7 +85,9 @@ public class S3PutService {
         PutObjectRequest.Builder putRequestBuilder = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(fileName)
-                .metadata(getMetaData(name));
+                .metadata(getMetaData(name))
+                .contentType(image.getContentType())
+                .contentDisposition("inline");
 
         // Temp 저장이라면 수명 설정
         if(isTempImg) putRequestBuilder.expires(Instant.now().plus(10L, ChronoUnit.MINUTES));

@@ -14,8 +14,8 @@ public class AuthUserInfoResDto extends AuthBaseInfoResDto {
     String photo;
     List<AuthUserAddressDto> addresses;
 
-    public AuthUserInfoResDto(String loginId, String nickname, String email, String phone, String photo, List<AuthUserAddressDto> addresses) {
-        super(loginId);
+    public AuthUserInfoResDto(Long authId, String loginId, String nickname, String email, String phone, String photo, List<AuthUserAddressDto> addresses) {
+        super(authId, loginId);
         this.nickname = nickname;
         this.email = email;
         this.phone = phone;

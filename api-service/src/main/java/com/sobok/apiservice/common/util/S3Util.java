@@ -55,7 +55,11 @@ public class S3Util {
      * Image URL에서 key 값 분리 메서드
      */
     public static String detachImageUrl(String url) {
-        return url.replace(URL_FRONT + "temp/", "");
+        if(url.contains("temp")) {
+            return url.replace(URL_FRONT + "temp/", "");
+        } else {
+            return url.replace(URL_FRONT, "");
+        }
     }
 
     /**
@@ -81,6 +85,26 @@ public class S3Util {
         if (!Objects.equals(EXT_TO_CONTENT_TYPE.get(ext), detectType)) {
             log.error("이미지 타입이 확장자와 다릅니다. | ext: {}, detectType: {}", ext, detectType);
             throw new CustomException(validationFailMsg, HttpStatus.FORBIDDEN);
+        }
+    }
+
+    public static String getContentType(String key) {
+        String extension = key.substring(key.lastIndexOf(".") + 1).toLowerCase();
+
+        switch (extension) {
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+            case "gif":
+                return "image/gif";
+            case "webp":
+                return "image/webp";
+            case "svg":
+                return "image/svg+xml";
+            default:
+                return "application/octet-stream"; // 기본값
         }
     }
 }

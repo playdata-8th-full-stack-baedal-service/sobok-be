@@ -64,7 +64,7 @@ public class ApiController {
      * FEIGN
      * S3 이미지 변경
      */
-    @PatchMapping("/change-image")
+    @PostMapping("/change-image")
     public String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
         return s3Service.changeImage(image, category, oldPhoto);
     }

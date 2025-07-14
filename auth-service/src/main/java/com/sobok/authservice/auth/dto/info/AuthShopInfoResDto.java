@@ -11,8 +11,8 @@ public class AuthShopInfoResDto extends AuthBaseInfoResDto {
     String roadFull;
     String ownerName;
 
-    public AuthShopInfoResDto(String loginId, String shopName, String phone, String roadFull, String ownerName) {
-        super(loginId);
+    public AuthShopInfoResDto(Long authId, String loginId, String shopName, String phone, String roadFull, String ownerName) {
+        super(authId, loginId);
         this.shopName = shopName;
         this.phone = phone;
         this.roadFull = roadFull;

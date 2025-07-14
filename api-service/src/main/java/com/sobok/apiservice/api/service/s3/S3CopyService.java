@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
 
+import static com.sobok.apiservice.common.util.S3Util.getContentType;
 import static com.sobok.apiservice.common.util.S3Util.getImageUrl;
 
 @Service
@@ -42,6 +43,8 @@ public class S3CopyService {
                 .destinationBucket(bucket)
                 .destinationKey(key)
                 .metadataDirective(MetadataDirective.REPLACE)
+                .contentType(getContentType(key))
+                .contentDisposition("inline")
                 .metadata(headResponse.metadata())
                 .contentType(headResponse.contentType())
                 .build();

@@ -690,6 +690,7 @@ public class AuthService {
             AuthInfoProvider provider = authInfoProviderFactory.getProvider(Role.valueOf(userInfo.getRole()));
             info = provider.getInfo(userInfo.getId());
             info.setLoginId(loginId);
+            info.setAuthId(userInfo.getId());
         } catch (IllegalArgumentException e) {
             log.error("Role 변환 과정 중 오류 발생!");
             throw new CustomException("권한 변환 과정에서 오류가 발생하였습니다.", HttpStatus.BAD_REQUEST);
