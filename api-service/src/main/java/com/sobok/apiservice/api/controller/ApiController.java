@@ -14,6 +14,7 @@ import com.sobok.apiservice.api.service.s3.S3Service;
 import com.sobok.apiservice.api.service.s3.S3PutService;
 import com.sobok.apiservice.api.service.socialLogin.GoogleLoginService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
+import com.sobok.apiservice.api.service.socialLogin.SocialLoginService;
 import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,6 +40,7 @@ public class ApiController {
     private final ConvertAddressService convertAddressService;
     private final KakaoLoginService kakaoLoginService;
     private final GoogleLoginService googleLoginService;
+    private final SocialLoginService socialLoginService;
 
     /**
      * S3 사진 삭제
@@ -103,7 +105,7 @@ public class ApiController {
             log.info("jwt 토큰 생성 시작");
 
             // JWT 토큰 생성 (우리 사이트 로그인 유지를 위해. 사용자 정보를 위해.)
-            AuthLoginResDto authLoginResDto = kakaoLoginService.socialLoginToken(kakaoCallResDto.getAuthId());
+            AuthLoginResDto authLoginResDto = socialLoginService.socialLoginToken(kakaoCallResDto.getAuthId());
             log.info("authLoginResDto: {}", authLoginResDto);
 
             // 팝업 닫기 HTML 응답
@@ -187,7 +189,7 @@ public class ApiController {
             log.info("jwt 토큰 생성 시작");
 
             // JWT 토큰 생성 (우리 사이트 로그인 유지를 위해. 사용자 정보를 위해.)
-            AuthLoginResDto authLoginResDto = kakaoLoginService.socialLoginToken(googleCallResDto.getAuthId());
+            AuthLoginResDto authLoginResDto = socialLoginService.socialLoginToken(googleCallResDto.getAuthId());
             log.info("authLoginResDto: {}", authLoginResDto);
 
             // 팝업 닫기 HTML 응답
@@ -266,7 +268,7 @@ public class ApiController {
     //feign요청으로 들어올 api
     @GetMapping("/findByOauthId")
     public OauthResDto findByOauthId(@RequestParam("id") Long oauthId) {
-        return kakaoLoginService.findOauth(oauthId);
+        return socialLoginService.findOauth(oauthId);
     }
 
 }
