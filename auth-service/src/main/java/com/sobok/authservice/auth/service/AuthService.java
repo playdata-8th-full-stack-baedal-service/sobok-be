@@ -800,12 +800,20 @@ public class AuthService {
         authRepository.save(auth);
         log.info("저장한 auth: {}", auth);
 
+        String photoUrl = null;
+        try {
+            photoUrl = apiServiceClient.registerImg(authByOauthReqDto.getPhoto());
+        } catch (Exception e) {
+            log.error("임시 저장소에서 사진을 등록하는데 실패하였습니다.", e);
+            throw new CustomException("임시 저장소에서 사진을 등록하는데 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         // 사용자 회원가입에 필요한 정보 전달 객체 생성
         UserSignupReqDto messageDto = UserSignupReqDto.builder()
                 .authId(auth.getId())
                 .nickname(authByOauthReqDto.getNickname())
                 .phone(authByOauthReqDto.getPhone())
-                .photo(authByOauthReqDto.getPhoto())
+                .photo(photoUrl)
                 .roadFull(authByOauthReqDto.getRoadFull())
                 .addrDetail(authByOauthReqDto.getAddrDetail())
                 .build();
