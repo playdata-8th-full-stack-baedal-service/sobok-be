@@ -9,5 +9,5 @@ import lombok.*;
 @Builder
 @ToString
 public class SmsReqDto {
-    String phone;
+    private String phone;
 }
