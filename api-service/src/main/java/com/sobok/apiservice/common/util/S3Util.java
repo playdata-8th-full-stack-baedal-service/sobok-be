@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
@@ -30,7 +31,7 @@ public class S3Util {
      */
     public static String getFileName(String name, String category, boolean isTempImg) {
         String temp = isTempImg ? "temp/" : "";
-        return temp + category + "/" + UUID.randomUUID() + name;
+        return new String((temp + category + "/" + UUID.randomUUID() + name).getBytes(), StandardCharsets.UTF_8);
     }
 
     /**
