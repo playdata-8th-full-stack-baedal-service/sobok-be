@@ -167,7 +167,7 @@ public class KakaoLoginService {
                 .build();
     }
 
-    public OauthResDto kakaoCallback(String code) {
+    public KakaoCallResDto kakaoCallback(String code) {
         // 인가코드로 액세스토큰 받기
         String kakaoAccessToken = getKakaoAccessToken(code);
         // 액세스토큰으로 사용자 정보 받기
@@ -176,6 +176,22 @@ public class KakaoLoginService {
         OauthResDto oauthResDto = findOrCreateKakaoUser(kakaoUserDto);  //authId와 닉네임
 
         log.info("oauthResDto: {}", oauthResDto);
-        return oauthResDto;
+
+        KakaoCallResDto.Properties properties = KakaoCallResDto.Properties.builder()
+                .nickname(kakaoUserDto.getProperties().getNickname())
+                .profileImage(kakaoUserDto.getProperties().getProfileImage())
+                .build();
+
+        KakaoCallResDto.KakaoAccount account = KakaoCallResDto.KakaoAccount.builder()
+                .email(kakaoUserDto.getAccount().getEmail())
+                .build();
+
+        return KakaoCallResDto.builder()
+                .id(oauthResDto.getId())
+                .authId(oauthResDto.getAuthId())
+                .isNew(oauthResDto.isNew())
+                .properties(properties)
+                .account(account)
+                .build();
     }
 }
