@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -545,36 +546,20 @@ public class PaymentService {
     }
 
     @Transactional
-    public void assignDelivery(TokenUserInfo userInfo, Long paymentId) {
-        //배달 선택하러 온 요청이면 delivery에 riderId를 넣어야함. orderState가 READY_FOR_DELIVERY인 상태
-        Payment payment = getAndValidatePayment(userInfo, paymentId, "assign");
+    public void processDeliveryAction(
+            TokenUserInfo userInfo, Long paymentId, String state, Consumer<AcceptOrderReqDto> deliveryAction
+    ) {
+        Payment payment = getAndValidatePayment(userInfo, paymentId, state);
 
         AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
                 .paymentId(payment.getId())
                 .riderId(userInfo.getRiderId())
                 .build();
 
-        // delivery-service에 riderId 설정 요청
-        deliveryFeignClient.assignRider(reqDto);
+        //assignRider 또는 completeDelivery
+        deliveryAction.accept(reqDto);
 
-        // 상태 변경
-        payment.nextState();
-        paymentRepository.save(payment);
-    }
-
-    @Transactional
-    public void completeDelivery(TokenUserInfo userInfo, Long paymentId) {
-        Payment payment = getAndValidatePayment(userInfo, paymentId, "complete");
-
-        AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
-                .paymentId(payment.getId())
-                .riderId(userInfo.getRiderId())
-                .build();
-
-        // delivery-service에 completeTime 설정 요청
-        deliveryFeignClient.completeDelivery(reqDto);
-
-        // 상태 변경
+        // 상태 변경 및 저장
         payment.nextState();
         paymentRepository.save(payment);
     }
