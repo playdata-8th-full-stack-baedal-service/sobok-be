@@ -762,12 +762,12 @@ public class AuthService {
         );
 
         return OauthResDto.builder()
-                .id(auth.getOauthId())
+                .oauthId(auth.getOauthId())
                 .authId(auth.getId())
                 .build();
     }
 
-    //카카오 회원가입 user 생성
+    //소셜 회원가입 user 생성
     @Transactional
     public void socialUserCreate(@Valid AuthByOauthReqDto authByOauthReqDto) {
         // 이미 oauthId가 존재한다면 예외 던짐
@@ -792,7 +792,7 @@ public class AuthService {
         Auth auth = Auth.builder()
                 .loginId(dummyId)
                 .password(passwordEncoder.encode(dummyPassword))
-                .oauthId(oauthResDto.getId())
+                .oauthId(oauthResDto.getOauthId())
                 .role(Role.USER)
                 .active("Y")
                 .build();

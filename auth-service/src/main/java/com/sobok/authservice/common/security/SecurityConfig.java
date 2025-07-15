@@ -37,7 +37,7 @@ public class SecurityConfig {
                                 "/auth/findLoginId", "/auth/verification", "/auth/reset-password",
                                 "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email",
                                 "/auth/check-permission", "/auth/check-shopName", "/auth/check-shopAddress",
-                                "/auth/kakao-user-signup"
+                                "/auth/social-user-signup"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

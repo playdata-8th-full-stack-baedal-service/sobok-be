@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -85,6 +86,7 @@ public class GoogleLoginService {
                 .build();
     }
 
+    @Transactional
     public OauthResDto findOrCreateKakaoUser(GoogleDetailResDto dto) {
         // 기존 구글 로그인 사용자
         // 구글 ID로 기존 사용자 찾기

@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 public class OauthResDto {
-    private Long id;
+    private Long oauthId;
     private Long authId;
     @JsonProperty("isNew")
     private boolean isNew;
