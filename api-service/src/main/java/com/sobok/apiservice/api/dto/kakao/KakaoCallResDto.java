@@ -1,33 +1,44 @@
 package com.sobok.apiservice.api.dto.kakao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sobok.apiservice.api.dto.social.SocialCallbackDto;
 import lombok.*;
 
 @Builder
 @Data
-public class KakaoCallResDto {
+public class KakaoCallResDto implements SocialCallbackDto {
     private Long oauthId;
     private Long authId;
     @JsonProperty("isNew")
     private boolean isNew;
-    private KakaoCallResDto.Properties properties;
+    private String nickname;
+    private String profileImage;
+    private String email;
 
-    @JsonProperty("kakao_account")
-    private KakaoCallResDto.KakaoAccount account;
-
-    @Data
-    @Builder
-    public static class Properties {
-        private String nickname;
-        @JsonProperty("profile_image")
-        private String profileImage;
-        @JsonProperty("thumbnail_image")
-        private String thumbnailImage;
+    // 인터페이스 메서드 구현
+    @Override
+    public boolean isNew() {
+        return this.isNew;
     }
 
-    @Data
-    @Builder
-    public static class KakaoAccount {
-        private String email;
+    @Override
+    public Long getOauthId() {
+        return this.oauthId;
     }
+
+    @Override
+    public Long getAuthId() {
+        return this.authId;
+    }
+
+    @Override
+    public String getNickname() {
+        return this.nickname;
+    }
+
+    @Override
+    public String getEmail() {
+        return this.email;
+    }
+
 }
