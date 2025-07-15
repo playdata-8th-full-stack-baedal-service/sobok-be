@@ -489,6 +489,9 @@ public class PaymentService {
         log.info("해당 주문 상태가 변경되었습니다.");
     }
 
+    /**
+     * 결제 상태 정보
+     */
     public Boolean isPaymentCompleted(Long paymentId, Long userId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new CustomException("결제가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
@@ -497,7 +500,7 @@ public class PaymentService {
         Long ownerUserId = userServiceClient.getUserIdByAddress(userAddressId);
 
         return ownerUserId.equals(userId)
-                && payment.getOrderState() == OrderState.ORDER_COMPLETE;
+                && payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
     }
 
     /**
