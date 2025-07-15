@@ -36,7 +36,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/**", "/ingredient/keyword-search"
                                 , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
-                                , "/cook/get-cook/**"
+                                , "/cook/get-cook/**","/cook/internal/simple-info","/cook/popular"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

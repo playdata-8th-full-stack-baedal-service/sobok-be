@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
     List<String> whiteList = List.of(
             "/actuator/**", "/ingredient/keyword-search"
             , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
-            , "/cook/get-cook/**"
+            , "/cook/get-cook/**","/cook/popular"
     );
 
     @Override

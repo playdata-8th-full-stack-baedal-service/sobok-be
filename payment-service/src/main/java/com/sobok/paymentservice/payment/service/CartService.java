@@ -1,32 +1,40 @@
 package com.sobok.paymentservice.payment.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sobok.paymentservice.payment.entity.QPayment;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
-import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
-import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
-import com.sobok.paymentservice.payment.dto.response.PaymentItemResDto;
-import com.sobok.paymentservice.payment.dto.response.PaymentResDto;
+import com.sobok.paymentservice.payment.dto.payment.PagedResponse;
+import com.sobok.paymentservice.payment.dto.response.*;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.CartIngredient;
+import com.sobok.paymentservice.payment.entity.QCartCook;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.CartIngreRepository;
 import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -41,6 +49,7 @@ public class CartService {
     private final ObjectMapper objectMapper;
 
     private final RedisTemplate<String, String> redisObjectTemplate;
+    private final JPAQueryFactory queryFactory;
 
     /**
      * 장바구니 추가
@@ -237,5 +246,30 @@ public class CartService {
             log.error("DTO를 Redis로 파싱하는 과정에서 오류가 발생하였습니다.");
             throw new CustomException("Redis 파싱 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * 한달 주문량 기준 요리 페이지 조회
+     */
+    public List<CookOrderCountDto> getPopularCookIds(int page, int size) {
+        QCartCook cc = QCartCook.cartCook;
+        QPayment p = QPayment.payment;
+        // 현재 시각 기준으로 한달 전 주문 조회
+        long fromMillis = LocalDateTime.now().minusMonths(1)
+                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        return queryFactory // cookId, 주문 수 형태로 조회
+                .select(Projections.constructor(CookOrderCountDto.class,
+                        cc.cookId,
+                        cc.count()
+                ))
+                .from(cc)
+                .join(p).on(cc.paymentId.eq(p.id)) // payment 테이블과 결제 ID 기준으로 조인
+                .where(p.createdAt.goe(fromMillis))  // payment의 생성 시간이 한달 전 이후인 것만
+                .groupBy(cc.cookId) // cookId 기준으로 그룹핑
+                .orderBy(cc.count().desc()) // 내림차순
+                .offset(PageRequest.of(page, size).getOffset()) // 페이징
+                .limit(size)
+                .fetch();
     }
 }
