@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -59,5 +60,10 @@ public class AuthFeignController {
     public ResponseEntity<String> getLoginId(@RequestParam Long authId) {
         String loginId = authService.getLoginIdByAuthId(authId);
         return ResponseEntity.ok(loginId);
+    }
+
+    @GetMapping("/get-rider-inactive")
+    List<Long> getInactiveRidersInfo() {
+        return authService.getInactiveRidersInfo();
     }
 }

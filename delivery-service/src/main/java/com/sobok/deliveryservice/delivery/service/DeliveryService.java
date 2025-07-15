@@ -265,6 +265,30 @@ public class DeliveryService {
                 .toList();
     }
 
+    public ArrayList<RiderResDto> getPendingRiders() {
+        List<Long> inactiveRidersAuthIds;
+        try {
+            inactiveRidersAuthIds = authFeignClient.getInactiveRidersInfo();
+        } catch (Exception e) {
+            throw new CustomException("Feign 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (inactiveRidersAuthIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return riderRepository.findAll()
+                .stream()
+                .filter(rider -> inactiveRidersAuthIds.contains(rider.getAuthId()))
+                .map(rider -> RiderResDto.builder()
+                        .authId(rider.getAuthId())
+                        .name(rider.getName())
+                        .phone(rider.getPhone())
+                        .permissionNumber(rider.getPermissionNumber())
+                        .build())
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
     /**
      * 배달 중인 목록 조회
      */

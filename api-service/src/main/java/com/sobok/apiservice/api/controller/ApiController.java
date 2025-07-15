@@ -8,6 +8,7 @@ import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import com.sobok.apiservice.api.service.s3.S3Service;
+import com.sobok.apiservice.api.service.s3.S3PutService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
 import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -30,27 +32,41 @@ public class ApiController {
     private final ConvertAddressService convertAddressService;
     private final KakaoLoginService kakaoLoginService;
 
-    /**
-     * S3 등록용 URL 발급
-     */
-    @GetMapping("/presign")
-    public ResponseEntity<?> generatePresignedUrl(@RequestParam String fileName, @RequestParam String category) {
-        String presignedUrl = s3Service.getS3PresignUrl(fileName, category);
-        return ResponseEntity.ok(ApiResponse.ok(presignedUrl, "S3 버킷에 사진을 넣을 수 있는 URL이 성공적으로 발급되었습니다."));
-    }
-
-    @GetMapping("/presignFeign")
-    public String generatePresignedUrlFeign(@RequestParam String fileName, @RequestParam String category) {
-        return s3Service.getS3PresignUrl(fileName, category);
-    }
 
     /**
      * S3 사진 삭제
      */
     @DeleteMapping("/delete-S3-image")
     public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
-        s3Service.deleteS3Image(key);
+        s3Service.deleteImage(key);
         return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
+    }
+
+    /**
+     * S3 이미지 업로드 - 10분 내 register 필요
+     */
+    @PutMapping("/upload-image/{category}")
+    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category, @RequestParam Boolean notTemp) {
+        String imgUrl = s3Service.uploadImage(image, category);
+        return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
+    }
+
+    /**
+     * FEIGN
+     * S3 이미지 등록 - 업로드 후 실제 정보 저장이 완료되면 실행
+     */
+    @PostMapping("/register-image")
+    public String registerImg(@RequestParam String url) {
+        return s3Service.registerImage(url);
+    }
+
+    /**
+     * FEIGN
+     * S3 이미지 변경
+     */
+    @PostMapping("/change-image")
+    public String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
+        return s3Service.changeImage(image, category, oldPhoto);
     }
 
     /**

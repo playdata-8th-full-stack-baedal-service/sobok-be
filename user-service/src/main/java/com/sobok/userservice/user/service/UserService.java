@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import com.sobok.userservice.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -305,7 +306,8 @@ public class UserService {
                 .build();
     }
 
-     public String editPhoto(TokenUserInfo userInfo, String fileName, String category) {
+    @Transactional
+     public String editPhoto(TokenUserInfo userInfo, MultipartFile image, String category) {
         log.info("사용자 이미지 수정 시작 | userId : {}", userInfo.getUserId());
 
         User user = userRepository.findById(userInfo.getUserId()).orElseThrow(
@@ -315,19 +317,11 @@ public class UserService {
         String url = null;
         try {
             // url 생성
-            url = apiServiceClient.generatePresignedUrlFeign(fileName, category);
+            url = apiServiceClient.changeImage(image, category, user.getPhoto());
+            user.setPhoto(url);
         } catch (Exception e) {
             log.error("사진을 등록하는 URL을 발급받는 과정에서 오류가 발생했습니다.", e);
             throw new CustomException("사진을 등록하는 URL을 발급받는 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        try {
-            // 원래 있던 사진 삭제
-            String oldPhoto = user.getPhoto();
-            apiServiceClient.deleteS3Image(oldPhoto);
-        } catch (Exception e) {
-            // 이미 없어진 걸수도 있으니까 예외 처리 X
-            log.error("사진을 삭제하는 과정에서 오류가 발생했습니다.");
         }
 
         return url;

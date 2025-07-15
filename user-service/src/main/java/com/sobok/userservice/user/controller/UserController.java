@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -109,13 +110,11 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(preOrderUser, "주문을 위한 사용자의 정보가 조회되었습니다."));
     }
 
-    @PatchMapping("/editPhoto")
-    public ResponseEntity<?> editPhoto(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String fileName, @RequestParam String category) {
-        String url = userService.editPhoto(userInfo, fileName, category);
+    @PatchMapping("/editPhoto/{category}")
+    public ResponseEntity<?> editPhoto(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestPart MultipartFile image, @PathVariable String category) {
+        String url = userService.editPhoto(userInfo, image, category);
         return ResponseEntity.ok(ApiResponse.ok(url, "S3 버킷에 사진을 넣을 수 있는 URL이 성공적으로 발급되었습니다."));
     }
-
-    // TODO : 사진 추가 변경 가능해야 함.
 
     /**
      * user 닉네임 중복 확인
