@@ -55,7 +55,7 @@ public class ApiController {
      * S3 이미지 업로드 - 10분 내 register 필요
      */
     @PutMapping("/upload-image/{category}")
-    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category, @RequestParam Boolean notTemp) {
+    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category) {
         String imgUrl = s3Service.uploadImage(image, category);
         return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
     }
