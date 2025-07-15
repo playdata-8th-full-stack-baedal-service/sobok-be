@@ -1,6 +1,7 @@
 package com.sobok.apiservice.api.controller;
 
 import com.sobok.apiservice.api.dto.address.LocationResDto;
+import com.sobok.apiservice.api.dto.google.GoogleDetailResDto;
 import com.sobok.apiservice.api.dto.kakao.AuthLoginResDto;
 import com.sobok.apiservice.api.dto.kakao.KakaoCallResDto;
 import com.sobok.apiservice.api.dto.kakao.OauthResDto;
@@ -10,12 +11,15 @@ import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import com.sobok.apiservice.api.service.s3.S3Service;
 import com.sobok.apiservice.api.service.s3.S3PutService;
+import com.sobok.apiservice.api.service.socialLogin.GoogleLoginService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
 import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,8 +38,10 @@ public class ApiController {
     private final TossPayService tossPayService;
     private final ConvertAddressService convertAddressService;
     private final KakaoLoginService kakaoLoginService;
+    private final GoogleLoginService googleLoginService;
 
-
+    @Value("${google.client.id}")
+    private String googleClientId;
     /**
      * S3 사진 삭제
      */
@@ -104,28 +110,31 @@ public class ApiController {
 
             // 팝업 닫기 HTML 응답
             html = String.format("""
-                    <!DOCTYPE html>
-                    <html>
-                    <head><title>카카오 로그인 완료</title></head>
-                    <body>
-                        <script>
-                            if (window.opener) {
-                                window.opener.postMessage({
-                                    type: 'OAUTH_SUCCESS',
-                                    token: '%s',
-                                    id: '%s',
-                                    role: '%s',
-                                    provider: 'KAKAO'
-                                },'http://localhost:5173');
-                                window.close();
-                            } else {
-                                window.location.href = 'http://localhost:5173';
-                            }
-                        </script>
-                        <p>카카오 로그인 처리 중...</p>
-                    </body>
-                    </html>
-                    """, authLoginResDto.getAccessToken(), kakaoCallResDto.getId(), authLoginResDto.getRole());
+                            <!DOCTYPE html>
+                            <html>
+                            <head><title>카카오 로그인 완료</title></head>
+                            <body>
+                                <script>
+                                    if (window.opener) {
+                                        window.opener.postMessage({
+                                            type: 'OAUTH_SUCCESS',
+                                            accessToken: '%s',
+                                            refreshToken: '%s',
+                                            id: '%s',
+                                            role: '%s',
+                                            recoveryTarget: '%s',
+                                            provider: 'KAKAO'
+                                        },'http://localhost:5173');
+                                        window.close();
+                                    } else {
+                                        window.location.href = 'http://localhost:5173';
+                                    }
+                                </script>
+                                <p>카카오 로그인 처리 중...</p>
+                            </body>
+                            </html>
+                            """, authLoginResDto.getAccessToken(), authLoginResDto.getRefreshToken(), authLoginResDto.getId(),
+                    authLoginResDto.getRole(), authLoginResDto.isRecoveryTarget());
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(html);
         } else {
@@ -162,10 +171,25 @@ public class ApiController {
                             </html>
                             """, kakaoCallResDto.getId(), kakaoCallResDto.getProperties().getNickname(),
                     kakaoCallResDto.getAccount().getEmail(), redirectUrl);
-                    //, kakaoUserDto.getId());
+            //, kakaoUserDto.getId());
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(html);
         }
+    }
+
+    /**
+     * 구글 로그인/회원가입
+     */
+    @GetMapping("/google-login")
+    public ResponseEntity<ApiResponse<GoogleDetailResDto>> selectGoogleLoginInfo(@RequestParam(value = "code") String code){
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(googleLoginService.loginGoogle(code));
+    }
+
+    @GetMapping("/google-login-view")
+    public ResponseEntity<ApiResponse<String>> getGoogleLoginView(){
+        return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY)
+                             .body(googleLoginService.getGoogleLoginView());
     }
 
     //feign요청으로 들어올 api

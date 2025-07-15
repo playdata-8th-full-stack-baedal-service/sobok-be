@@ -32,7 +32,7 @@ public class SecurityConfig {
                 // 허용 URI 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/actuator/**", "/api/confirm", "/api/kakao-login"
+                                "/actuator/**", "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
