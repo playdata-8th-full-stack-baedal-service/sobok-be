@@ -706,7 +706,7 @@ public class AuthService {
     }
 
 
-    public AuthLoginResDto kakaoLoginToken(Long id) {
+    public AuthLoginResDto socialLoginToken(Long id) {
         // 회원 정보 가져오기
         Auth auth = authRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
@@ -769,7 +769,7 @@ public class AuthService {
 
     //카카오 회원가입 user 생성
     @Transactional
-    public void kakaoUserCreate(@Valid AuthByOauthReqDto authByOauthReqDto) {
+    public void socialUserCreate(@Valid AuthByOauthReqDto authByOauthReqDto) {
         // 이미 oauthId가 존재한다면 예외 던짐
         authRepository.findByOauthId(authByOauthReqDto.getOauthId())
                 .ifPresent(auth -> {
@@ -785,7 +785,7 @@ public class AuthService {
         }
 
         // 아이디 생성
-        String dummyId = "kakao" + oauthResDto.getSocialId();
+        String dummyId = "social" + oauthResDto.getSocialId();
         // 임시 password 생성
         String dummyPassword = PasswordGenerator.generate(12);
 

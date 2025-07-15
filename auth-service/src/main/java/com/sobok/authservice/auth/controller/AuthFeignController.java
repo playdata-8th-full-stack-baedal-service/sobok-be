@@ -47,10 +47,10 @@ public class AuthFeignController {
         return byOauthId;
     }
 
-    @GetMapping("/kakao-token")
-    AuthLoginResDto kakaoToken(@RequestParam("authId") Long id) {
+    @GetMapping("/social-token")
+    AuthLoginResDto socialToken(@RequestParam("authId") Long id) {
         log.info("여기는 토큰생성하는길");
-        return authService.kakaoLoginToken(id);
+        return authService.socialLoginToken(id);
     }
 
     /**
