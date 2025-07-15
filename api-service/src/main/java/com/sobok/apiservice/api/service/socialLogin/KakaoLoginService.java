@@ -113,7 +113,7 @@ public class KakaoLoginService {
             } catch (FeignException.NotFound e) {
                 log.info("oauth는 생성하였지만 회원가입을 마치지 못한 유저입니다.");
                 return OauthResDto.builder()
-                        .id(foundUser.getId())
+                        .oauthId(foundUser.getId())
                         .socialId(foundUser.getSocialId())
                         .isNew(true)
                         .build();
@@ -123,7 +123,7 @@ public class KakaoLoginService {
             }
             log.info("oauthResDto: {}", oauthResDto);
             return OauthResDto.builder()
-                    .id(foundUser.getId())
+                    .oauthId(foundUser.getId())
                     .socialId(foundUser.getSocialId())
                     .authId(oauthResDto.getAuthId())
                     .isNew(false)
@@ -146,13 +146,13 @@ public class KakaoLoginService {
         log.info("saved: {}", saved);
 
         return OauthResDto.builder()
-                .id(saved.getId())
+                .oauthId(saved.getId())
                 .isNew(true)
                 .build();
     }
 
-    public AuthLoginResDto kakaoLoginToken(Long id) {  //authId
-        return authFeignClient.kakaoToken(id);
+    public AuthLoginResDto socialLoginToken(Long id) {  //authId
+        return authFeignClient.socialToken(id);
     }
 
     public OauthResDto findOauth(Long oauthId) {
@@ -162,7 +162,7 @@ public class KakaoLoginService {
         log.info("oauth: {}", oauth);
 
         return OauthResDto.builder()
-                .id(oauth.getId())
+                .oauthId(oauth.getId())
                 .socialId(oauth.getSocialId())
                 .build();
     }
@@ -187,7 +187,7 @@ public class KakaoLoginService {
                 .build();
 
         return KakaoCallResDto.builder()
-                .id(oauthResDto.getId())
+                .oauthId(oauthResDto.getOauthId())
                 .authId(oauthResDto.getAuthId())
                 .isNew(oauthResDto.isNew())
                 .properties(properties)
