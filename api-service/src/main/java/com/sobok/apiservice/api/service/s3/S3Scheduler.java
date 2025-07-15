@@ -87,7 +87,7 @@ public class S3Scheduler {
                 log.warn("허용되지 않은 이미지 형식입니다. 삭제 대상: {}, MIME-TYPE: {}", fileKey, mimeType);
 
                 // 파일 삭제
-                s3Service.deleteS3Image(fileKey);
+//                s3Service.deleteS3Image(fileKey);
 
                 log.info("S3 객체 삭제 완료 | fileKey : {}", fileKey);
             } else {

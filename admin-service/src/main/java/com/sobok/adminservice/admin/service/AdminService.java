@@ -2,6 +2,7 @@ package com.sobok.adminservice.admin.service;
 
 import com.sobok.adminservice.admin.client.*;
 import com.sobok.adminservice.admin.dto.order.*;
+import com.sobok.adminservice.admin.dto.rider.PendingRiderResDto;
 import com.sobok.adminservice.admin.dto.rider.RiderResDto;
 import com.sobok.adminservice.admin.dto.shop.ShopResDto;
 import com.sobok.adminservice.common.dto.ApiResponse;
@@ -174,5 +175,8 @@ public class AdminService {
     }
 
 
+    public List<PendingRiderResDto> getPendingRiders(TokenUserInfo userInfo) {
+        return adminRiderClient.getPendingRiders();
+    }
 }
 

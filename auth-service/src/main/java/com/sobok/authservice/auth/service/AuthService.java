@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.sobok.authservice.common.util.Constants.*;
@@ -150,6 +151,14 @@ public class AuthService {
                     throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
                 });
 
+        String photoUrl = null;
+        try {
+            photoUrl = apiServiceClient.registerImg(authUserReqDto.getPhoto());
+        } catch (Exception e) {
+            log.error("임시 저장소에서 사진을 등록하는데 실패하였습니다.", e);
+            throw new CustomException("임시 저장소에서 사진을 등록하는데 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         Auth authEntity = Auth.builder()
                 .loginId(authUserReqDto.getLoginId())
                 .password(passwordEncoder.encode(authUserReqDto.getPassword()))
@@ -166,7 +175,7 @@ public class AuthService {
                 .nickname(authUserReqDto.getNickname())
                 .email(authUserReqDto.getEmail())
                 .phone(authUserReqDto.getPhone())
-                .photo(authUserReqDto.getPhoto())
+                .photo(photoUrl)
                 .roadFull(authUserReqDto.getRoadFull())
                 .addrDetail(authUserReqDto.getAddrDetail())
                 .build();
@@ -681,6 +690,7 @@ public class AuthService {
             AuthInfoProvider provider = authInfoProviderFactory.getProvider(Role.valueOf(userInfo.getRole()));
             info = provider.getInfo(userInfo.getId());
             info.setLoginId(loginId);
+            info.setAuthId(userInfo.getId());
         } catch (IllegalArgumentException e) {
             log.error("Role 변환 과정 중 오류 발생!");
             throw new CustomException("권한 변환 과정에서 오류가 발생하였습니다.", HttpStatus.BAD_REQUEST);
@@ -817,5 +827,15 @@ public class AuthService {
         return authRepository.findById(authId)
                 .map(Auth::getLoginId)
                 .orElseThrow(() -> new CustomException("authId에 해당하는 유저가 없습니다.", HttpStatus.NOT_FOUND));
+    }
+
+    public List<Long> getInactiveRidersInfo() {
+        List<Auth> inactiveRiders = authRepository.findInactiveRiders();
+        if (inactiveRiders == null) {
+            log.error("비활성화된 라이더가 존재하지 않습니다.");
+            return new ArrayList<>();
+        }
+
+        return inactiveRiders.stream().map(Auth::getId).collect(Collectors.toList());
     }
 }

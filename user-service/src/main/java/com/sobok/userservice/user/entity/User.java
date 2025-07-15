@@ -26,6 +26,7 @@ public class User {
     @Column(unique = true, nullable = true)
     private String email;
 
+    @Setter
     @Column(nullable = false)
     private String photo;
 

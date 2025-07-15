@@ -14,8 +14,8 @@ public class AuthRiderInfoResDto extends AuthBaseInfoResDto {
     String phone;
     String permissionNumber;
 
-    public AuthRiderInfoResDto(String loginId, String name, String phone,  String permissionNumber) {
-        super(loginId);
+    public AuthRiderInfoResDto(Long authId, String loginId, String name, String phone,  String permissionNumber) {
+        super(authId, loginId);
         this.name = name;
         this.phone = phone;
         this.permissionNumber = permissionNumber;

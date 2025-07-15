@@ -2,12 +2,14 @@ package com.sobok.apiservice.api.controller;
 
 import com.sobok.apiservice.api.dto.address.LocationResDto;
 import com.sobok.apiservice.api.dto.kakao.AuthLoginResDto;
+import com.sobok.apiservice.api.dto.kakao.KakaoCallResDto;
 import com.sobok.apiservice.api.dto.kakao.OauthResDto;
 import com.sobok.apiservice.api.dto.kakao.KakaoUserResDto;
 import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import com.sobok.apiservice.api.service.s3.S3Service;
+import com.sobok.apiservice.api.service.s3.S3PutService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
 import com.sobok.apiservice.api.service.toss.TossPayService;
 import com.sobok.apiservice.common.dto.ApiResponse;
@@ -16,8 +18,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,27 +35,41 @@ public class ApiController {
     private final ConvertAddressService convertAddressService;
     private final KakaoLoginService kakaoLoginService;
 
-    /**
-     * S3 등록용 URL 발급
-     */
-    @GetMapping("/presign")
-    public ResponseEntity<?> generatePresignedUrl(@RequestParam String fileName, @RequestParam String category) {
-        String presignedUrl = s3Service.getS3PresignUrl(fileName, category);
-        return ResponseEntity.ok(ApiResponse.ok(presignedUrl, "S3 버킷에 사진을 넣을 수 있는 URL이 성공적으로 발급되었습니다."));
-    }
-
-    @GetMapping("/presignFeign")
-    public String generatePresignedUrlFeign(@RequestParam String fileName, @RequestParam String category) {
-        return s3Service.getS3PresignUrl(fileName, category);
-    }
 
     /**
      * S3 사진 삭제
      */
     @DeleteMapping("/delete-S3-image")
     public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
-        s3Service.deleteS3Image(key);
+        s3Service.deleteImage(key);
         return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
+    }
+
+    /**
+     * S3 이미지 업로드 - 10분 내 register 필요
+     */
+    @PutMapping("/upload-image/{category}")
+    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category, @RequestParam Boolean notTemp) {
+        String imgUrl = s3Service.uploadImage(image, category);
+        return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
+    }
+
+    /**
+     * FEIGN
+     * S3 이미지 등록 - 업로드 후 실제 정보 저장이 완료되면 실행
+     */
+    @PostMapping("/register-image")
+    public String registerImg(@RequestParam String url) {
+        return s3Service.registerImage(url);
+    }
+
+    /**
+     * FEIGN
+     * S3 이미지 변경
+     */
+    @PostMapping("/change-image")
+    public String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
+        return s3Service.changeImage(image, category, oldPhoto);
     }
 
     /**
@@ -73,25 +92,14 @@ public class ApiController {
     // 카카오 콜백 요청 처리
     @GetMapping("/kakao-login")
     public void kakaoCallback(@RequestParam String code, HttpServletResponse response) throws IOException {
-        log.info("카카오 콜백 처리 시작! code: {}", code);
-        // 인가코드로 액세스토큰 받기
-        String kakaoAccessToken = kakaoLoginService.getKakaoAccessToken(code);
-        // 액세스토큰으로 사용자 정보 받기
-        KakaoUserResDto kakaoUserDto = kakaoLoginService.getKakaoUserInfo(kakaoAccessToken);
-
-        // 회원가입 or 로그인 처리
-        OauthResDto oauthResDto = kakaoLoginService.findOrCreateKakaoUser(kakaoUserDto);  //authId와 닉네임
-
-        log.info("oauthResDto: {}", oauthResDto);
+        KakaoCallResDto kakaoCallResDto = kakaoLoginService.kakaoCallback(code);
 
         String html;
-
-        if (!oauthResDto.isNew()) {
+        if (!kakaoCallResDto.isNew()) {
             log.info("jwt 토큰 생성 시작");
 
             // JWT 토큰 생성 (우리 사이트 로그인 유지를 위해. 사용자 정보를 위해.)
-            AuthLoginResDto authLoginResDto = kakaoLoginService.kakaoLoginToken(oauthResDto.getAuthId());
-
+            AuthLoginResDto authLoginResDto = kakaoLoginService.kakaoLoginToken(kakaoCallResDto.getAuthId());
             log.info("authLoginResDto: {}", authLoginResDto);
 
             // 팝업 닫기 HTML 응답
@@ -108,7 +116,7 @@ public class ApiController {
                                     id: '%s',
                                     role: '%s',
                                     provider: 'KAKAO'
-                                }, window.location.origin);
+                                },'http://localhost:5173');
                                 window.close();
                             } else {
                                 window.location.href = 'http://localhost:5173';
@@ -117,13 +125,19 @@ public class ApiController {
                         <p>카카오 로그인 처리 중...</p>
                     </body>
                     </html>
-                    """, authLoginResDto.getAccessToken(), oauthResDto.getId(), authLoginResDto.getRole());
+                    """, authLoginResDto.getAccessToken(), kakaoCallResDto.getId(), authLoginResDto.getRole());
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(html);
         } else {
             log.info("새로운 사용자입니다. 추가 회원가입을 진행합니다.");
             // 프론트엔드에 '신규 가입자'임을 알리고 추가 정보 입력 페이지로 이동하도록 메시지를 보냅니다.
             // 이때 카카오에서 받은 정보(닉네임 등)를 함께 넘겨주어 회원가입 폼을 미리 채울 수 있습니다.
+            String encodedNickname = URLEncoder.encode(kakaoCallResDto.getProperties().getNickname(), StandardCharsets.UTF_8);
+            String encodedEmail = URLEncoder.encode(kakaoCallResDto.getAccount().getEmail(), StandardCharsets.UTF_8);
+            String redirectUrl = String.format(
+                    "http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&oauthId=%s&nickname=%s&email=%s",
+                    kakaoCallResDto.getId(), encodedNickname, encodedEmail
+            );
             html = String.format("""
                             <!DOCTYPE html>
                             <html>
@@ -140,15 +154,15 @@ public class ApiController {
                                         }, 'http://localhost:5173');
                                         window.close();
                                     } else {
-                                        window.location.href = 'http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&kakaoId=%s';
-//                                        window.location.href = `http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&oauthId=${oauthResDto.getId()}&nickname=${encodeURIComponent(kakaoUserDto.getProperties().getNickname())}&email=${encodeURIComponent(kakaoUserDto.getAccount().getEmail())}`;
+                                        window.location.href = '%s';
                                     }
                                 </script>
                                 <p>회원가입 페이지로 이동 중...</p>
                             </body>
                             </html>
-                            """, oauthResDto.getId(), kakaoUserDto.getProperties().getNickname(),
-                    kakaoUserDto.getAccount().getEmail(), kakaoUserDto.getId());
+                            """, kakaoCallResDto.getId(), kakaoCallResDto.getProperties().getNickname(),
+                    kakaoCallResDto.getAccount().getEmail(), redirectUrl);
+                    //, kakaoUserDto.getId());
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(html);
         }

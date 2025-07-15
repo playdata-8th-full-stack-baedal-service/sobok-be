@@ -1,6 +1,7 @@
 package com.sobok.adminservice.admin.client;
 
 import com.sobok.adminservice.admin.dto.order.RiderPaymentInfoResDto;
+import com.sobok.adminservice.admin.dto.rider.PendingRiderResDto;
 import com.sobok.adminservice.admin.dto.rider.RiderResDto;
 import com.sobok.adminservice.common.config.FeignConfig;
 import com.sobok.adminservice.common.dto.ApiResponse;
@@ -12,6 +13,12 @@ import java.util.List;
 
 @FeignClient(name = "delivery-service", configuration = FeignConfig.class)
 public interface AdminRiderFeignClient {
+
+    /**
+     * 미승인 라이더 조회
+     */
+    @GetMapping("/api/get-pending-rider")
+    List<PendingRiderResDto> getPendingRiders();
 
     /**
      * 라이더 전체 조회

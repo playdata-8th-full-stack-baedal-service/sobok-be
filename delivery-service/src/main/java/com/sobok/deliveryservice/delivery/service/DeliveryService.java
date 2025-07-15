@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -265,6 +266,30 @@ public class DeliveryService {
                 .toList();
     }
 
+    public ArrayList<RiderResDto> getPendingRiders() {
+        List<Long> inactiveRidersAuthIds;
+        try {
+            inactiveRidersAuthIds = authFeignClient.getInactiveRidersInfo();
+        } catch (Exception e) {
+            throw new CustomException("Feign 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (inactiveRidersAuthIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return riderRepository.findAll()
+                .stream()
+                .filter(rider -> inactiveRidersAuthIds.contains(rider.getAuthId()))
+                .map(rider -> RiderResDto.builder()
+                        .authId(rider.getAuthId())
+                        .name(rider.getName())
+                        .phone(rider.getPhone())
+                        .permissionNumber(rider.getPermissionNumber())
+                        .build())
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
     /**
      * 배달 중인 목록 조회
      */
@@ -290,7 +315,7 @@ public class DeliveryService {
         }
 
         // 2. 배달 목록 조회 (페이징 포함)
-        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
+        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue(), Sort.by(Sort.Direction.DESC, "id"));
 
         Page<Delivery> deliveryPage = delivering
                 ? deliveryRepository.findAllByRiderIdAndCompleteTimeIsNull(userInfo.getRiderId(), pageable)

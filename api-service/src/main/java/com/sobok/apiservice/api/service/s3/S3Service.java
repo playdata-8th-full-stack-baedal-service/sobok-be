@@ -1,156 +1,78 @@
 package com.sobok.apiservice.api.service.s3;
 
-import com.sobok.apiservice.common.enums.ImageCategory;
+
 import com.sobok.apiservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Duration;
-import java.util.Map;
-import java.util.UUID;
-
-import static com.sobok.apiservice.common.util.Constants.*;
+import static com.sobok.apiservice.common.util.Constants.internalServerErrorMsg;
+import static com.sobok.apiservice.common.util.S3Util.detachImageUrl;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class S3Service {
-    private final S3Presigner s3Presigner;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final S3Client s3Client;
+    private final S3PutService s3PutService;
+    private final S3CopyService s3CopyService;
+    private final S3DeleteService s3DeleteService;
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
-
-    private static final Map<String, String> EXT_TO_CONTENT_TYPE = Map.of(
-            "png", "image/png",
-            "jpg", "image/jpeg",
-            "jpeg", "image/jpeg",
-            "webp", "image/webp",
-            "gif", "image/gif"
-    );
 
     /**
-     * S3 Presign URL 생성
+     * S3 이미지 업로드
+     * @return 이미지의 url
      */
-    public String getS3PresignUrl(String fileName, String category) {
-        log.info("S3 Presign URL 생성 시작 | fileName : {} | category : {} ", fileName, category);
+    public String uploadImage(MultipartFile image, String category) throws CustomException {
+        log.info("S3 이미지 임시 업로드 서비스 시작 | category: {}",  category);
 
-        // 카테고리 검증
-        if (!ImageCategory.isValidCategory(category)) {
-            log.error("유효하지 않은 카테고리입니다. | category : {}", category);
-            throw new CustomException("유효하지 않은 카테고리입니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        // 키 이름 만들기 - category/UUID_filename
-        category = category.toLowerCase();
-        String key = category + "/" + UUID.randomUUID() + "_" + fileName;
-        log.info("S3에 업로드에 필요한 키 생성 완료 | key : {}", key);
-
-        // S3 Presign PUT 요청 생성
-        PresignedPutObjectRequest presigned = getPresignedPutRequest(key);
-
-        // Redis에 유효성 검증을 위한 key-value 값 생성
-        setRedisForCheckingValidation(key);
-
-        return presigned.url().toString();
+        return s3PutService.putImage(image, category, true);
     }
 
     /**
-     * S3 이미지 삭제
+     * <pre>
+     *     S3 이미지 등록 확정
+     *     1. URL에서 키 값 추출
+     *     2. 기존 객체 정보 가져오기
+     *     3. S3 COPY 요청
+     * </pre>
      */
-    public void deleteS3Image(String key) {
-        log.info("S3 이미지 삭제 시작 | key : {}", key);
+    public String registerImage(String url) {
+        log.info("업로드 이미지 영구 변환 서비스 시작 | url: {}", url);
+
+        // URL에서 키 값 가져오기
+        String key = detachImageUrl(url);
 
         try {
-            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(key)
-                    .build();
-
-            s3Client.deleteObject(deleteObjectRequest);
+            return s3CopyService.copyImageToS3(key);
         } catch (Exception e) {
-            log.error("S3 이미지를 삭제하는 과정에서 오류가 발생했습니다. | error : {}", e.getMessage(), e);
-            throw new CustomException("S3 이미지를 삭제하는 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("이미지 복사 과정에서 오류가 발생했습니다.", e);
+            throw new CustomException(internalServerErrorMsg, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    //region Private Function
-
-    /**
-     * S3 Presign 업로드 요청 생성
-     */
-    private PresignedPutObjectRequest getPresignedPutRequest(String key) {
-        // 키 유효성 검사
-        int extIndex = key.lastIndexOf(".") + 1;
-        if (extIndex == 0 || key.length() <= extIndex) {
-            log.error("올바르지 않은 파일명입니다. | key : {}", key);
-            throw new CustomException("올바르지 않은 파일명입니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        // 파일 확장자 검사
-        String ext = key.substring(extIndex);
-        String contentType = EXT_TO_CONTENT_TYPE.get(ext);
-        if (contentType == null) {
-            log.error("잘못된 파일 형식 입력입니다. | 확장자 : {}", ext);
-            throw new CustomException("잘못된 파일 형식 입력입니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        // S3 PUT 요청 생성
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .contentType(contentType)
-                .build();
-
-        // Presign 요청 생성
-        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(PRESIGN_URL_EXPIRATION))
-                .putObjectRequest(putObjectRequest)
-                .build();
-
-        // Presign 요청을 보낼 URL 생성
-        return s3Presigner.presignPutObject(presignRequest);
     }
 
     /**
-     * 이미지 유효성 검증을 위한 redis 키 생성
+     * <pre>
+     *  S3 기존 이미지 변경
+     *  1. 기존 이미지 삭제
+     *  2. 새로운 이미지 등록
+     * </pre>
+     * @return 새로운 이미지 등록
      */
-    private void setRedisForCheckingValidation(String key) {
-        try {
-            // Redis 키 생성 - presign url 업로드 시간 체크용
-            redisTemplate.opsForValue().set(
-                    S3_UPLOAD_EXPIRATION_KEY + key,
-                    "PENDING",
-                    Duration.ofMinutes(PRESIGN_URL_EXPIRATION)
-            );
+    public String changeImage(MultipartFile image, String category, String oldPhoto) throws CustomException{
+        log.info("S3 이미지 변경 서비스 시작 | category: {} | oldPhoto: {}",  category, oldPhoto);
 
-            // Redis 키 생성 - Tika를 이용한 유효성 검증 체크용
-            redisTemplate.opsForValue().set(
-                    S3_UPLOAD_CHECK_KEY + key,
-                    "COMPLETED",
-                    Duration.ofMinutes(PRESIGN_URL_CHECK_EXPIRATION)
-            );
-        } catch (IllegalArgumentException e) {
-            // 키는 반드시 두 개가 들어가도록 보장
-            redisTemplate.delete(S3_UPLOAD_EXPIRATION_KEY + key);
-
-            log.error("Redis 키 생성 과정에서 오류가 발생했습니다. | key : {}", key);
-            throw new CustomException("Redis 키 생성 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        // oldPhoto가 유효하다면 삭제 진행
+        if (oldPhoto != null && !oldPhoto.isEmpty()) { // TODO : 기본 이미지 설정 추가해야 함
+            s3DeleteService.deleteS3Image(detachImageUrl(oldPhoto));
         }
+
+        // 새로운 이미지 등록 (TEMP 저장 X)
+        return s3PutService.putImage(image, category, false);
     }
 
-    //endregion
-
+    public void deleteImage(String key) {
+        s3DeleteService.deleteS3Image(key);
+    }
 }

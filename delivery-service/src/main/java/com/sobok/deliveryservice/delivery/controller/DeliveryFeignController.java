@@ -120,6 +120,11 @@ public class DeliveryFeignController {
         return deliveryService.getPaymentId(shopId);
     }
 
+
+    @GetMapping("/get-pending-rider")
+    public List<RiderResDto> getPendingRiders() {
+        return deliveryService.getPendingRiders();
+
     /**
      * 라이더 주문 수락
      */
@@ -134,5 +139,6 @@ public class DeliveryFeignController {
     @PostMapping("/complete-delivery")
     public void deliveryComplete(@RequestBody AcceptOrderReqDto acceptOrderReqDto) {
         deliveryService.deliveryComplete(acceptOrderReqDto);
+
     }
 }
