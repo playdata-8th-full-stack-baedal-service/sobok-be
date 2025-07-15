@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -314,7 +315,7 @@ public class DeliveryService {
         }
 
         // 2. 배달 목록 조회 (페이징 포함)
-        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
+        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue(), Sort.by(Sort.Direction.DESC, "id"));
 
         Page<Delivery> deliveryPage = delivering
                 ? deliveryRepository.findAllByRiderIdAndCompleteTimeIsNull(userInfo.getRiderId(), pageable)

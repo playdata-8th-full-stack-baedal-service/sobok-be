@@ -61,7 +61,7 @@ public class SmsService {
             message.setTo(phoneNumber); // 수신자 번호 설정
             message.setText("본인 확인 인증번호는 " + certificationCode + "입니다."); // 메시지 내용 설정
             // 임시 주석. 테스트 할 시 주석 해제
-            messageService.sendOne(new SingleMessageSendingRequest(message)); // 메시지 발송 요청
+//            messageService.sendOne(new SingleMessageSendingRequest(message)); // 메시지 발송 요청
         } catch (Exception e) {
             throw new CustomException("인증번호 전송에 실패하였습니다.", HttpStatus.BAD_REQUEST);
         }
