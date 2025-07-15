@@ -124,6 +124,7 @@ public class DeliveryFeignController {
     @GetMapping("/get-pending-rider")
     public List<RiderResDto> getPendingRiders() {
         return deliveryService.getPendingRiders();
+    }
 
     /**
      * 라이더 주문 수락
