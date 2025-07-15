@@ -1,6 +1,7 @@
 package com.sobok.apiservice.api.controller;
 
 import com.sobok.apiservice.api.dto.address.LocationResDto;
+import com.sobok.apiservice.api.dto.google.GoogleCallResDto;
 import com.sobok.apiservice.api.dto.google.GoogleDetailResDto;
 import com.sobok.apiservice.api.dto.kakao.AuthLoginResDto;
 import com.sobok.apiservice.api.dto.kakao.KakaoCallResDto;
@@ -40,8 +41,6 @@ public class ApiController {
     private final KakaoLoginService kakaoLoginService;
     private final GoogleLoginService googleLoginService;
 
-    @Value("${google.client.id}")
-    private String googleClientId;
     /**
      * S3 사진 삭제
      */
@@ -105,7 +104,7 @@ public class ApiController {
             log.info("jwt 토큰 생성 시작");
 
             // JWT 토큰 생성 (우리 사이트 로그인 유지를 위해. 사용자 정보를 위해.)
-            AuthLoginResDto authLoginResDto = kakaoLoginService.kakaoLoginToken(kakaoCallResDto.getAuthId());
+            AuthLoginResDto authLoginResDto = kakaoLoginService.socialLoginToken(kakaoCallResDto.getAuthId());
             log.info("authLoginResDto: {}", authLoginResDto);
 
             // 팝업 닫기 HTML 응답
@@ -144,8 +143,8 @@ public class ApiController {
             String encodedNickname = URLEncoder.encode(kakaoCallResDto.getProperties().getNickname(), StandardCharsets.UTF_8);
             String encodedEmail = URLEncoder.encode(kakaoCallResDto.getAccount().getEmail(), StandardCharsets.UTF_8);
             String redirectUrl = String.format(
-                    "http://localhost:5173/auth/signup/kakao-usersignup?provider=KAKAO&oauthId=%s&nickname=%s&email=%s",
-                    kakaoCallResDto.getId(), encodedNickname, encodedEmail
+                    "http://localhost:5173/auth/signup/social-user-signup?provider=KAKAO&oauthId=%s&nickname=%s&email=%s",
+                    kakaoCallResDto.getOauthId(), encodedNickname, encodedEmail
             );
             html = String.format("""
                             <!DOCTYPE html>
@@ -169,7 +168,7 @@ public class ApiController {
                                 <p>회원가입 페이지로 이동 중...</p>
                             </body>
                             </html>
-                            """, kakaoCallResDto.getId(), kakaoCallResDto.getProperties().getNickname(),
+                            """, kakaoCallResDto.getOauthId(), kakaoCallResDto.getProperties().getNickname(),
                     kakaoCallResDto.getAccount().getEmail(), redirectUrl);
             //, kakaoUserDto.getId());
             response.setContentType("text/html;charset=UTF-8");
@@ -181,15 +180,88 @@ public class ApiController {
      * 구글 로그인/회원가입
      */
     @GetMapping("/google-login")
-    public ResponseEntity<ApiResponse<GoogleDetailResDto>> selectGoogleLoginInfo(@RequestParam(value = "code") String code){
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(googleLoginService.loginGoogle(code));
+    public void selectGoogleLoginInfo(@RequestParam(value = "code") String code, HttpServletResponse response) throws IOException {
+        GoogleCallResDto googleCallResDto = googleLoginService.googleCallback(code);
+
+        String html;
+        if (!googleCallResDto.isNew()) {
+            log.info("jwt 토큰 생성 시작");
+
+            // JWT 토큰 생성 (우리 사이트 로그인 유지를 위해. 사용자 정보를 위해.)
+            AuthLoginResDto authLoginResDto = kakaoLoginService.socialLoginToken(googleCallResDto.getAuthId());
+            log.info("authLoginResDto: {}", authLoginResDto);
+
+            // 팝업 닫기 HTML 응답
+            html = String.format("""
+                            <!DOCTYPE html>
+                            <html>
+                            <head><title>구글 로그인 완료</title></head>
+                            <body>
+                                <script>
+                                    if (window.opener) {
+                                        window.opener.postMessage({
+                                            type: 'OAUTH_SUCCESS',
+                                            accessToken: '%s',
+                                            refreshToken: '%s',
+                                            id: '%s',
+                                            role: '%s',
+                                            recoveryTarget: '%s',
+                                            provider: 'GOOGLE'
+                                        },'http://localhost:5173');
+                                        window.close();
+                                    } else {
+                                        window.location.href = 'http://localhost:5173';
+                                    }
+                                </script>
+                                <p>구글 로그인 처리 중...</p>
+                            </body>
+                            </html>
+                            """, authLoginResDto.getAccessToken(), authLoginResDto.getRefreshToken(), authLoginResDto.getId(),
+                    authLoginResDto.getRole(), authLoginResDto.isRecoveryTarget());
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(html);
+        } else {
+            log.info("새로운 사용자입니다. 추가 회원가입을 진행합니다.");
+            String encodedNickname = URLEncoder.encode(googleCallResDto.getName(), StandardCharsets.UTF_8);
+            String encodedEmail = URLEncoder.encode(googleCallResDto.getEmail(), StandardCharsets.UTF_8);
+            String redirectUrl = String.format(
+                    "http://localhost:5173/auth/signup//social-user-signup?provider=GOOGLE&oauthId=%s&nickname=%s&email=%s",
+                    googleCallResDto.getOauthId(), encodedNickname, encodedEmail
+            );
+            html = String.format("""
+                            <!DOCTYPE html>
+                            <html>
+                            <head><title>회원가입</title></head>
+                            <body>
+                                <script>
+                                    if (window.opener) {
+                                        window.opener.postMessage({
+                                            type: 'NEW_USER_SIGNUP',
+                                            oauthId: '%s',      // oauth ID
+                                            nickname: '%s',
+                                            email: '%s',
+                                            provider: 'GOOGLE'
+                                        }, 'http://localhost:5173');
+                                        window.close();
+                                    } else {
+                                        window.location.href = '%s';
+                                    }
+                                </script>
+                                <p>회원가입 페이지로 이동 중...</p>
+                            </body>
+                            </html>
+                            """, googleCallResDto.getOauthId(), googleCallResDto.getName(),
+                    googleCallResDto.getEmail(), redirectUrl);
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(html);
+        }
+
     }
 
     @GetMapping("/google-login-view")
-    public ResponseEntity<ApiResponse<String>> getGoogleLoginView(){
+    public ResponseEntity<?> getGoogleLoginView() {
         return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY)
-                             .body(googleLoginService.getGoogleLoginView());
+                .body(googleLoginService.getGoogleLoginView());
     }
 
     //feign요청으로 들어올 api
