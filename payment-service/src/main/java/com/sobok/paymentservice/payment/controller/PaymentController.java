@@ -4,7 +4,6 @@ import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
-import com.sobok.paymentservice.payment.dto.payment.ChangeOrderStateReqDto;
 import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentDetailResDto;
@@ -104,9 +103,9 @@ public class PaymentController {
      * 주문 상태 변경
      */
     @PatchMapping("/change-orderState")
-    public ResponseEntity<?> changeOrderState(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody ChangeOrderStateReqDto changeOrderState) {
-        paymentService.checkUserInfo(userInfo, changeOrderState.getPaymentId());
-        return ResponseEntity.ok().body(ApiResponse.ok(changeOrderState, "주문 상태가 변경되었습니다."));
+    public ResponseEntity<?> changeOrderState(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id) {
+        paymentService.checkUserInfo(userInfo, id);
+        return ResponseEntity.ok().body(ApiResponse.ok(id, "주문 상태가 변경되었습니다."));
     }
 
     /**

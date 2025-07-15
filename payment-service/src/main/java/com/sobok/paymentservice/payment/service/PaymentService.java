@@ -547,11 +547,7 @@ public class PaymentService {
     @Transactional
     public void assignDelivery(TokenUserInfo userInfo, Long paymentId) {
         //배달 선택하러 온 요청이면 delivery에 riderId를 넣어야함. orderState가 READY_FOR_DELIVERY인 상태
-        Payment payment = getAndValidatePayment(userInfo, paymentId);
-
-        if (payment.getOrderState() != OrderState.READY_FOR_DELIVERY) {
-            throw new CustomException("READY_FOR_DELIVERY 상태에서만 배달 승인이 가능합니다.", HttpStatus.BAD_REQUEST);
-        }
+        Payment payment = getAndValidatePayment(userInfo, paymentId, "assign");
 
         AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
                 .paymentId(payment.getId())
@@ -568,11 +564,7 @@ public class PaymentService {
 
     @Transactional
     public void completeDelivery(TokenUserInfo userInfo, Long paymentId) {
-        Payment payment = getAndValidatePayment(userInfo, paymentId);
-
-        if (payment.getOrderState() != OrderState.DELIVERING) {
-            throw new CustomException("DELIVERING 상태에서만 배달 승인이 가능합니다.", HttpStatus.BAD_REQUEST);
-        }
+        Payment payment = getAndValidatePayment(userInfo, paymentId, "complete");
 
         AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
                 .paymentId(payment.getId())
@@ -587,7 +579,7 @@ public class PaymentService {
         paymentRepository.save(payment);
     }
 
-    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId) {
+    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId, String state) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
                 new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -595,6 +587,17 @@ public class PaymentService {
             throw new CustomException("라이더만 수행 가능한 작업입니다.", HttpStatus.FORBIDDEN);
         }
 
+        Map<String, OrderState> validStates = Map.of(
+                "assign", OrderState.READY_FOR_DELIVERY,
+                "complete", OrderState.DELIVERING
+        );
+
+        if (payment.getOrderState() != validStates.get(state)) {
+            throw new CustomException(
+                    validStates.get(state) + " 상태에서만 " + state + " 작업이 가능합니다.",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
         return payment;
     }
 
