@@ -6,7 +6,7 @@ import lombok.*;
 @Builder
 @Data
 public class KakaoCallResDto {
-    private Long id;
+    private Long oauthId;
     private Long authId;
     @JsonProperty("isNew")
     private boolean isNew;

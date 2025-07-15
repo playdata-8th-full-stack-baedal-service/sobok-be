@@ -187,10 +187,10 @@ public class AuthController {
     /**
      * user 회원가입
      */
-    @PostMapping("/kakao-user-signup")
-    public ResponseEntity<?> createKakaoAuth(@Valid @RequestBody AuthByOauthReqDto authByOauthReqDto) {
+    @PostMapping("/social-user-signup")
+    public ResponseEntity<?> createSocialAuth(@Valid @RequestBody AuthByOauthReqDto authByOauthReqDto) {
         log.info("authByOauthReqDto: {}", authByOauthReqDto);
-        authService.kakaoUserCreate(authByOauthReqDto);
+        authService.socialUserCreate(authByOauthReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok( "회원가입 성공"));
 
     }

@@ -37,12 +37,12 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     List<String> whiteList = List.of(
-            "/actuator/**", "/api/confirm", "/api/kakao-login"
+            "/actuator/**", "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view"
     );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("Cook Service에 요청이 발생했습니다.");
+        log.info("Api Service에 요청이 발생했습니다.");
 
         // Path 점검
         String path = request.getRequestURI();
