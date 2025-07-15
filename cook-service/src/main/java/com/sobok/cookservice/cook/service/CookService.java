@@ -6,6 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
+import com.sobok.cookservice.cook.client.PaymentFeignClient;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.entity.*;
@@ -15,11 +16,14 @@ import com.sobok.cookservice.cook.repository.IngredientRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCombination.*;
@@ -36,6 +40,7 @@ public class CookService {
     private final CombinationRepository combinationRepository;
     private final IngredientRepository ingredientRepository;
     private final JPAQueryFactory factory;
+    private final PaymentFeignClient paymentFeignClient;
 
     @Transactional
     public CookCreateResDto createCook(CookCreateReqDto dto) {
@@ -270,7 +275,7 @@ public class CookService {
 
         if (tuple.isEmpty()) {
             log.error("일치하는 요리가 존재하지 않습니다.");
-            throw new CustomException("일치하는 요리가 존재하지 않습니다.",  HttpStatus.NOT_FOUND);
+            throw new CustomException("일치하는 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
         // 공통 Cook 정보는 첫 줄에서만 꺼내면 됨
@@ -336,6 +341,60 @@ public class CookService {
                 .price(ingre.getPrice() != null ? Integer.parseInt(ingre.getPrice()) : 0)
                 .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                 .build();
+    }
+
+    /**
+     * 한달 주문량 기준 요리 페이지 조회
+     */
+    @Cacheable(value = "popularCooks", key = "'page:' + #page + ':size:' + #size")
+    public PagedResponse<PopularCookResDto> getPopularCooks(int page, int size) {
+        List<CookOrderCountDto> popularCooks;
+        try {
+            popularCooks = paymentFeignClient.getPopularCookIds(page, size);
+        } catch (Exception e) {
+            throw new CustomException("payment-service 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<Long> cookIds = popularCooks.stream()
+                .map(CookOrderCountDto::getCookId)
+                .collect(Collectors.toList());
+
+        List<Cook> cooks = cookRepository.findByIdIn(cookIds);
+        Map<Long, Cook> cookMap = cooks.stream()
+                .collect(Collectors.toMap(Cook::getId, c -> c));
+
+        List<PopularCookResDto> result = popularCooks.stream()
+                .map(dto -> {
+                    Cook cook = cookMap.get(dto.getCookId());
+                    if (cook == null) {
+                        throw new CustomException("요리 정보가 없습니다. id=" + dto.getCookId(), HttpStatus.NOT_FOUND);
+                    }
+                    return PopularCookResDto.builder()
+                            .cookId(cook.getId())
+                            .cookName(cook.getName())
+                            .thumbnail(cook.getThumbnail())
+                            .orderCount(dto.getOrderCount())
+                            .build();
+                })
+                .toList();
+
+        return PagedResponse.<PopularCookResDto>builder()
+                .content(result)
+                .page(page)
+                .size(size)
+                .totalElements(result.size())
+                .totalPages(1)
+                .first(page == 0)
+                .last(true)
+                .build();
+    }
+
+    /**
+     * 스케줄러
+     */
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행
+    public void preloadPopularCookCache() {
+        getPopularCooks(0, 10); // 0페이지 10개짜리 캐싱
     }
 
 }
