@@ -64,7 +64,7 @@ public class SocialLoginService {
         log.info("소셜 로그인으로 처음 방문한 신규 유저입니다. 회원가입 진행해야 됨");
 
         Oauth build = Oauth.builder()
-                .socialProvider("KAKAO")
+                .socialProvider(dto.getProvider())
                 .socialId(dto.getSocialId().toString())
                 .build();
 
