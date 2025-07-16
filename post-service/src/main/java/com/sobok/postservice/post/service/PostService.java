@@ -292,6 +292,9 @@ public class PostService {
         );
     }
 
+    /**
+     * 게시글 목록 (N+1 해결을 위해 한번의 쿼리로 가저욤)
+     */
     private List<PostListResDto> postListResDtos(List<Post> posts) {
         if (posts.isEmpty()) {
             return Collections.emptyList();
@@ -413,11 +416,17 @@ public class PostService {
                 .build();
     }
 
+    /**
+     * 게시글 존재 여부 공통 메서드
+     */
     private Post findPostByIdOrThrow(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
     }
 
+    /**
+     * 게시글 권환 체크 공통 메서드
+     */
     private void checkPostOwnership(Post post, TokenUserInfo userInfo) {
         if (!post.getUserId().equals(userInfo.getUserId())) {
             throw new CustomException("해당 게시글에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
