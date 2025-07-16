@@ -13,7 +13,7 @@ public class IngreEditReqDto {
     @NotNull(message = "식재료 Id는 필수입니다.")
     private Long id;
     private String ingreName;
-    private String price;
+    private Integer price;
     private String origin;
     private String unit;
 }

@@ -13,6 +13,6 @@ public class CookIngredientResDto {
     private String ingreName;  // 식재료 이름
     private int unitQuantity;   // 몇 개
     private String unit;            // 단위
-    private int price;
+    private Integer price;
     private String origin;
 }

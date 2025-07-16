@@ -9,6 +9,7 @@ import com.sobok.deliveryservice.delivery.dto.response.DeliveryAvailOrderResDto;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryOrderResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
 import com.sobok.deliveryservice.delivery.service.DeliveryService;
+import com.sobok.deliveryservice.delivery.service.RiderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +26,14 @@ import java.util.List;
 public class DeliveryController {
 
     private final DeliveryService deliveryService;
+    private final RiderService riderService;
 
     /**
      * 라이더 면허 번호 중복 확인
      */
     @GetMapping("/check-permission")
     public ResponseEntity<?> checkPermission(@RequestParam String permission) {
-        deliveryService.checkPermission(permission);
+        riderService.checkPermission(permission);
         return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 면허번호 입니다."));
     }
 
