@@ -29,4 +29,5 @@ public class CommonExceptionHandler {
         log.error("예외 발생! 메세지 : {}", e.getMessage());
         return new ResponseEntity<>(ApiResponse.fail(status, e.getMessage()), status);
     }
+
 }
