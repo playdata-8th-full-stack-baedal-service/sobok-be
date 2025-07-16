@@ -40,6 +40,12 @@ public class JwtFilter extends OncePerRequestFilter {
             "/actuator/**", "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view"
     );
 
+    private static final List<String> deniedPaths = List.of(
+            "/api/delete-S3-image", "/api/upload-image/FOOD", "/api/upload-image/POST", "/register-image",
+            "/api/change-image", "/api/confirm", "/api/convert-addr", "/api/kakao-login",
+            "/api/google-login", "/api/google-login-view", "/api/findByOauthId"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("Api Service에 요청이 발생했습니다.");
@@ -50,7 +56,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
         boolean isAllowed = whiteList.stream()
-                        .anyMatch(url -> antPathMatcher.match(url, path));
+                .anyMatch(url -> antPathMatcher.match(url, path));
+
+        boolean isDenied = deniedPaths.stream().anyMatch(url -> antPathMatcher.match(url, path));
 
         // 허용 path라면 Filter 동작하지 않고 넘기기
         if (isAllowed) {
@@ -62,7 +70,7 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             // 토큰이 존재하는 지 확인
             String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || authHeader.isEmpty() ) {
+            if (authHeader == null || authHeader.isEmpty()) {
                 log.warn("Authorization 헤더가 비어있습니다.");
                 throw new Exception();
             }
@@ -87,17 +95,28 @@ public class JwtFilter extends OncePerRequestFilter {
             long id = Long.parseLong(claims.getSubject());
             Role role = Role.from(claims.get("role", String.class));
 
+            // TEMP일 경우 URI 검사
+            if (role == Role.TEMP) {
+                String uri = request.getRequestURI();
+                log.info("uri:{}", uri);
+                if (isDenied) {
+                    log.warn("TEMP 역할이 허용되지 않은 URI에 접근하려 했습니다: {}", uri);
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "TEMP는 이 경로에 접근할 수 없습니다.");
+                    throw new Exception();
+                }
+            }
+
             // @AuthenticationPrinciple, @PreAuthorize("hasRole('ADMIN')") 같은 로직을 사용하기 위한 로직
             TokenUserInfo tokenUserInfo = TokenUserInfo.builder().id(id).role(role.name()).build();
-            String roleClaim = switch(role) {
+            String roleClaim = switch (role) {
                 case USER -> "userId";
                 case HUB -> "shopId";
-                case RIDER ->  "riderId";
+                case RIDER -> "riderId";
                 default -> null;
             };
-            if(roleClaim != null) {
+            if (roleClaim != null) {
                 Long roleId = Long.parseLong(claims.get(roleClaim, String.class));
-                switch(role) {
+                switch (role) {
                     case USER -> tokenUserInfo.setUserId(roleId);
                     case HUB -> tokenUserInfo.setShopId(roleId);
                     case RIDER -> tokenUserInfo.setRiderId(roleId);
@@ -118,6 +137,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * claim 꺼내기
+     *
      * @param token
      * @return
      */
@@ -136,6 +156,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * 토큰 유효기간 검증
+     *
      * @param token
      * @return
      */
@@ -157,6 +178,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * 인증 통과하지 못하면(토큰에 문제가 있다면) 에러 응답 전송
+     *
      * @param response
      * @throws IOException
      */

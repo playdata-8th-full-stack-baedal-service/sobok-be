@@ -122,7 +122,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Refresh Token 발급 (예외가 발생했다면 빈 문자열)
+     * 임시 Token 발급 (예외가 발생했다면 빈 문자열)
      */
     public String generateTempToken() throws CustomException {
         try {
@@ -134,7 +134,7 @@ public class JwtTokenProvider {
                     .setExpiration(expiryDate)
                     .setIssuedAt(now)
                     .setSubject("999")
-                    .claim("role", Role.FEIGN.toString())
+                    .claim("role", Role.TEMP.toString())
                     .compact();
         } catch (InvalidKeyException e) {
             log.error("임시 토큰 생성 중 문제가 발생했습니다.");
