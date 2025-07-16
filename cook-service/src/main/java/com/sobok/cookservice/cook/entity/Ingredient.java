@@ -23,7 +23,7 @@ public class Ingredient {
     private String ingreName;
 
     @Column(nullable = false)
-    private String price;
+    private Integer price;
 
     @Column(nullable = false)
     private String origin;
@@ -33,7 +33,7 @@ public class Ingredient {
 
     public void update(IngreEditReqDto dto) {
         if (StringUtils.hasText(dto.getIngreName())) this.ingreName = dto.getIngreName();
-        if (StringUtils.hasText(dto.getPrice())) this.price = dto.getPrice();
+        if (dto.getPrice() != null) this.price = dto.getPrice();
         if (StringUtils.hasText(dto.getOrigin())) this.origin = dto.getOrigin();
         if (StringUtils.hasText(dto.getUnit())) this.unit = dto.getUnit();
     }

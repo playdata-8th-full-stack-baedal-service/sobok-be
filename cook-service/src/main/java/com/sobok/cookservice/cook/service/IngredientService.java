@@ -106,7 +106,7 @@ public class IngredientService {
                 .ingredientId(ingre.getId())
                 .ingreName(ingre.getIngreName())
                 .unit(ingre.getUnit())
-                .price(Integer.parseInt(ingre.getPrice()))
+                .price(ingre.getPrice())
                 .origin(ingre.getOrigin())
                 .build();
     }
