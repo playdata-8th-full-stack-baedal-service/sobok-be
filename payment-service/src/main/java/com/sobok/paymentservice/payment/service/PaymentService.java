@@ -26,7 +26,8 @@ import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
-import com.sobok.paymentservice.payment.service.validator.RoleValidator;
+import com.sobok.paymentservice.payment.service.validator.access.RoleAccessValidator;
+import com.sobok.paymentservice.payment.service.validator.orderstate.RoleValidator;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +64,7 @@ public class PaymentService {
     private final DeliveryFeignClient deliveryFeignClient;
     private final JPAQueryFactory factory;
     private final Map<String, RoleValidator> validatorMap;
+    private final Map<String, RoleAccessValidator> roleAccessValidatorMap;
 
     /**
      * 결제 사전 정보 등록
@@ -263,6 +265,8 @@ public class PaymentService {
                 .filter(cart -> cart.getPaymentId() != null)
                 .toList();
 
+        if (orderedCartCooks.isEmpty()) return List.of();
+
         List<Long> cookIdList = orderedCartCooks.stream().map(CartCook::getCookId).distinct().toList(); //중복제거
         List<Long> paymentIdList = cartCookList.stream().map(CartCook::getPaymentId).distinct().toList();
 
@@ -289,18 +293,17 @@ public class PaymentService {
                 .map(payment -> {
                     List<CartCook> cartCooks = cartCookByPayment.getOrDefault(payment.getId(), Collections.emptyList());
 
-                    List<GetPaymentResDto.Cook> cookDtos = cartCooks.stream()
+                    List<GetPaymentResDto.Cook> cookDtos = (cartCooks != null ? cartCooks : List.<CartCook>of())
+                            .stream()
                             .map(cart -> {
                                 CookDetailResDto cookDetail = cookMap.get(cart.getCookId());
-                                if (cookDetail == null) {
+                                if (cookDetail == null)
                                     throw new CustomException("요리 정보가 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-                                }
                                 return GetPaymentResDto.Cook.builder()
                                         .cookName(cookDetail.getName())
                                         .thumbnail(cookDetail.getThumbnail())
                                         .build();
-                            })
-                            .toList();
+                            }).toList();
 
                     return GetPaymentResDto.builder()
                             .paymentId(payment.getId())
@@ -324,6 +327,11 @@ public class PaymentService {
      * 사용자/가게 주문 세부 조회
      */
     public PaymentDetailResDto getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
+        // paymentId로 payment 정보 조회
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(
+                () -> new CustomException("주문 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
+        );
+
         // paymentId로 Cart Cook 리스트 가져오기
         List<CartCook> cartCookList = cartCookRepository.findByPaymentId(paymentId);
         if (cartCookList.isEmpty()) {
@@ -331,26 +339,18 @@ public class PaymentService {
             throw new CustomException("결제 내역에 해당하는 카트 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
-        log.info("userInfo 전체 확인: {}", userInfo);
+        // shopId를 얻기 위해 delivery-service에 요청
+        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
-        if ("USER".equals(userInfo.getRole())) {
-            //유저 검증
-            Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
-            if (!Boolean.TRUE.equals(matched)) {
-                throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
-            }
-            // 로그인한 사용자 본인이 주문한게 맞는지 확인
-            cartCookList.forEach(cart -> {
-                if (!cart.getUserId().equals(userInfo.getUserId())) {
-                    throw new CustomException("주문한 사용자만 조회가능합니다.", HttpStatus.FORBIDDEN);
-                }
-            });
+        RoleAccessValidator validator = roleAccessValidatorMap.get(userInfo.getRole());
+        if (validator == null) {
+            throw new CustomException("해당 역할(" + userInfo.getRole() + ")은 접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
-        // paymentId로 payment 정보 조회
-        Payment payment = paymentRepository.findById(paymentId).orElseThrow(
-                () -> new CustomException("주문 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
-        );
+        validator.validate(userInfo, cartCookList, delivery);
+
+        // shopId로 shop 정보 얻기
+        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
 
         // 주문한 요리 식재료, 추가 식재료 정보 얻기
         PaymentResDto paymentResDto = cartService.getCart(userInfo, paymentId.toString());
@@ -359,25 +359,9 @@ public class PaymentService {
                 .toList();
         log.info("items: {}", items);
 
-        // shopId를 얻기 위해 delivery-service에 요청
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
-
-        if ("HUB".equals(userInfo.getRole())) {
-            //가게 검증
-            if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
-                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
-                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
-            }
-        }
-
         // 배송지
         UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
         log.info("사용자 주소 정보를 얻기 위한 userInfoResDto: {}", userInfoResDto);
-
-
-        // shopId로 shop 정보 얻기
-        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
-
 
         // payment: 주문 번호, 일자, 배송 상태, 결제 수단 및 총금액, 주소(id), 라이더 요청사항
         // cook: 포함된 모든 요리 정보, 추가 식재료,
@@ -398,7 +382,6 @@ public class PaymentService {
                 .completeTime(delivery.getCompleteTime())
                 .items(items)
                 .build();
-
     }
 
     /**
@@ -465,7 +448,7 @@ public class PaymentService {
     }
 
     /**
-     * 주문 상태 변경 (재료 준비 -> 준비 완료 / 배달 승인 -> 배달 중
+     * 주문 상태 변경 (재료 준비 -> 준비 완료 / 배달 승인 -> 배달 중)
      */
     @Transactional
     public void checkUserInfo(TokenUserInfo userInfo, Long paymentId) {

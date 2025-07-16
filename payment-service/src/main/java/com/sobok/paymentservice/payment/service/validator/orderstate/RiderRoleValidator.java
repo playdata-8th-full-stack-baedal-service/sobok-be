@@ -1,4 +1,4 @@
-package com.sobok.paymentservice.payment.service.validator;
+package com.sobok.paymentservice.payment.service.validator.orderstate;
 
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
