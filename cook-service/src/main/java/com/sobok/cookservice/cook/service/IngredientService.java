@@ -114,7 +114,13 @@ public class IngredientService {
      * 식재료 이름 조회용 (주문 전체 조회)
      */
     public List<IngredientNameResDto> getIngredientNamesByIds(List<Long> ingreIds) {
-        return ingredientRepository.findAllById(ingreIds).stream()
+        List<Ingredient> ingredients = ingredientRepository.findAllById(ingreIds);
+
+        if (ingredients.size() != ingreIds.size()) {
+            throw new CustomException("일부 식재료 ID가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        return ingredients.stream()
                 .map(ingredient -> new IngredientNameResDto(ingredient.getId(), ingredient.getIngreName()))
                 .toList();
     }
