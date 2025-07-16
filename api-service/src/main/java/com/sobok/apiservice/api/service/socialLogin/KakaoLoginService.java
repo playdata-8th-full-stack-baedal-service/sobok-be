@@ -108,21 +108,13 @@ public class KakaoLoginService {
 
         log.info("oauthResDto: {}", oauthResDto);
 
-        KakaoCallResDto.Properties properties = KakaoCallResDto.Properties.builder()
-                .nickname(kakaoUserDto.getProperties().getNickname())
-                .profileImage(kakaoUserDto.getProperties().getProfileImage())
-                .build();
-
-        KakaoCallResDto.KakaoAccount account = KakaoCallResDto.KakaoAccount.builder()
-                .email(kakaoUserDto.getAccount().getEmail())
-                .build();
-
         return KakaoCallResDto.builder()
                 .oauthId(oauthResDto.getOauthId())
                 .authId(oauthResDto.getAuthId())
                 .isNew(oauthResDto.isNew())
-                .properties(properties)
-                .account(account)
+                .nickname(kakaoUserDto.getProperties().getNickname())
+                .profileImage(kakaoUserDto.getProperties().getProfileImage())
+                .email(kakaoUserDto.getAccount().getEmail())
                 .build();
     }
 }
