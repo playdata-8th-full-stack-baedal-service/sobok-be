@@ -4,27 +4,19 @@ package com.sobok.authservice.auth.controller;
 import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
-import com.sobok.authservice.auth.service.AuthService;
-import com.sobok.authservice.auth.service.info.AuthInfoProvider;
-import com.sobok.authservice.auth.service.info.AuthInfoProviderFactory;
+import com.sobok.authservice.auth.service.auth.AuthService;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
-import com.sobok.authservice.common.enums.Role;
 import com.sobok.authservice.common.exception.CustomException;
-import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/auth")

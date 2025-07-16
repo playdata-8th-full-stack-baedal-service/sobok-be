@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.service;
+package com.sobok.authservice.auth.service.auth;
 
 
 import com.sobok.authservice.auth.client.ApiServiceClient;
@@ -10,8 +10,10 @@ import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
+import com.sobok.authservice.auth.service.etc.SmsService;
 import com.sobok.authservice.auth.service.info.AuthInfoProvider;
 import com.sobok.authservice.auth.service.info.AuthInfoProviderFactory;
+import com.sobok.authservice.common.util.PasswordGenerator;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
@@ -22,7 +24,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,11 +53,6 @@ public class AuthService {
     private final SmsService smsService;
 
     private final AuthInfoProviderFactory authInfoProviderFactory;
-
-    @Value("${oauth2.kakao.client-id}")
-    private String kakaoClientId;
-    @Value("${oauth2.kakao.redirect-uri}")
-    private String kakaoRedirectUri;
 
     /**
      * <pre>

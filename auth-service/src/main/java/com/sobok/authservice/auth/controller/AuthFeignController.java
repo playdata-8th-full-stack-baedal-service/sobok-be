@@ -1,17 +1,14 @@
 package com.sobok.authservice.auth.controller;
 
-import com.sobok.authservice.auth.dto.request.AuthSignupReqDto;
 import com.sobok.authservice.auth.dto.response.AuthLoginResDto;
 import com.sobok.authservice.auth.dto.response.AuthRiderInfoResDto;
-import com.sobok.authservice.auth.dto.response.AuthUserResDto;
 import com.sobok.authservice.auth.dto.response.OauthResDto;
-import com.sobok.authservice.auth.service.AuthService;
+import com.sobok.authservice.auth.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
