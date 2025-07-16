@@ -162,4 +162,10 @@ public class RiderService {
         }
     }
 
+    /**
+     * 라이더 면허 번호 중복 검증
+     */
+    public boolean existsByPermissionNumber(String permission) {
+        return riderRepository.existsByPermissionNumber(permission);
+    }
 }

@@ -34,8 +34,6 @@ import java.util.List;
 public class DeliveryFeignController {
 
     private final DeliveryService deliveryService;
-    private final RiderRepository riderRepository;
-    private final DeliveryRepository deliveryRepository;
     private final RiderService riderService;
 
     @PostMapping("/signup")
@@ -58,10 +56,8 @@ public class DeliveryFeignController {
      */
     @GetMapping("/check-permission")
     public ResponseEntity<Boolean> checkPermission(@RequestParam String permission) {
-        return ResponseEntity.ok((riderRepository.existsByPermissionNumber(permission)));
-
+        return ResponseEntity.ok(riderService.existsByPermissionNumber(permission));
     }
-
 
     @GetMapping("/rider-info")
     public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId) {
@@ -101,9 +97,8 @@ public class DeliveryFeignController {
      */
     @GetMapping("/shop-id/payment")
     public ResponseEntity<Long> getShopIdByPaymentId(@RequestParam Long paymentId) {
-        Delivery delivery = deliveryRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new CustomException("배달 정보가 없습니다.", HttpStatus.NOT_FOUND));
-        return ResponseEntity.ok(delivery.getShopId());
+        Long shopId = deliveryService.getShopIdByPaymentId(paymentId);
+        return ResponseEntity.ok(shopId);
     }
 
     /**

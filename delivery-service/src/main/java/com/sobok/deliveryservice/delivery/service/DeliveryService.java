@@ -279,4 +279,13 @@ public class DeliveryService {
         deliveryRepository.save(delivery);
         log.info("completeTime 업데이트 완료");
     }
+
+    /**
+     * paymentId를 기준으로 delivery 테이블에서 shopId를 찾아서 반환
+     */
+    public Long getShopIdByPaymentId(Long paymentId) {
+        Delivery delivery = deliveryRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new CustomException("배달 정보가 없습니다.", HttpStatus.NOT_FOUND));
+        return delivery.getShopId();
+    }
 }
