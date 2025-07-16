@@ -405,7 +405,7 @@ public class PaymentService {
                         .paymentId(payment.getId())
                         .orderId(payment.getOrderId())
                         .orderState(payment.getOrderState())
-                        .createdAt(payment.getCreatedAt())
+                        .updatedAt(payment.getUpdatedAt())
                         .build())
                 .toList();
     }
@@ -449,7 +449,7 @@ public class PaymentService {
                         .orderId(p.getOrderId())
                         .orderState(p.getOrderState())
                         .userAddressId(p.getUserAddressId())
-                        .createdAt(p.getCreatedAt())
+                        .updatedAt(p.getUpdatedAt())
                         .build())
                 .toList();
     }

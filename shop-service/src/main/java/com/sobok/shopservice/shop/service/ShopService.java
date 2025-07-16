@@ -198,7 +198,7 @@ public class ShopService {
         OrderState finalFilterState = filterState;
         List<ShopPaymentResDto> result = allOrders.stream()
                 .filter(order -> finalFilterState == null || order.getOrderState() == finalFilterState)
-                .sorted(Comparator.comparing(ShopPaymentResDto::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(ShopPaymentResDto::getUpdatedAt).reversed())
                 .skip(offset)
                 .limit(numOfRows)
                 .toList();
@@ -219,7 +219,11 @@ public class ShopService {
      * 요리별로 좋아요 순으로 조회
      */
     public CookPostGroupResDto getPostsByCookId(Long cookId) {
-        return postFeignClient.getCookPosts(cookId);
+        try {
+            return postFeignClient.getCookPosts(cookId);
+        } catch (Exception e) {
+            throw new CustomException("Post 서비스 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**

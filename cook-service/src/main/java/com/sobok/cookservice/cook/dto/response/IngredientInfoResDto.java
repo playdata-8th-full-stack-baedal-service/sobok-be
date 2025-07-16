@@ -11,6 +11,6 @@ public class IngredientInfoResDto {
     private Long ingredientId;
     private String ingredientName;
     private String unit;
-    private int price;
+    private Integer price;
     private String origin;
 }

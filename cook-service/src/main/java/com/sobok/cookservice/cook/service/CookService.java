@@ -169,7 +169,7 @@ public class CookService {
                     .ingreName(ingre.getIngreName())
                     .unitQuantity(comb.getUnitQuantity())
                     .unit(ingre.getUnit())
-                    .price(Integer.parseInt(ingre.getPrice()))
+                    .price (ingre.getPrice())
                     .origin(ingre.getOrigin())
                     .build();
         }).toList();
@@ -184,7 +184,7 @@ public class CookService {
 
 
     public boolean checkCook(Long cookId) {
-        log.info("컨트롤러 통ㄷ과");
+        log.info("컨트롤러 통과");
         boolean exists = cookRepository.existsById(cookId);
         log.info(exists ? "존재" : "없음");
         return exists;
@@ -293,7 +293,7 @@ public class CookService {
                 .map(t -> CookIndividualResDto.IngredientAll.builder()
                         .ingredientId(t.get(ingredient.id))
                         .ingredientName(t.get(ingredient.ingreName))
-                        .price(Integer.parseInt(t.get(ingredient.price)))
+                        .price(t.get(ingredient.price))
                         .unit(Integer.parseInt(t.get(ingredient.unit)))
                         .unitQuantity(t.get(combination.unitQuantity))
                         .build())
@@ -320,7 +320,7 @@ public class CookService {
                     .ingredientName(ingre.getIngreName())
                     .unit(String.valueOf(ingre.getUnit()))
                     .quantity(comb.getUnitQuantity())
-                    .price(ingre.getPrice() != null ? Integer.parseInt(ingre.getPrice()) : 0)
+                    .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                     .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                     .isDefault(true)
                     .build();
@@ -338,7 +338,7 @@ public class CookService {
                 .ingredientId(ingre.getId())
                 .ingredientName(ingre.getIngreName())
                 .unit(String.valueOf(ingre.getUnit()))
-                .price(ingre.getPrice() != null ? Integer.parseInt(ingre.getPrice()) : 0)
+                .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                 .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                 .build();
     }
