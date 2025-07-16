@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +27,9 @@ public class RiderService {
     private final RiderRepository riderRepository;
     private final AuthFeignClient authFeignClient;
 
+    /**
+     * 라이더 회원 가입
+     */
     public RiderResDto riderCreate(RiderReqDto dto) {
 
         if (riderRepository.existsByPhone(dto.getPhone())) {
@@ -55,6 +57,9 @@ public class RiderService {
                 .build();
     }
 
+    /**
+     * 전화번호로 라이더 정보를 조회
+     */
     public ByPhoneResDto findByPhoneNumber(String phoneNumber) {
         Optional<Rider> byPhone = riderRepository.findByPhone(phoneNumber);
         if (byPhone.isPresent()) {
@@ -88,6 +93,9 @@ public class RiderService {
                 .build();
     }
 
+    /**
+     * authId를 통해 라이더의 Id를 조회
+     */
     public Long getRiderId(Long id) {
         Rider rider = riderRepository.getRiderByAuthId(id).orElseThrow(
                 () -> new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
@@ -95,7 +103,6 @@ public class RiderService {
 
         return rider.getId();
     }
-
 
     /**
      * 라이더 정보 조회
@@ -127,6 +134,9 @@ public class RiderService {
         }
     }
 
+    /**
+     * 승인 대기 중인 라이더 목록을 조회
+     */
     public ArrayList<RiderResDto> getPendingRiders() {
         List<Long> inactiveRidersAuthIds;
         try {
@@ -151,11 +161,17 @@ public class RiderService {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
+    /**
+     * Id로 라이더를 조회
+     */
     public Rider findRiderByIdOrThrow(Long riderId) {
         return riderRepository.findById(riderId)
                 .orElseThrow(() -> new CustomException("라이더 정보 없음", HttpStatus.NOT_FOUND));
     }
 
+    /**
+     * 라이더 검증 중복 로직 분리
+     */
     public void existsByIdOrThrow(Long riderId) {
         if (!riderRepository.existsById(riderId)) {
             throw new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
