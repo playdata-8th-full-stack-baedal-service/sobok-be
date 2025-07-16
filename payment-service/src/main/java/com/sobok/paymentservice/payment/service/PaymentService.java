@@ -31,6 +31,8 @@ import com.sobok.paymentservice.payment.service.validator.orderstate.RoleValidat
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -64,7 +66,8 @@ public class PaymentService {
     private final DeliveryFeignClient deliveryFeignClient;
     private final JPAQueryFactory factory;
     private final Map<String, RoleValidator> validatorMap;
-    private final Map<String, RoleAccessValidator> roleAccessValidatorMap;
+    private final List<RoleAccessValidator> roleAccessValidatorList;
+
 
     /**
      * 결제 사전 정보 등록
@@ -191,23 +194,6 @@ public class PaymentService {
                 .first(payments.isFirst())
                 .last(payments.isLast())
                 .build();
-    }
-
-    /**
-     * 주문 전체 조회 (결제)
-     */
-    public List<AdminPaymentResDto> getAllPaymentsForAdmin() {
-        return paymentRepository.findAll().stream()
-                .map(payment -> AdminPaymentResDto.builder()
-                        .id(payment.getId())
-                        .orderId(payment.getOrderId())
-                        .totalPrice(payment.getTotalPrice())
-                        .payMethod(payment.getPayMethod())
-                        .orderState(payment.getOrderState())
-                        .createdAt(payment.getCreatedAt())
-                        .userAddressId(payment.getUserAddressId())
-                        .build())
-                .toList();
     }
 
     /**
@@ -342,10 +328,10 @@ public class PaymentService {
         // shopId를 얻기 위해 delivery-service에 요청
         DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
-        RoleAccessValidator validator = roleAccessValidatorMap.get(userInfo.getRole());
-        if (validator == null) {
-            throw new CustomException("해당 역할(" + userInfo.getRole() + ")은 접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
+        RoleAccessValidator validator = roleAccessValidatorList.stream()
+                .filter(v -> Objects.equals(v.getRole(), userInfo.getRole()))
+                .findFirst()
+                .orElseThrow(() -> new CustomException("해당 역할(" + userInfo.getRole() + ")은 접근 권한이 없습니다.", HttpStatus.BAD_REQUEST));
 
         validator.validate(userInfo, cartCookList, delivery);
 

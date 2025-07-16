@@ -9,8 +9,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component("USER")
+@Component
 public class UserAccessValidator implements RoleAccessValidator {
+
+    @Override
+    public String getRole() {
+        return "USER";
+    }
+
     public void validate(TokenUserInfo userInfo, List<CartCook> cartCookList, DeliveryResDto delivery) {
         // 사용자 검증
         // 주문한 유저가 본인인지 확인

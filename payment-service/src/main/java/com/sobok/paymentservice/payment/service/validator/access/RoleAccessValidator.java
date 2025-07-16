@@ -7,5 +7,6 @@ import com.sobok.paymentservice.payment.entity.CartCook;
 import java.util.List;
 
 public interface RoleAccessValidator {
+    String getRole();
     void validate(TokenUserInfo userInfo, List<CartCook> cartCookList, DeliveryResDto delivery);
 }

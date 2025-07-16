@@ -169,7 +169,7 @@ public class CookService {
                     .ingreName(ingre.getIngreName())
                     .unitQuantity(comb.getUnitQuantity())
                     .unit(ingre.getUnit())
-                    .price (ingre.getPrice())
+                    .price(ingre.getPrice())
                     .origin(ingre.getOrigin())
                     .build();
         }).toList();
@@ -293,7 +293,7 @@ public class CookService {
                 .map(t -> CookIndividualResDto.IngredientAll.builder()
                         .ingredientId(t.get(ingredient.id))
                         .ingredientName(t.get(ingredient.ingreName))
-                        .price(Integer.parseInt(t.get(ingredient.price)))
+                        .price(t.get(ingredient.price))
                         .unit(Integer.parseInt(t.get(ingredient.unit)))
                         .unitQuantity(t.get(combination.unitQuantity))
                         .build())
