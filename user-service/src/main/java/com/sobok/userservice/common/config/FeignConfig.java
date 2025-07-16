@@ -3,6 +3,7 @@ package com.sobok.userservice.common.config;
 import com.sobok.userservice.common.jwt.JwtTokenProvider;
 import feign.RequestInterceptor;
 import feign.Retryer;
+import feign.codec.ErrorDecoder;
 import feign.form.spring.SpringFormEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectFactory;
@@ -38,4 +39,11 @@ public class FeignConfig {
     public Retryer retryer() {
         return new Retryer.Default(100, 1000, 3); // 100ms ~ 1초, 최대 3번
     }
+
+    @Bean
+    public ErrorDecoder errorDecoder() {
+        return new CustomErrorDecoder();
+    }
+
+
 }
