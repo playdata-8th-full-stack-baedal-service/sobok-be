@@ -8,9 +8,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "user-service", configuration = FeignConfig.class)
 public interface UserFeignClient {
+
+    /**
+     * 게시글 작성자 정보(userId, nickname) 조회
+     */
     @GetMapping("/api/post-info")
     UserInfoResDto getUserInfo(@RequestParam Long userId);
 
+    /**
+     * 사용자 Id로 닉네임 조회
+     */
     @GetMapping("/api/user/nickname")
     String getNicknameById(@RequestParam Long userId);
 }
