@@ -26,17 +26,12 @@ import com.sobok.postservice.post.repository.UserLikeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -93,7 +88,6 @@ public class PostService {
 
         return new PostRegisterResDto(post.getId(), cookName);
     }
-
 
     /**
      * 게시글 수정
@@ -171,63 +165,46 @@ public class PostService {
      */
     public PagedResponse<PostListResDto> getPostList(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size);
-
-        List<Post> content;
-        long total;
+        Page<Post> postPage;
 
         if ("like".equalsIgnoreCase(sortBy)) {
-            // 좋아요 순 정렬
-            content = queryFactory
-                    .selectFrom(post)
+            List<Long> postIds = queryFactory
+                    .select(post.id)
+                    .from(post)
                     .leftJoin(userLike).on(post.id.eq(userLike.postId))
-                    .groupBy(post.id)
-                    .orderBy(userLike.count().desc())
+                    .groupBy(post.id, post.updatedAt)
+                    .orderBy(userLike.count().desc(), post.updatedAt.desc())
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .fetch();
 
-            total = queryFactory.select(post.count()).from(post).fetchOne();
+            if (postIds.isEmpty()) {
+                return new PagedResponse<>(Collections.emptyList(), page, size, 0, 0, true);
+            }
 
+            List<Post> content = postRepository.findAllById(postIds).stream()
+                    .sorted(Comparator.comparing(p -> postIds.indexOf(p.getId())))
+                    .toList();
+
+            Long total = queryFactory.select(post.id.countDistinct()).from(post).fetchOne();
+            postPage = new PageImpl<>(content, pageable, total != null ? total : 0);
         } else {
-            // 최신순 정렬
-            Page<Post> postPage = postRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt")));
-            content = postPage.getContent();
-            total = postPage.getTotalElements();
+            postPage = postRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt")));
         }
 
-        if (content.isEmpty()) {
+        if (postPage.isEmpty()) {
             throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
-        List<PostListResDto> result = content.stream().map(post -> {
-            String cookName = cookClient.getCookNameById(post.getCookId());
-            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
-
-            String thumbnail = postImageRepository.findByPostIdAndIndex(post.getId(), 1)
-                    .map(PostImage::getImagePath)
-                    .orElse(null);
-
-            int likeCount = userLikeRepository.countByPostId(post.getId());
-
-            return PostListResDto.builder()
-                    .postId(post.getId())
-                    .title(post.getTitle())
-                    .cookName(cookName)
-                    .userId(user.getUserId())
-                    .nickName(user.getNickname())
-                    .likeCount(likeCount)
-                    .thumbnail(thumbnail)
-                    .updatedAt(post.getUpdatedAt())
-                    .build();
-        }).toList();
+        List<PostListResDto> result = postListResDtos(postPage.getContent());
 
         return new PagedResponse<>(
                 result,
                 page,
                 size,
-                total,
-                (int) Math.ceil((double) total / size),
-                result.size() < size
+                postPage.getTotalElements(),
+                postPage.getTotalPages(),
+                postPage.isLast()
         );
     }
 
@@ -283,9 +260,7 @@ public class PostService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
 
-        List<PostListResDto> posts = postPage.getContent().stream().map(post -> {
-            return getPostListResDto(post);
-        }).toList();
+        List<PostListResDto> posts = postListResDtos(postPage.getContent());
 
         PagedResponse<PostListResDto> response = new PagedResponse<>(
                 posts,
@@ -296,7 +271,7 @@ public class PostService {
                 postPage.isLast()
         );
 
-        String message = posts.isEmpty() // 게시글 없어도 빈 배열로 보내기 위해 사용
+        String message = posts.isEmpty()
                 ? "작성한 게시글이 없습니다."
                 : "사용자 게시글 조회 성공";
 
@@ -314,12 +289,11 @@ public class PostService {
 
         Page<UserLike> userLikePage = userLikeRepository.findAllByUserId(userId, pageable);
 
-        List<PostListResDto> result = userLikePage.getContent().stream().map(userLike -> {
-            Post post = postRepository.findById(userLike.getPostId())
-                    .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        List<Post> posts = postRepository.findAllById(
+                userLikePage.getContent().stream().map(UserLike::getPostId).toList()
+        );
 
-            return getPostListResDto(post);
-        }).toList();
+        List<PostListResDto> result = postListResDtos(posts);
 
         return new PagedResponse<>(
                 result,
@@ -331,24 +305,47 @@ public class PostService {
         );
     }
 
-    //게시글 목록 조회 시 필요한 정보(공통된 응답이라 분리)
-    private PostListResDto getPostListResDto(Post post) {
-        String cookName = cookClient.getCookNameById(post.getCookId());
-        String nickName = userClient.getNicknameById(post.getUserId());
-        int likeCount = userLikeRepository.countByPostId(post.getId());
-        String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
-                .map(PostImage::getImagePath).orElse(null);
+    /**
+     * 게시글 목록 조회 시 필요한 정보(공통된 응답이라 분리) N+1 문제 해결
+     */
+    private List<PostListResDto> postListResDtos(List<Post> posts) {
+        if (posts.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        return PostListResDto.builder()
-                .postId(post.getId())
-                .title(post.getTitle())
-                .cookName(cookName)
-                .nickName(nickName)
-                .userId(post.getUserId())
-                .likeCount(likeCount)
-                .thumbnail(thumbnail)
-                .updatedAt(post.getUpdatedAt())
-                .build();
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+
+        // N+1 문제 해결 - QueryDSL을 사용하여 좋아요 수, 썸네일을 한번의 쿼리로 가져옴
+        Map<Long, Long> likeCountMap = queryFactory
+                .select(userLike.postId, userLike.count())
+                .from(userLike)
+                .where(userLike.postId.in(postIds))
+                .groupBy(userLike.postId)
+                .fetch().stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(userLike.postId),
+                        tuple -> tuple.get(userLike.count())
+                ));
+
+        Map<Long, String> thumbnailMap = postImageRepository.findAllByPostIdInAndIndex(postIds, 1)
+                .stream()
+                .collect(Collectors.toMap(PostImage::getPostId, PostImage::getImagePath, (first, second) -> first));
+
+        return posts.stream().map(post -> {
+            String cookName = cookClient.getCookNameById(post.getCookId());
+            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
+
+            return PostListResDto.builder()
+                    .postId(post.getId())
+                    .title(post.getTitle())
+                    .cookName(cookName)
+                    .userId(user.getUserId())
+                    .nickName(user.getNickname())
+                    .likeCount(likeCountMap.getOrDefault(post.getId(), 0L).intValue())
+                    .thumbnail(thumbnailMap.get(post.getId()))
+                    .updatedAt(post.getUpdatedAt())
+                    .build();
+        }).toList();
     }
 
     /**
