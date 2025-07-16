@@ -6,13 +6,11 @@ import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.payment.*;
-import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
-import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
-import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
-import com.sobok.paymentservice.payment.dto.response.IngredientTwoResDto;
+import com.sobok.paymentservice.payment.dto.response.*;
 import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
+import com.sobok.paymentservice.payment.service.CartService;
 import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +33,7 @@ public class PaymentFeignController {
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
     private final UserServiceClient userServiceClient;
+    private final CartService cartService;
 
     @PostMapping("/register-payment")
     public void registerPayment(@RequestBody TossPayRegisterReqDto reqDto) {
@@ -82,6 +81,9 @@ public class PaymentFeignController {
     }
 
 
+    /**
+     * 결제 상태 정보
+     */
     @GetMapping("/payment/completed")
     public Boolean isPaymentCompleted(@RequestParam Long paymentId, @RequestParam Long userId) {
         return paymentService.isPaymentCompleted(paymentId, userId);
@@ -153,6 +155,16 @@ public class PaymentFeignController {
     @GetMapping("/payment/cook-name")
     public String getCookName(@RequestParam Long cookId) {
         return paymentService.getCookName(cookId);
+    }
+
+
+    /**
+     * 한달 주문량 기준 요리 페이지 조회
+     */
+    @GetMapping("popular-cook-ids")
+    public List<CookOrderCountDto> getPopularCookIds(@RequestParam int page,
+                                                     @RequestParam int size) {
+        return cartService.getPopularCookIds(page, size);
     }
 
 }

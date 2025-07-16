@@ -145,60 +145,22 @@ public class AuthService {
      */
     @Transactional
     public AuthUserResDto userCreate(AuthUserReqDto authUserReqDto) {
-        // 회원 Id 가져와서 중복 확인
-        authRepository.findByLoginId(authUserReqDto.getLoginId())
-                .ifPresent(auth -> {
-                    throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
-                });
-
-        String photoUrl = null;
-        try {
-            photoUrl = apiServiceClient.registerImg(authUserReqDto.getPhoto());
-        } catch (Exception e) {
-            log.error("임시 저장소에서 사진을 등록하는데 실패하였습니다.", e);
-            throw new CustomException("임시 저장소에서 사진을 등록하는데 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        Auth authEntity = Auth.builder()
+        Long authId = createAndRegisterUser(UnifiedSignupReqDto.builder()
                 .loginId(authUserReqDto.getLoginId())
-                .password(passwordEncoder.encode(authUserReqDto.getPassword()))
-                .role(Role.USER)
-                .active("Y")
-                .build();
-
-        Auth saved = authRepository.save(authEntity); // DB에 저장
-
-
-        // 사용자 회원가입에 필요한 정보 전달 객체 생성
-        UserSignupReqDto messageDto = UserSignupReqDto.builder()
-                .authId(saved.getId())
+                .password(authUserReqDto.getPassword())
+                .oauthId(null)
                 .nickname(authUserReqDto.getNickname())
                 .email(authUserReqDto.getEmail())
                 .phone(authUserReqDto.getPhone())
-                .photo(photoUrl)
+                .photo(authUserReqDto.getPhoto())
                 .roadFull(authUserReqDto.getRoadFull())
                 .addrDetail(authUserReqDto.getAddrDetail())
-                .build();
-
-        // 비동기로 user service에서 회원가입 진행
-//        rabbitTemplate.convertAndSend(AUTH_EXCHANGE, USER_SIGNUP_ROUTING_KEY, messageDto);
-
-        try {
-            // feign으로 user한테 저장하라고 보내기
-            ResponseEntity<Object> response = userServiceClient.userSignup(messageDto);
-        } catch (FeignException e) {
-            log.error("사용자 정보 저장 실패");
-            throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-
-        log.info("회원가입 성공: {}", saved);
+                .build());
 
         return AuthUserResDto.builder()
-                .id(saved.getId())
+                .id(authId)
                 .nickname(authUserReqDto.getNickname())
                 .build();
-
     }
 
     /**
@@ -706,7 +668,7 @@ public class AuthService {
     }
 
 
-    public AuthLoginResDto kakaoLoginToken(Long id) {
+    public AuthLoginResDto socialLoginToken(Long id) {
         // 회원 정보 가져오기
         Auth auth = authRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
@@ -762,63 +724,95 @@ public class AuthService {
         );
 
         return OauthResDto.builder()
-                .id(auth.getOauthId())
+                .oauthId(auth.getOauthId())
                 .authId(auth.getId())
                 .build();
     }
 
-    //카카오 회원가입 user 생성
+    /**
+     * 소셜 회원가입
+     */
     @Transactional
-    public void kakaoUserCreate(@Valid AuthByOauthReqDto authByOauthReqDto) {
-        // 이미 oauthId가 존재한다면 예외 던짐
-        authRepository.findByOauthId(authByOauthReqDto.getOauthId())
-                .ifPresent(auth -> {
-                    throw new CustomException("이미 등록된 회원입니다.", HttpStatus.CONFLICT);
-                });
+    public void socialUserCreate(@Valid AuthByOauthReqDto authByOauthReqDto) {
+        authRepository.findByOauthId(authByOauthReqDto.getOauthId()).ifPresent(auth -> {
+            throw new CustomException("이미 등록된 회원입니다.", HttpStatus.CONFLICT);
+        });
 
         OauthResDto oauthResDto = apiServiceClient.oauthIdById(authByOauthReqDto.getOauthId());
-
-        log.info("oauthResDto: {}", oauthResDto);
-
         if (oauthResDto == null) {
             throw new CustomException("oauth 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
-        // 아이디 생성
-        String dummyId = "kakao" + oauthResDto.getSocialId();
-        // 임시 password 생성
+        String dummyId = "social" + oauthResDto.getSocialId();
         String dummyPassword = PasswordGenerator.generate(12);
 
-        Auth auth = Auth.builder()
+        createAndRegisterUser(UnifiedSignupReqDto.builder()
                 .loginId(dummyId)
-                .password(passwordEncoder.encode(dummyPassword))
-                .oauthId(oauthResDto.getId())
-                .role(Role.USER)
-                .active("Y")
-                .build();
-
-        authRepository.save(auth);
-        log.info("저장한 auth: {}", auth);
-
-        // 사용자 회원가입에 필요한 정보 전달 객체 생성
-        UserSignupReqDto messageDto = UserSignupReqDto.builder()
-                .authId(auth.getId())
+                .password(dummyPassword)
+                .oauthId(authByOauthReqDto.getOauthId())
                 .nickname(authByOauthReqDto.getNickname())
+                .email(authByOauthReqDto.getEmail())
                 .phone(authByOauthReqDto.getPhone())
                 .photo(authByOauthReqDto.getPhoto())
                 .roadFull(authByOauthReqDto.getRoadFull())
                 .addrDetail(authByOauthReqDto.getAddrDetail())
+                .build());
+        log.info("회원가입 성공: {}", oauthResDto);
+    }
+
+    /**
+     * 일반/소셜 사용자 회원가입 공통 로직
+     *
+     * @param dto
+     */
+    @Transactional
+    public Long createAndRegisterUser(UnifiedSignupReqDto dto) {
+        // ID 중복 검사 (loginId 기준)
+        authRepository.findByLoginId(dto.getLoginId()).ifPresent(auth -> {
+            throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
+        });
+
+        // 사진 등록
+        String photoUrl;
+        try {
+            photoUrl = apiServiceClient.registerImg(dto.getPhoto());
+        } catch (Exception e) {
+            log.error("사진 등록 실패", e);
+            throw new CustomException("사진 등록 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // Auth 저장
+        Auth auth = Auth.builder()
+                .loginId(dto.getLoginId())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .oauthId(dto.getOauthId())
+                .role(Role.USER)
+                .active("Y")
+                .build();
+
+        Auth saved = authRepository.save(auth);
+
+        // 유저 정보 전달
+        UserSignupReqDto messageDto = UserSignupReqDto.builder()
+                .authId(saved.getId())
+                .nickname(dto.getNickname())
+                .email(dto.getEmail())
+                .phone(dto.getPhone())
+                .photo(photoUrl)
+                .roadFull(dto.getRoadFull())
+                .addrDetail(dto.getAddrDetail())
                 .build();
 
         try {
             userServiceClient.userSignup(messageDto);
         } catch (FeignException e) {
-            log.error("사용자 정보 저장 실패");
+            log.error("사용자 정보 저장 실패", e);
             throw new CustomException("회원가입에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        log.info("회원가입 성공: {}", auth);
+        return saved.getId();
     }
+
 
     /**
      * 유저 정보 조회(authId로)

@@ -1,21 +1,22 @@
-package com.sobok.apiservice.api.dto.kakao;
+package com.sobok.apiservice.api.dto.google;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sobok.apiservice.api.dto.social.SocialCallbackDto;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 @Builder
 @Data
-public class KakaoCallResDto implements SocialCallbackDto {
+public class GoogleCallResDto implements SocialCallbackDto {
     private Long oauthId;
     private Long authId;
     @JsonProperty("isNew")
     private boolean isNew;
-    private String nickname;
-    private String profileImage;
     private String email;
+    private String name;
+    private String picture;
 
-    // 인터페이스 메서드 구현
+    // 인터페이스 구현
     @Override
     public boolean isNew() {
         return this.isNew;
@@ -33,12 +34,11 @@ public class KakaoCallResDto implements SocialCallbackDto {
 
     @Override
     public String getNickname() {
-        return this.nickname;
+        return this.name; // name = nickname
     }
 
     @Override
     public String getEmail() {
         return this.email;
     }
-
 }

@@ -13,6 +13,6 @@ public interface AuthFeignClient {
     @GetMapping("/api/findByOauthId")
     OauthResDto authIdById(@RequestParam("id") Long id);  //oauthId로 찾기
 
-    @GetMapping("/api/kakao-token")
-    AuthLoginResDto kakaoToken(@RequestParam("authId") Long id);
+    @GetMapping("/api/social-token")
+    AuthLoginResDto socialToken(@RequestParam("authId") Long id);
 }

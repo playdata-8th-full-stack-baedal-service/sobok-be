@@ -9,6 +9,7 @@ import com.sobok.postservice.post.dto.response.*;
 import com.sobok.postservice.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +26,9 @@ public class PostController {
      */
     @PostMapping("/register")
     public ResponseEntity<PostRegisterResDto> registerPost(
-            @RequestBody PostRegisterReqDto dto,
-            @AuthenticationPrincipal TokenUserInfo userInfo) {
+            @AuthenticationPrincipal TokenUserInfo userInfo,
+            @RequestBody PostRegisterReqDto dto
+            ) {
         PostRegisterResDto res = postService.registerPost(dto, userInfo);
         return ResponseEntity.ok(res);
     }
@@ -34,10 +36,12 @@ public class PostController {
     /**
      * 게시글 수정
      */
+    @PreAuthorize("hasRole('USER')")
     @PutMapping("/update")
     public ResponseEntity<ApiResponse<PostUpdateResDto>> updatePost(
-            @RequestBody PostUpdateReqDto dto,
-            @AuthenticationPrincipal TokenUserInfo userInfo) {
+            @AuthenticationPrincipal TokenUserInfo userInfo,
+            @RequestBody PostUpdateReqDto dto
+            ) {
         PostUpdateResDto res = postService.updatePost(dto, userInfo);
         return ResponseEntity.ok(ApiResponse.ok(res, "게시글 수정 성공"));
     }
@@ -123,11 +127,9 @@ public class PostController {
     /**
      * 게시글 상세 조회
      */
-    @GetMapping("/{postId}")
+    @GetMapping("/detail/{postId}")
     public ApiResponse<PostDetailResDto> getPostDetail(@PathVariable Long postId) {
         return ApiResponse.ok(postService.getPostDetail(postId));
     }
-
-
 
 }

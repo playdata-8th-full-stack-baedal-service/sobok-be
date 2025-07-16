@@ -20,7 +20,6 @@ public class AuthByOauthReqDto {
     @Pattern(regexp = "^01[016789]\\d{8}$", message = "전화번호는 - 없이 숫자만 11자리여야 합니다.")
     private String phone;
 
-    @NotBlank(message = "별명은 필수 입니다.")
     private String photo;
 
     private String roadFull;

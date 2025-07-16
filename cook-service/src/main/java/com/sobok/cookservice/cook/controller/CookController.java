@@ -2,9 +2,7 @@ package com.sobok.cookservice.cook.controller;
 
 import com.sobok.cookservice.common.dto.ApiResponse;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
-import com.sobok.cookservice.cook.dto.response.CookCreateResDto;
-import com.sobok.cookservice.cook.dto.response.CookIndividualResDto;
-import com.sobok.cookservice.cook.dto.response.CookResDto;
+import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.service.CookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -66,5 +64,13 @@ public class CookController {
         return ResponseEntity.ok().body(ApiResponse.ok(resDto, "입력한 요리 아이디에 맞는 요리 정보가 조회되었습니다."));
     }
 
+    /**
+     * 한달 주문량 기준 요리 페이지 조회
+     */
+    @GetMapping("/popular")
+    public PagedResponse<PopularCookResDto> getPopularCooks(@RequestParam int page,
+                                                            @RequestParam int size) {
+        return cookService.getPopularCooks(page, size);
+    }
 
 }
