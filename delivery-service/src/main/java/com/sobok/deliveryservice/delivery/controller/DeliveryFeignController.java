@@ -16,6 +16,7 @@ import com.sobok.deliveryservice.delivery.entity.Delivery;
 import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
 import com.sobok.deliveryservice.delivery.repository.RiderRepository;
 import com.sobok.deliveryservice.delivery.service.DeliveryService;
+import com.sobok.deliveryservice.delivery.service.RiderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,17 +36,18 @@ public class DeliveryFeignController {
     private final DeliveryService deliveryService;
     private final RiderRepository riderRepository;
     private final DeliveryRepository deliveryRepository;
+    private final RiderService riderService;
 
     @PostMapping("/signup")
     public ResponseEntity<RiderResDto> signup(@RequestBody @Valid RiderReqDto dto) {
         log.info("rider signup 요청 들어옴");
-        RiderResDto response = deliveryService.riderCreate(dto);
+        RiderResDto response = riderService.riderCreate(dto);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/findByPhoneNumber")
     public ResponseEntity<?> getUser(@RequestBody String phoneNumber) {
-        ByPhoneResDto byPhoneNumber = deliveryService.findByPhoneNumber(phoneNumber);
+        ByPhoneResDto byPhoneNumber = riderService.findByPhoneNumber(phoneNumber);
         log.info("검색한 사용자 정보 with phone number: {}", byPhoneNumber);
         return ResponseEntity.ok().body(ApiResponse.ok(byPhoneNumber, "전화번호로 찾은 rider 정보입니다."));
 
@@ -63,7 +65,7 @@ public class DeliveryFeignController {
 
     @GetMapping("/rider-info")
     public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId) {
-        AuthRiderInfoResDto resDto = deliveryService.getInfo(authId);
+        AuthRiderInfoResDto resDto = riderService.getInfo(authId);
         return ResponseEntity.ok().body(resDto);
     }
 
@@ -74,7 +76,7 @@ public class DeliveryFeignController {
 
     @GetMapping("/get-rider-id")
     public Long getRiderId(@RequestParam Long id) {
-        return deliveryService.getRiderId(id);
+        return riderService.getRiderId(id);
     }
 
     /**
@@ -82,7 +84,7 @@ public class DeliveryFeignController {
      */
     @GetMapping("/get-rider-all")
     public ResponseEntity<?> getAllRiders() {
-        List<RiderInfoResDto> riders = deliveryService.getAllRiders();
+        List<RiderInfoResDto> riders = riderService.getAllRiders();
         return ResponseEntity.ok(ApiResponse.ok(riders, "전체 라이더 조회 성공"));
     }
 
@@ -123,7 +125,7 @@ public class DeliveryFeignController {
 
     @GetMapping("/get-pending-rider")
     public List<RiderResDto> getPendingRiders() {
-        return deliveryService.getPendingRiders();
+        return riderService.getPendingRiders();
     }
 
     /**
