@@ -15,4 +15,5 @@ public class ShopPaymentResDto {
     private String orderId;
     private OrderState orderState;
     private Long createdAt;
+    private Long updatedAt;
 }
