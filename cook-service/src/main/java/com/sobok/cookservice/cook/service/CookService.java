@@ -169,7 +169,7 @@ public class CookService {
                     .ingreName(ingre.getIngreName())
                     .unitQuantity(comb.getUnitQuantity())
                     .unit(ingre.getUnit())
-                    .price(Integer.parseInt(ingre.getPrice()))
+                    .price (ingre.getPrice())
                     .origin(ingre.getOrigin())
                     .build();
         }).toList();
@@ -320,7 +320,7 @@ public class CookService {
                     .ingredientName(ingre.getIngreName())
                     .unit(String.valueOf(ingre.getUnit()))
                     .quantity(comb.getUnitQuantity())
-                    .price(ingre.getPrice() != null ? Integer.parseInt(ingre.getPrice()) : 0)
+                    .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                     .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                     .isDefault(true)
                     .build();
@@ -338,7 +338,7 @@ public class CookService {
                 .ingredientId(ingre.getId())
                 .ingredientName(ingre.getIngreName())
                 .unit(String.valueOf(ingre.getUnit()))
-                .price(ingre.getPrice() != null ? Integer.parseInt(ingre.getPrice()) : 0)
+                .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                 .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                 .build();
     }
