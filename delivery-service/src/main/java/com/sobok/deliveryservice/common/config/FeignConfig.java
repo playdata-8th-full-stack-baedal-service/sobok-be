@@ -1,8 +1,10 @@
 package com.sobok.deliveryservice.common.config;
 
+import com.sobok.deliveryservice.common.exception.CustomErrorDecoder;
 import com.sobok.deliveryservice.common.jwt.JwtTokenProvider;
 import feign.RequestInterceptor;
 import feign.Retryer;
+import feign.codec.ErrorDecoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,4 +26,11 @@ public class FeignConfig {
     public Retryer retryer() {
         return new Retryer.Default(100, 1000, 3); // 100ms ~ 1초, 최대 3번
     }
+
+    @Bean
+    public ErrorDecoder errorDecoder() {
+        return new CustomErrorDecoder();
+    }
+
+
 }

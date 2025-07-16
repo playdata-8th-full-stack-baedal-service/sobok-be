@@ -23,18 +23,28 @@ public interface PaymentFeignClient {
     @GetMapping("/api/payment/cook-id")
     Long getCookIdByPaymentId(@RequestParam Long paymentId);
 
+    /**
+     * 요리 ID로 요리 이름을 조회
+     */
     @GetMapping("/api/payment/cook-name")
     String getCookName(@RequestParam Long cookId);
 
-
+    /**
+     * 기본 식재료 목록 조회 (cookId 기준)
+     */
     @GetMapping("/api/payment/default-ingredients")
     List<IngredientResDto> getDefaultIngredients(@RequestParam Long cookId);
 
+    /**
+     * 추가 식재료 목록 조회 (cartCookId 기준)
+     */
     @GetMapping("/api/payment/extra-ingredients")
     List<IngredientResDto> getExtraIngredients(@RequestParam Long cartCookId);
 
+    /**
+     * 결제 ID에 연결된 CartCook ID 조회
+     */
     @GetMapping("/api/payment/cart-cook-id")
     Long getCartCookIdByPaymentId(@RequestParam Long paymentId);
-
 
 }
