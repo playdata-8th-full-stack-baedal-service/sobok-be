@@ -106,13 +106,27 @@ public class AuthService {
             throw new CustomException("비밀번호가 틀렸습니다.", HttpStatus.FORBIDDEN);
         }
 
-        Long roleId = switch (auth.getRole()) {
+        Long roleId = getRoleId(auth, false);
+
+        return generateAuthLoginResDto(auth, roleId);
+    }
+
+    private Long getRoleId(Auth auth, boolean isSocialLogin) {
+        return switch (auth.getRole()) {
             case USER -> userServiceClient.getUserId(auth.getId());
-            case RIDER -> deliveryClient.getRiderId(auth.getId());
-            case HUB -> shopServiceClient.getShopId(auth.getId());
+            case RIDER -> {
+                if (!isSocialLogin) yield deliveryClient.getRiderId(auth.getId());
+                else yield 0L; // socialLoginToken 에서는 RIDER 처리 안함
+            }
+            case HUB -> {
+                if (!isSocialLogin) yield shopServiceClient.getShopId(auth.getId());
+                else yield 0L; // socialLoginToken 에서는 HUB 처리 안함
+            }
             default -> 0L;
         };
+    }
 
+    private AuthLoginResDto generateAuthLoginResDto(Auth auth, Long roleId) {
         // 토큰 발급
         String accessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(auth);
@@ -667,42 +681,16 @@ public class AuthService {
         return info;
     }
 
-
     public AuthLoginResDto socialLoginToken(Long id) {
         // 회원 정보 가져오기
         Auth auth = authRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
         );
-        log.info("auth: {}", auth);
-        Long roleId = switch (auth.getRole()) {
-            case USER -> userServiceClient.getUserId(auth.getId());
-//            case RIDER -> deliveryClient.getRiderId(auth.getId());
-//            case HUB -> shopServiceClient.getShopId(auth.getId());
-            default -> 0L;
-        };
 
-        log.info("roleId: {}", roleId);
+        Long roleId = getRoleId(auth, true);
 
-        // 토큰 발급
-        String accessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(auth);
-
-        log.info("accessToken: {}", accessToken);
-
-        // 토큰 저장
-        jwtTokenProvider.saveRefreshToken(auth, refreshToken);
-
-        log.info("로그인 성공 : {}", auth.getId());
-
-        return AuthLoginResDto.builder()
-                .id(auth.getId())
-                .role(auth.getRole().toString())
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .recoveryTarget(false)
-                .build();
+        return generateAuthLoginResDto(auth, roleId);
     }
-
 
     /**
      * 라이더 loginId, active 전달
