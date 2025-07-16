@@ -4,7 +4,7 @@ package com.sobok.authservice.auth.controller;
 import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
-import com.sobok.authservice.auth.service.auth.AuthService;
+import com.sobok.authservice.auth.service.auth.*;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.exception.CustomException;
@@ -25,6 +25,10 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+    private final AccountService accountService;
+    private final RegisterService registerService;
+    private final InfoService infoService;
+    private final StatusService statusService;
 
     /**
      * user 회원가입
@@ -32,7 +36,7 @@ public class AuthController {
     @PostMapping("/user-signup")
     public ResponseEntity<?> createAuth(@Valid @RequestBody AuthUserReqDto authUserReqDto) {
 
-        AuthUserResDto userResDto = authService.userCreate(authUserReqDto);
+        AuthUserResDto userResDto = registerService.userCreate(authUserReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userResDto, "회원가입 성공"));
 
     }
@@ -42,7 +46,7 @@ public class AuthController {
      */
     @GetMapping("/check-id")
     public ResponseEntity<?> checkLoginId(@RequestParam String loginId) {
-        authService.checkLoginId(loginId);
+        registerService.checkLoginId(loginId);
         return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 아이디입니다."));
     }
 
@@ -90,7 +94,7 @@ public class AuthController {
      */
     @DeleteMapping("/delete")
     public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AuthPasswordReqDto reqDto) throws EntityNotFoundException {
-        authService.delete(userInfo, reqDto);
+        statusService.delete(userInfo, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
     }
 
@@ -100,7 +104,7 @@ public class AuthController {
      */
     @PostMapping("/recover/{id}")
     public ResponseEntity<?> recover(@PathVariable Long id) throws EntityNotFoundException, CustomException {
-        authService.recover(id);
+        statusService.recover(id);
         return ResponseEntity.ok().body(ApiResponse.ok(id, "사용자의 계정이 정상적으로 복구되었습니다."));
     }
 
@@ -109,7 +113,7 @@ public class AuthController {
      */
     @PostMapping("/rider-signup")
     public ResponseEntity<?> createRider(@Valid @RequestBody AuthRiderReqDto authRiderReqDto) {
-        AuthRiderResDto riderResDto = authService.riderCreate(authRiderReqDto);
+        AuthRiderResDto riderResDto = registerService.riderCreate(authRiderReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(riderResDto, "라이더 회원가입 성공"));
     }
 
@@ -118,7 +122,7 @@ public class AuthController {
      */
     @PostMapping("/shop-signup")
     public ResponseEntity<?> createShop(@Valid @RequestBody AuthShopReqDto authShopReqDto, @AuthenticationPrincipal TokenUserInfo userInfo) {
-        AuthShopResDto shopResDto = authService.shopCreate(authShopReqDto, userInfo);
+        AuthShopResDto shopResDto = registerService.shopCreate(authShopReqDto, userInfo);
         return ResponseEntity.ok().body(ApiResponse.ok(shopResDto, "가게 회원가입 성공"));
     }
 
@@ -127,7 +131,7 @@ public class AuthController {
      */
     @PostMapping("/findLoginId")
     public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
-        List<AuthFindIdResDto> authFindIdResDto = authService.userFindId(authFindReqDto);
+        List<AuthFindIdResDto> authFindIdResDto = accountService.userFindId(authFindReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
     }
 
@@ -136,7 +140,7 @@ public class AuthController {
      */
     @PostMapping("/verification")
     public ResponseEntity<?> authVerification(@Valid @RequestBody AuthVerifyReqDto authVerifyReqDto) {
-        Long authId = authService.authVerification(authVerifyReqDto);
+        Long authId = accountService.authVerification(authVerifyReqDto);
         return ResponseEntity.ok()
                 .body(ApiResponse.ok(authId, "해당 사용자의 정보 존재 확인 후 인증번호 발송 완료"));
     }
@@ -144,7 +148,7 @@ public class AuthController {
     //2단계
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody AuthResetPwReqDto authResetPwReqDto) {
-        authService.resetPassword(authResetPwReqDto);
+        accountService.resetPassword(authResetPwReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getAuthId(), "사용자의 비밀번호가 변경되었습니다."));
 
     }
@@ -157,7 +161,7 @@ public class AuthController {
         AuthResetPwReqDto authResetPwReqDto = AuthResetPwReqDto.builder().authId(userInfo.getId())
                 .newPassword(authEditPwReqDto.getNewPassword())
                 .build();
-        authService.resetPassword(authResetPwReqDto);
+        accountService.resetPassword(authResetPwReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getAuthId(), "사용자의 비밀번호가 변경되었습니다."));
     }
 
@@ -167,23 +171,23 @@ public class AuthController {
     @PostMapping("/get-info")
     public ResponseEntity<?> getInfo(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AuthPasswordReqDto reqDto) {
         // 1. 비밀번호 확인
-        String loginId = authService.verifyByPassword(userInfo.getId(), reqDto);
+        String loginId = accountService.verifyByPassword(userInfo.getId(), reqDto);
 
         // 2. 유저 정보 가져오기
-        AuthBaseInfoResDto info = authService.getInfo(userInfo, loginId);
+        AuthBaseInfoResDto info = infoService.getInfo(userInfo, loginId);
 
         // 3. 리턴
         return ResponseEntity.ok().body(ApiResponse.ok(info, "성공적으로 정보가 조회되었습니다."));
     }
 
     /**
-     * user 회원가입
+     * 소셜 user 회원가입
      */
     @PostMapping("/social-user-signup")
     public ResponseEntity<?> createSocialAuth(@Valid @RequestBody AuthByOauthReqDto authByOauthReqDto) {
         log.info("authByOauthReqDto: {}", authByOauthReqDto);
-        authService.socialUserCreate(authByOauthReqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok( "회원가입 성공"));
+        registerService.socialUserCreate(authByOauthReqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok("회원가입 성공"));
 
     }
 }
