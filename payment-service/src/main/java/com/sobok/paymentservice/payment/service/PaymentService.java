@@ -26,6 +26,7 @@ import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
+import com.sobok.paymentservice.payment.service.validator.RoleValidator;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,8 +47,6 @@ import com.sobok.paymentservice.payment.dto.response.CartCookResDto;
 import com.sobok.paymentservice.payment.dto.response.CartIngredientResDto;
 
 import com.sobok.paymentservice.payment.repository.CartIngreRepository;
-
-import static com.sobok.paymentservice.payment.entity.QPayment.payment;
 
 @Service
 @Slf4j
@@ -64,7 +62,7 @@ public class PaymentService {
     private final CartIngreRepository CartIngreRepository;
     private final DeliveryFeignClient deliveryFeignClient;
     private final JPAQueryFactory factory;
-
+    private final Map<String, RoleValidator> validatorMap;
 
     /**
      * 결제 사전 정보 등록
@@ -466,6 +464,9 @@ public class PaymentService {
                 .toList();
     }
 
+    /**
+     * 주문 상태 변경 (재료 준비 -> 준비 완료 / 배달 승인 -> 배달 중
+     */
     @Transactional
     public void checkUserInfo(TokenUserInfo userInfo, Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(
@@ -473,27 +474,20 @@ public class PaymentService {
         );
         DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
 
-        List<OrderState> flag = new ArrayList<>();
-        //가게 검증
-        if ("HUB".equals(userInfo.getRole())) {
-            if (!Objects.equals(delivery.getShopId(), userInfo.getShopId())) {
-                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", shopId:" + userInfo.getShopId()
-                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
-            }
-            flag.add(OrderState.PREPARING_INGREDIENTS);
-        }
-        //라이더 검증
-        if ("RIDER".equals(userInfo.getRole())) {
-            if (!Objects.equals(delivery.getRiderId(), userInfo.getRiderId())) {
-                throw new CustomException("현재 사용자(authId:" + userInfo.getId() + ", riderId:" + userInfo.getRiderId()
-                        + ")는 해당 주문(paymentId=" + paymentId + ")에 접근할 수 없습니다.", HttpStatus.FORBIDDEN);
-            }
-            flag.add(OrderState.DELIVERY_ASSIGNED);
+        // 역할에 맞는 validator 찾기
+        RoleValidator validator = validatorMap.get(userInfo.getRole());
+
+        if (validator == null) {
+            throw new CustomException("지원하지 않는 역할입니다: " + userInfo.getRole(), HttpStatus.FORBIDDEN);
         }
 
-        // 현재 상태가 허용되지 않으면 예외
-        if (!flag.contains(payment.getOrderState())) {
-            throw new CustomException("현재 상태에서는 상태 변경이 허용되지 않습니다. (현재 상태: " + payment.getOrderState() + ")", HttpStatus.BAD_REQUEST);
+        // 권한 체크
+        validator.validate(userInfo, delivery);
+
+        // 상태 체크
+        if (!validator.allowedStates().contains(payment.getOrderState())) {
+            throw new CustomException("현재 상태에서는 상태 변경이 허용되지 않습니다. (현재 상태: " + payment.getOrderState() + ")",
+                    HttpStatus.BAD_REQUEST);
         }
 
         //해당 payment 주문 상태 변경
@@ -557,6 +551,9 @@ public class PaymentService {
         return cookFeignClient.getCookNameById(cookId);
     }
 
+    /**
+     * 라이더용 배달 승인/완료
+     */
     @Transactional
     public void processDeliveryAction(
             TokenUserInfo userInfo, Long paymentId, String state, Consumer<AcceptOrderReqDto> deliveryAction
