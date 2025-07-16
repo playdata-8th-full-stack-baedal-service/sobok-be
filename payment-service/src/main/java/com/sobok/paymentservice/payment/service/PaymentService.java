@@ -247,7 +247,9 @@ public class PaymentService {
                 .toList();
     }
 
-
+    /**
+     * 사용자 주문 전체 조회
+     */
     public List<GetPaymentResDto> getPayment(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
         // 유저 검증
         Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
@@ -320,6 +322,9 @@ public class PaymentService {
         return paymentDtos;
     }
 
+    /**
+     * 사용자/가게 주문 세부 조회
+     */
     public PaymentDetailResDto getPaymentDetail(TokenUserInfo userInfo, Long paymentId) {
         // paymentId로 Cart Cook 리스트 가져오기
         List<CartCook> cartCookList = cartCookRepository.findByPaymentId(paymentId);
@@ -398,6 +403,9 @@ public class PaymentService {
 
     }
 
+    /**
+     * 가게에 들어온 전체 주문 조회용 paymentId로 주문 정보 받기
+     */
     public List<ShopPaymentResDto> getPaymentList(List<Long> ids) {
         List<Payment> paymentList = paymentRepository.findAllById(ids);
         return paymentList.stream()
@@ -426,6 +434,9 @@ public class PaymentService {
         return orderId;
     }
 
+    /**
+     * 배달 조회에 사용되는 paymentId로 주문 정보 받기
+     */
     public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids, @Nullable List<OrderState> filterStates) {
         QPayment payment = QPayment.payment;
 
@@ -439,6 +450,7 @@ public class PaymentService {
         List<Payment> paymentList = factory
                 .selectFrom(payment)
                 .where(builder)
+                .orderBy(payment.updatedAt.asc())
                 .fetch();
 
         log.info("paymentList: {}", paymentList);

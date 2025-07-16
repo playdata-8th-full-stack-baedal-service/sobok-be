@@ -112,6 +112,7 @@ public class DeliveryService {
 
         Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
 
+        //shopId에 해당하는 delivery 조회
         Page<Delivery> deliveryPage = deliveryRepository.findAllByShopIdIn(shopIdList, pageable);
         log.info("deliveryPage: {}", deliveryPage);
 
