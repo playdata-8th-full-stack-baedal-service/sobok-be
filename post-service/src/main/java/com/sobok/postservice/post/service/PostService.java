@@ -50,6 +50,7 @@ public class PostService {
     /**
      * 게시글 등록
      */
+    @Transactional
     public PostRegisterResDto registerPost(PostRegisterReqDto dto, TokenUserInfo userInfo) {
         Long userId = userInfo.getUserId();
 
@@ -75,15 +76,15 @@ public class PostService {
         postRepository.save(post);
 
         // 이미지 저장
-        if (dto.getImages() != null) {
-            for (PostImageDto imageDto : dto.getImages()) {
-                PostImage postImage = PostImage.builder()
-                        .postId(post.getId())
-                        .imagePath(imageDto.getImageUrl())
-                        .index(imageDto.getIndex())
-                        .build();
-                postImageRepository.save(postImage);
-            }
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            List<PostImage> imagesToSave = dto.getImages().stream()
+                    .map(imageDto -> PostImage.builder()
+                            .postId(post.getId())
+                            .imagePath(imageDto.getImageUrl())
+                            .index(imageDto.getIndex())
+                            .build())
+                    .toList();
+            postImageRepository.saveAll(imagesToSave);
         }
 
         return new PostRegisterResDto(post.getId(), cookName);
@@ -94,33 +95,30 @@ public class PostService {
      */
     @Transactional
     public PostUpdateResDto updatePost(PostUpdateReqDto dto, TokenUserInfo userInfo) {
-        Post post = postRepository.findById(dto.getPostId())
-                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-
-        // 수정 권한 체크
-        if (!post.getUserId().equals(userInfo.getUserId())) {
-            throw new CustomException("게시글 수정 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
+        Post post = findPostByIdOrThrow(dto.getPostId());
+        checkPostOwnership(post, userInfo);
 
         // 필드가 null이 아닐 때만 수정
         if (dto.getTitle() != null) post.setTitle(dto.getTitle());
         if (dto.getContent() != null) post.setContent(dto.getContent());
 
-        List<PostImage> savedImages = List.of();
+        List<PostImage> savedImages = postImageRepository.findAllByPostId(post.getId());
 
         // 이미지 교체 (기존 삭제 후 저장)
         if (dto.getImages() != null) {
             postImageRepository.deleteByPostId(post.getId());
-
-            List<PostImage> newImages = dto.getImages().stream()
-                    .map(img -> PostImage.builder()
-                            .postId(post.getId())
-                            .imagePath(img.getImageUrl())
-                            .index(img.getIndex())
-                            .build())
-                    .toList();
-
-            savedImages = postImageRepository.saveAll(newImages); // 저장된 이미지 리스트 유지
+            if (!dto.getImages().isEmpty()) {
+                List<PostImage> newImages = dto.getImages().stream()
+                        .map(img -> PostImage.builder()
+                                .postId(post.getId())
+                                .imagePath(img.getImageUrl())
+                                .index(img.getIndex())
+                                .build())
+                        .toList();
+                savedImages = postImageRepository.saveAll(newImages);
+            } else {
+                savedImages = Collections.emptyList();
+            }
         }
         return PostUpdateResDto.builder()
                 .postId(post.getId())
@@ -139,21 +137,14 @@ public class PostService {
 
 
     /**
-     * 게시글 수정
+     * 게시글 삭제
      */
     @Transactional
     public void deletePost(Long postId, TokenUserInfo userInfo) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        Post post = findPostByIdOrThrow(postId);
+        checkPostOwnership(post, userInfo);
 
-        if (!post.getUserId().equals(userInfo.getUserId())) {
-            throw new CustomException("게시글 삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
-
-        // 관련 이미지 먼저 삭제
-        postImageRepository.deleteByPostId(post.getId());
-
-        // 게시글 삭제
+        postImageRepository.deleteByPostId(postId);
         postRepository.delete(post);
     }
     /**
@@ -212,10 +203,6 @@ public class PostService {
      * 요리별 좋아요순, 최신순 게시글 조회
      */
     public CookPostGroupResDto getCookPostsByCookId(Long cookId, String sortBy) {
-        QPost post = QPost.post;
-        QUserLike userLike = QUserLike.userLike;
-        QPostImage postImage = QPostImage.postImage;
-
         NumberExpression<Long> likeCount = userLike.countDistinct();
 
         List<CookPostGroupResDto.PostSummaryDto> posts = queryFactory
@@ -305,9 +292,6 @@ public class PostService {
         );
     }
 
-    /**
-     * 게시글 목록 조회 시 필요한 정보(공통된 응답이라 분리) N+1 문제 해결
-     */
     private List<PostListResDto> postListResDtos(List<Post> posts) {
         if (posts.isEmpty()) {
             return Collections.emptyList();
@@ -315,7 +299,6 @@ public class PostService {
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
 
-        // N+1 문제 해결 - QueryDSL을 사용하여 좋아요 수, 썸네일을 한번의 쿼리로 가져옴
         Map<Long, Long> likeCountMap = queryFactory
                 .select(userLike.postId, userLike.count())
                 .from(userLike)
@@ -351,6 +334,7 @@ public class PostService {
     /**
      * 게시글 좋아요 등록
      */
+    @Transactional
     public UserLikeResDto likePost(TokenUserInfo userInfo, Long postId) {
         Long userId = userInfo.getUserId();
 
@@ -376,6 +360,7 @@ public class PostService {
     /**
      * 게시글 좋아요 해제
      */
+    @Transactional
     public UserLikeResDto unlikePost(TokenUserInfo userInfo, Long postId) {
         Long userId = userInfo.getUserId();
 
@@ -397,25 +382,19 @@ public class PostService {
      * 게시글 상세 조회
      */
     public PostDetailResDto getPostDetail(Long postId) {
-        // 게시글 조회
-        Post post = postRepository.findById(postId).orElseThrow(() ->
-                new CustomException("게시글을 찾을 수 없습니다. id=" + postId, HttpStatus.NOT_FOUND));
+        Post post = findPostByIdOrThrow(postId);
 
-        // 요리 이름, 작성자 닉네임, 좋아요 수 조회
         String cookName = paymentClient.getCookName(post.getCookId());
         String nickname = userClient.getNicknameById(post.getUserId());
         int likeCount = userLikeRepository.countByPostId(postId);
 
-        // 이미지 목록 조회 및 정렬
         List<String> imagePaths = postImageRepository.findAllByPostId(postId).stream()
                 .sorted(Comparator.comparingInt(PostImage::getIndex))
                 .map(PostImage::getImagePath)
                 .toList();
 
-        // 결제 - cartCookId 조회
         Long cartCookId = paymentClient.getCartCookIdByPaymentId(post.getPaymentId());
 
-        // 기본 식재료 및 추가 식재료 조회
         List<IngredientResDto> defaultIngredients = paymentClient.getDefaultIngredients(post.getCookId());
         List<IngredientResDto> extraIngredients = paymentClient.getExtraIngredients(cartCookId);
 
@@ -434,4 +413,14 @@ public class PostService {
                 .build();
     }
 
+    private Post findPostByIdOrThrow(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+    }
+
+    private void checkPostOwnership(Post post, TokenUserInfo userInfo) {
+        if (!post.getUserId().equals(userInfo.getUserId())) {
+            throw new CustomException("해당 게시글에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+    }
 }
