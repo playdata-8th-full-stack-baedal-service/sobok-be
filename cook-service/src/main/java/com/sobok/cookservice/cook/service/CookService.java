@@ -184,7 +184,7 @@ public class CookService {
 
 
     public boolean checkCook(Long cookId) {
-        log.info("컨트롤러 통ㄷ과");
+        log.info("컨트롤러 통과");
         boolean exists = cookRepository.existsById(cookId);
         log.info(exists ? "존재" : "없음");
         return exists;
