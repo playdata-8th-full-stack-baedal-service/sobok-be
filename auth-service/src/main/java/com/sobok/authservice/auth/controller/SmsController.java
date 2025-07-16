@@ -3,7 +3,7 @@ package com.sobok.authservice.auth.controller;
 
 import com.sobok.authservice.auth.dto.request.SmsReqDto;
 import com.sobok.authservice.auth.dto.request.VerificationReqDto;
-import com.sobok.authservice.auth.service.SmsService;
+import com.sobok.authservice.auth.service.etc.SmsService;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;

@@ -198,7 +198,7 @@ public class ShopService {
         OrderState finalFilterState = filterState;
         List<ShopPaymentResDto> result = allOrders.stream()
                 .filter(order -> finalFilterState == null || order.getOrderState() == finalFilterState)
-                .sorted(Comparator.comparing(ShopPaymentResDto::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(ShopPaymentResDto::getUpdatedAt).reversed())
                 .skip(offset)
                 .limit(numOfRows)
                 .toList();

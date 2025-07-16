@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.service;
+package com.sobok.authservice.common.util;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;

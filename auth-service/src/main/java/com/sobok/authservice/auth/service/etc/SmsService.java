@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.service;
+package com.sobok.authservice.auth.service.etc;
 
 import com.sobok.authservice.auth.dto.request.SmsReqDto;
 import com.sobok.authservice.common.exception.CustomException;
@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.nurigo.sdk.NurigoApp;
 import net.nurigo.sdk.message.model.Message;
-import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import net.nurigo.sdk.message.service.DefaultMessageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -29,7 +28,7 @@ public class SmsService {
 
     DefaultMessageService messageService; // 메시지 서비스를 위한 객체
 
-    private final RedisUtil redisUtil;
+    private final RedisService redisService;
 
 
     public void SendSms(SmsReqDto smsReqDto) {
@@ -37,13 +36,13 @@ public class SmsService {
         log.info("생성된 인증 번호 Certification code: {}", certificationCode);
         // 3분 동안 Redis에 인증번호 저장
         String key = "auth:verify:" + smsReqDto.getPhone();
-        redisUtil.setDataExpire(key, certificationCode, 180);
+        redisService.setDataExpire(key, certificationCode, 180);
         sendSMS(smsReqDto.getPhone(), certificationCode);
     }
 
     public boolean verifySmsCode(String phoneNumber, String userInputCode) {
         String key = "auth:verify:" + phoneNumber;
-        String savedCode = redisUtil.getData(key);
+        String savedCode = redisService.getData(key);
         return savedCode != null && savedCode.equals(userInputCode);
     }
 

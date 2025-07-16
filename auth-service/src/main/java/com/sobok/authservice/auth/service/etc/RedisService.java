@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.service;
+package com.sobok.authservice.auth.service.etc;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -8,7 +8,7 @@ import java.time.Duration;
 
 @Component
 @RequiredArgsConstructor
-public class RedisUtil {
+public class RedisService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
