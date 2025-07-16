@@ -31,7 +31,7 @@ public class S3Util {
      */
     public static String getFileName(String name, String category, boolean isTempImg) {
         String temp = isTempImg ? "temp/" : "";
-        return new String((temp + category + "/" + UUID.randomUUID() + name).getBytes(), StandardCharsets.UTF_8);
+        return new String((temp + category + "/" + UUID.randomUUID() + name).getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
     }
 
     /**
@@ -40,7 +40,7 @@ public class S3Util {
      */
     public static Map<String, String> getMetaData(String name) {
         return Map.of(
-                "original-filename", name,
+                "original-filename", new String((name).getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8),
                 "upload-time", Instant.now().toString()
         );
     }
