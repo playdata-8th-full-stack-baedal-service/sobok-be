@@ -1,26 +1,21 @@
 package com.sobok.userservice.user.controller;
 
 import com.sobok.userservice.common.dto.ApiResponse;
-import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
-import com.sobok.userservice.user.dto.response.UserLocationResDto;
-import com.sobok.userservice.user.dto.response.UserInfoResDto;
-import com.sobok.userservice.user.dto.response.UserPostInfoResDto;
-import com.sobok.userservice.user.dto.response.UserResDto;
+import com.sobok.userservice.user.dto.response.*;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserRepository;
 import com.sobok.userservice.user.service.UserAddressService;
 import com.sobok.userservice.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -156,6 +151,30 @@ public class UserFeignController {
     public ResponseEntity<String> getNicknameById(@RequestParam Long userId) {
         String nickname = userService.getNicknameById(userId);
         return ResponseEntity.ok(nickname);
+    }
+
+    /**
+     * 게시글의 좋아요 개수를 조회
+     */
+    @GetMapping("/user-like/count/{postId}")
+    public Long getLikeCount(@PathVariable Long postId) {
+        return userService.getLikeCount(postId);
+    }
+
+    /**
+     * 사용자가 좋아요 누른 게시글 목록을 페이징하여 조회
+     */
+    @GetMapping("/user-like/liked-posts")
+    public LikedPostPagedResDto getLikedPostIds(
+            @RequestParam Long userId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return userService.getLikedPosts(userId, page, size);
+    }
+    @GetMapping("/user-like/all-counts")
+    public Map<Long, Long> getAllLikeCounts() {
+        return userService.getAllLikeCounts();
     }
 
 }

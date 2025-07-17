@@ -9,6 +9,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+/**
+ * 요리에 대한 게시글 정보
+ */
 public class CookPostGroupResDto {
     private Long cookId;
     private List<PostSummaryDto> posts;
@@ -23,5 +26,6 @@ public class CookPostGroupResDto {
         private String title;
         private String thumbnail;
         private Long likeCount;
+        private Long updatedAt;
     }
 }

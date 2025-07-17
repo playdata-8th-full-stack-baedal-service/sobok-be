@@ -1,10 +1,14 @@
 package com.sobok.postservice.post.client;
 
 import com.sobok.postservice.common.config.FeignConfig;
+import com.sobok.postservice.post.dto.response.LikedPostPagedResDto;
 import com.sobok.postservice.post.dto.response.UserInfoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Map;
 
 @FeignClient(name = "user-service", configuration = FeignConfig.class)
 public interface UserFeignClient {
@@ -20,4 +24,24 @@ public interface UserFeignClient {
      */
     @GetMapping("/api/user/nickname")
     String getNicknameById(@RequestParam Long userId);
+
+    /**
+     * 게시글의 좋아요 수 조회
+     */
+    @GetMapping("/api/user-like/count/{postId}")
+    Long getLikeCount(@PathVariable Long postId);
+
+    /**
+     * 사용자가 좋아요한 게시글 ID 목록 조회 (페이징)
+     */
+    @GetMapping("/api/user-like/liked-posts")
+    LikedPostPagedResDto getLikedPostIds(
+            @RequestParam Long userId,
+            @RequestParam int page,
+            @RequestParam int size
+    );
+
+    @GetMapping("/api/user-like/all-counts")
+    Map<Long, Long> getAllLikeCounts();
+
 }

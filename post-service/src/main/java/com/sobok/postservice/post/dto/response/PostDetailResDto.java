@@ -19,7 +19,7 @@ public class PostDetailResDto {
     private String cookName;
     private String nickname;
     private Long userId;
-    private int likeCount;
+    private Long likeCount;
     private List<String> images;
     private Long updatedAt;
     private String content;
