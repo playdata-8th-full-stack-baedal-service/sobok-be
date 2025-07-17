@@ -61,6 +61,9 @@ public class ShopController {
     public ResponseEntity<?> getFilterOrders(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String orderState,
                                           @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<ShopPaymentResDto> allOrders = shopService.getFilteringOrders(userInfo, orderState, pageNo, numOfRows);
+        if(allOrders.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
+        }
         return ResponseEntity.ok(ApiResponse.ok(allOrders, "주문 목록을 상태별로 조회하였습니다."));
     }
 
