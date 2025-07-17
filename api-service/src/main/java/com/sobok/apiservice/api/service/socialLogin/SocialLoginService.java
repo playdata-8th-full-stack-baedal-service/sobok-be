@@ -31,7 +31,7 @@ public class SocialLoginService {
     private final AuthFeignClient authFeignClient;
 
     @Transactional
-    public OauthResDto findOrCreateKakaoUser(SocialUserDto dto) {
+    public OauthResDto findOrCreateSocialUser(SocialUserDto dto) {
         // 기존 소셜 로그인 사용자
         // 소셜 ID로 기존 사용자 찾기
         Optional<Oauth> oauth = oauthRepository.findBySocialProviderAndSocialId(dto.getProvider(), dto.getSocialId());
