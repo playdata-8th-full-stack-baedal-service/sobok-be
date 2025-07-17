@@ -101,17 +101,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            boolean hasPermission =
-                    role == Role.ADMIN ||
-                            (role == Role.FEIGN && antPathMatcher.match("/api/**", path));
-
-            if (!hasPermission) {
-                log.warn("권한이 없습니다. role={}, path={}", role, path);
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다.");
-                throw new Exception();
-            }
-
-
             // @AuthenticationPrinciple, @PreAuthorize("hasRole('ADMIN')") 같은 로직을 사용하기 위한 로직
             TokenUserInfo tokenUserInfo = TokenUserInfo.builder().id(id).role(role.name()).build();
 
