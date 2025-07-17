@@ -43,6 +43,7 @@ public class IngredientController {
      */
     @GetMapping("/keyword-search")
     public ResponseEntity<?> ingreSearch(@RequestParam String keyword) {
+        log.info("keyword={}", keyword);
         List<IngreResDto> ingredients = ingredientService.ingreSearch(keyword);
         if (ingredients.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
