@@ -80,6 +80,21 @@ dependencyManagement {
     }
 }
 
+def querydslDir = "$buildDir/generated/querydsl"
+
+sourceSets {
+    main {
+        java {
+            srcDirs += querydslDir
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+}
+
+
 tasks.named('test') {
     useJUnitPlatform()
 }
