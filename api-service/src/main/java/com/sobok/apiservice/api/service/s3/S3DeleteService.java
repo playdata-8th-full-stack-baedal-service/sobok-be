@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
-import static com.sobok.apiservice.common.util.S3Util.detachImageUrl;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class S3DeleteService {
     private final S3Client s3Client;
+    private final S3UtilityService s3Util;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -25,7 +25,7 @@ public class S3DeleteService {
      */
     public void deleteS3Image(String key) {
         log.info("S3 이미지 삭제 시작 | key : {}", key);
-        key = detachImageUrl(key);
+        key = s3Util.detachImageUrl(key);
         try {
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                     .bucket(bucket)

@@ -10,14 +10,13 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
 
-import static com.sobok.apiservice.common.util.S3Util.getContentType;
-import static com.sobok.apiservice.common.util.S3Util.getImageUrl;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class S3CopyService {
     private final S3Client s3Client;
+    private final S3UtilityService s3Util;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -43,7 +42,7 @@ public class S3CopyService {
                 .destinationBucket(bucket)
                 .destinationKey(key)
                 .metadataDirective(MetadataDirective.REPLACE)
-                .contentType(getContentType(key))
+                .contentType(s3Util.getContentType(key))
                 .contentDisposition("inline")
                 .metadata(headResponse.metadata())
                 .contentType(headResponse.contentType())
@@ -51,6 +50,6 @@ public class S3CopyService {
 
         // S3 COPY 요청
         s3Client.copyObject(copyObjectRequest);
-        return getImageUrl(key);
+        return s3Util.returnImageUrl(key);
     }
 }

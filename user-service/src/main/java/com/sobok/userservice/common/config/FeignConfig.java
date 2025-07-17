@@ -1,5 +1,6 @@
 package com.sobok.userservice.common.config;
 
+import com.sobok.userservice.common.exception.CustomErrorDecoder;
 import com.sobok.userservice.common.jwt.JwtTokenProvider;
 import feign.RequestInterceptor;
 import feign.Retryer;

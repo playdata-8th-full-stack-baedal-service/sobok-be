@@ -3,7 +3,6 @@ package com.sobok.apiservice.api.service.s3;
 import com.sobok.apiservice.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,16 +14,15 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 
 import static com.sobok.apiservice.common.util.Constants.*;
-import static com.sobok.apiservice.common.util.S3Util.*;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class S3PutService {
     private final S3Client s3Client;
+    private final S3UtilityService s3Util;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -56,7 +54,7 @@ public class S3PutService {
 
         // 2. 이미지가 진짜 이미지인지 검증
         try {
-            checkImageValidation(image, name);
+            s3Util.checkImageValidation(image, name);
         } catch (IOException e) {
             log.error("이미지를 바이트배열로 변환하는 과정에서 오류가 발생했습니다.");
             throw new CustomException(internalServerErrorMsg, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -81,11 +79,11 @@ public class S3PutService {
      */
     private String putImageToS3(MultipartFile image, String category, boolean isTempImg, String name) throws IOException {
         // PUT 요청 생성
-        String fileName = getFileName(name, category, isTempImg);
+        String fileName = s3Util.getFileName(name, category, isTempImg);
         PutObjectRequest.Builder putRequestBuilder = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(fileName)
-                .metadata(getMetaData(name))
+                .metadata(s3Util.getMetaData(name))
                 .contentType(image.getContentType())
                 .contentDisposition("inline");
 
@@ -106,6 +104,6 @@ public class S3PutService {
         log.info(response.toString());
 
         // 이미지 url 반환
-        return getImageUrl(fileName);
+        return s3Util.returnImageUrl(fileName);
     }
 }

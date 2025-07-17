@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import static com.sobok.apiservice.common.util.Constants.internalServerErrorMsg;
-import static com.sobok.apiservice.common.util.S3Util.detachImageUrl;
 
 @Service
 @Slf4j
@@ -18,6 +17,7 @@ public class S3Service {
     private final S3PutService s3PutService;
     private final S3CopyService s3CopyService;
     private final S3DeleteService s3DeleteService;
+    private final S3UtilityService s3Util;
 
 
     /**
@@ -42,7 +42,7 @@ public class S3Service {
         log.info("업로드 이미지 영구 변환 서비스 시작 | url: {}", url);
 
         // URL에서 키 값 가져오기
-        String key = detachImageUrl(url);
+        String key = s3Util.detachImageUrl(url);
 
         try {
             return s3CopyService.copyImageToS3(key);
@@ -65,7 +65,7 @@ public class S3Service {
 
         // oldPhoto가 유효하다면 삭제 진행
         if (oldPhoto != null && !oldPhoto.isEmpty()) { // TODO : 기본 이미지 설정 추가해야 함
-            s3DeleteService.deleteS3Image(detachImageUrl(oldPhoto));
+            s3DeleteService.deleteS3Image(s3Util.detachImageUrl(oldPhoto));
         }
 
         // 새로운 이미지 등록 (TEMP 저장 X)
