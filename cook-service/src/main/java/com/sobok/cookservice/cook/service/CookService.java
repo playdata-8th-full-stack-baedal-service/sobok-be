@@ -6,6 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
+import com.sobok.cookservice.cook.client.ApiServiceClient;
 import com.sobok.cookservice.cook.client.PaymentFeignClient;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.*;
@@ -41,6 +42,7 @@ public class CookService {
     private final IngredientRepository ingredientRepository;
     private final JPAQueryFactory factory;
     private final PaymentFeignClient paymentFeignClient;
+    private final ApiServiceClient apiServiceClient;
 
     @Transactional
     public CookCreateResDto createCook(CookCreateReqDto dto) {
@@ -51,8 +53,18 @@ public class CookService {
                     throw new CustomException("이미 존재하는 요리 이름입니다.", HttpStatus.BAD_REQUEST);
                 });
 
+
+        // 사진 등록
+        String photoUrl;
+        try {
+            photoUrl = apiServiceClient.registerImg(dto.getThumbnailUrl());
+        } catch (Exception e) {
+            log.error("사진 등록 실패", e);
+            throw new CustomException("사진 등록 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         // 레시피 썸네일 중복 검증
-        cookRepository.findByThumbnail(dto.getThumbnailUrl())
+        cookRepository.findByThumbnail(photoUrl)
                 .ifPresent(cook -> {
                     throw new CustomException("이미 사용 중인 썸네일입니다.", HttpStatus.BAD_REQUEST);
                 });
@@ -63,7 +75,7 @@ public class CookService {
                 .allergy(dto.getAllergy())
                 .recipe(dto.getRecipe())
                 .category(CookCategory.valueOf(dto.getCategory().toUpperCase()))
-                .thumbnail(dto.getThumbnailUrl())
+                .thumbnail(photoUrl)
                 .build();
 
         cookRepository.save(cook); // DB 저장
@@ -169,7 +181,7 @@ public class CookService {
                     .ingreName(ingre.getIngreName())
                     .unitQuantity(comb.getUnitQuantity())
                     .unit(ingre.getUnit())
-                    .price (ingre.getPrice())
+                    .price(ingre.getPrice())
                     .origin(ingre.getOrigin())
                     .build();
         }).toList();
