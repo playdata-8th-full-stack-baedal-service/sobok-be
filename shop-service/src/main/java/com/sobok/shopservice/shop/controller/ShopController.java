@@ -3,13 +3,12 @@ package com.sobok.shopservice.shop.controller;
 
 import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
-import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
-import com.sobok.shopservice.shop.dto.response.AdminShopResDto;
-import com.sobok.shopservice.shop.dto.response.AuthShopResDto;
+
 import com.sobok.shopservice.shop.dto.response.ShopPaymentResDto;
 import com.sobok.shopservice.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -49,6 +48,9 @@ public class ShopController {
     public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
                                           @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<ShopPaymentResDto> allOrders = shopService.getAllOrders(userInfo, pageNo, numOfRows);
+        if(allOrders.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
+        }
         return ResponseEntity.ok(ApiResponse.ok(allOrders, "들어온 모든 주문 목록을 조회하였습니다."));
     }
 
@@ -59,6 +61,9 @@ public class ShopController {
     public ResponseEntity<?> getFilterOrders(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String orderState,
                                           @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<ShopPaymentResDto> allOrders = shopService.getFilteringOrders(userInfo, orderState, pageNo, numOfRows);
+        if(allOrders.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
+        }
         return ResponseEntity.ok(ApiResponse.ok(allOrders, "주문 목록을 상태별로 조회하였습니다."));
     }
 

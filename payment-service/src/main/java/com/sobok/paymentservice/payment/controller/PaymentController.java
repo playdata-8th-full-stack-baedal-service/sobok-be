@@ -13,6 +13,7 @@ import com.sobok.paymentservice.payment.service.CartService;
 import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +90,9 @@ public class PaymentController {
     public ResponseEntity<?> getPayment(@AuthenticationPrincipal TokenUserInfo userInfo,
                                         @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<GetPaymentResDto> getPaymentResDtos = paymentService.getPayment(userInfo, pageNo, numOfRows);
+        if(getPaymentResDtos.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
+        }
         return ResponseEntity.ok().body(ApiResponse.ok(getPaymentResDtos, "사용자의 주문 내역이 조회되었습니다."));
     }
 

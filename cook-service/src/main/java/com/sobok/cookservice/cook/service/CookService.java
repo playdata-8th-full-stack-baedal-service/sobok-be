@@ -169,7 +169,7 @@ public class CookService {
                     .ingreName(ingre.getIngreName())
                     .unitQuantity(comb.getUnitQuantity())
                     .unit(ingre.getUnit())
-                    .price (ingre.getPrice())
+                    .price(ingre.getPrice())
                     .origin(ingre.getOrigin())
                     .build();
         }).toList();

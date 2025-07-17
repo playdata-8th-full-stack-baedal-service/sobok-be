@@ -161,7 +161,7 @@ public class PaymentFeignController {
     /**
      * 한달 주문량 기준 요리 페이지 조회
      */
-    @GetMapping("popular-cook-ids")
+    @GetMapping("/popular-cook-ids")
     public List<CookOrderCountDto> getPopularCookIds(@RequestParam int page,
                                                      @RequestParam int size) {
         return cartService.getPopularCookIds(page, size);

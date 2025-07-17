@@ -13,6 +13,7 @@ import com.sobok.deliveryservice.delivery.service.RiderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +46,9 @@ public class DeliveryController {
                                           @RequestParam Double latitude, @RequestParam Double longitude,
                                           @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<DeliveryAvailOrderResDto> availableOrders = deliveryService.getAvailableOrders(userInfo, latitude, longitude, pageNo, numOfRows);
+        if(availableOrders.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
+        }
         return ResponseEntity.ok(ApiResponse.ok(availableOrders, "배달 가능한 주문 목록을 조회하였습니다."));
     }
 

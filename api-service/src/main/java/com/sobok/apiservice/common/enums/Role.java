@@ -1,7 +1,7 @@
 package com.sobok.apiservice.common.enums;
 
 public enum Role {
-    USER, ADMIN, HUB, RIDER, FEIGN;
+    USER, ADMIN, HUB, RIDER, FEIGN, TEMP;
 
     public static Role from(String role) {
         return Role.valueOf(role.toUpperCase());

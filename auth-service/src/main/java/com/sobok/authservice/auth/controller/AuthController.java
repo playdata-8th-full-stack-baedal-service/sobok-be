@@ -150,7 +150,6 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@Valid @RequestBody AuthResetPwReqDto authResetPwReqDto) {
         accountService.resetPassword(authResetPwReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authResetPwReqDto.getAuthId(), "사용자의 비밀번호가 변경되었습니다."));
-
     }
 
     /**

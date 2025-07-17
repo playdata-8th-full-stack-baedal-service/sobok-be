@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -180,6 +181,9 @@ public class ShopService {
     public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState, Long pageNo, Long numOfRows) {
         List<Long> paymentIdList = deliveryClient.getPaymentId(shopId);
         log.info("들어온 결제 번호 목록: {}", paymentIdList);
+        if(paymentIdList == null || paymentIdList.isEmpty()) {
+            return List.of();
+        }
         List<ShopPaymentResDto> allOrders = paymentFeignClient.getPayment(paymentIdList);
 
         OrderState filterState = null;

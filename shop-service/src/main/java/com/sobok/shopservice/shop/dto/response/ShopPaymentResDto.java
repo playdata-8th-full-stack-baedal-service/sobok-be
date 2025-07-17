@@ -14,6 +14,6 @@ public class ShopPaymentResDto {
     private Long paymentId;
     private String orderId;
     private OrderState orderState;
-    private Long createdAt;
+//    private Long createdAt;
     private Long updatedAt;
 }

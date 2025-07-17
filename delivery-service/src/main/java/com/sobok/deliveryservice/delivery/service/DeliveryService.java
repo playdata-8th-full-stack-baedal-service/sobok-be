@@ -112,6 +112,7 @@ public class DeliveryService {
 
         Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
 
+        //shopId에 해당하는 delivery 조회
         Page<Delivery> deliveryPage = deliveryRepository.findAllByShopIdIn(shopIdList, pageable);
         log.info("deliveryPage: {}", deliveryPage);
 
@@ -175,6 +176,9 @@ public class DeliveryService {
         return getRiderDeliveries(userInfo, pageNo, numOfRows, false);
     }
 
+    /**
+     * 배달 목록 조회
+     */
     // 응답: 주문 번호, 가게 이름, 가게 주소, 배달지, 완료 시간
     // payment: paymentId, orderId, userAddressId
     // user-service: userAddressId로 주소 가져오기
