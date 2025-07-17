@@ -164,6 +164,8 @@ public class AccountService {
     public void resetPassword(AuthResetPwReqDto authResetPwReqDto) {
 
         try {
+            //인증번호 추가 검증
+
             // auth 정보 조회
             Auth auth = authRepository.findById(authResetPwReqDto.getAuthId())
                     .orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
