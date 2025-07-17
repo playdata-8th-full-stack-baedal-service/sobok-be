@@ -1,4 +1,4 @@
-package com.sobok.shopservice.common.exception;
+package com.sobok.apiservice.common.exception;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

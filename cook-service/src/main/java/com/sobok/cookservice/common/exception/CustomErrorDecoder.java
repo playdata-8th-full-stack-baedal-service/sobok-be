@@ -58,6 +58,14 @@ public class CustomErrorDecoder implements ErrorDecoder {
     }
 
     private String extractInnermostMessage(String body) {
+
+        if (body == null || body.isBlank()) return "응답 본문이 없습니다.";
+
+        // JSON 구조가 아니면 그대로 반환
+        if (!body.trim().startsWith("{")) {
+            return body.trim();
+        }
+
         try {
             JsonNode root = mapper.readTree(body);
 
