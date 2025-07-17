@@ -104,7 +104,7 @@ public class KakaoLoginService {
                 .provider("KAKAO")
                 .build();
         // 회원가입 or 로그인 처리
-        OauthResDto oauthResDto = socialLoginService.findOrCreateKakaoUser(socialDto);  //authId와 닉네임
+        OauthResDto oauthResDto = socialLoginService.findOrCreateSocialUser(socialDto);  //authId와 닉네임
 
         log.info("oauthResDto: {}", oauthResDto);
 
