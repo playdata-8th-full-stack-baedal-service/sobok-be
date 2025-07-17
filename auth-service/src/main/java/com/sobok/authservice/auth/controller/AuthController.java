@@ -168,9 +168,9 @@ public class AuthController {
      * 회원 정보 조회
      */
     @PostMapping("/get-info")
-    public ResponseEntity<?> getInfo(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AuthPasswordReqDto reqDto) {
-        // 1. 비밀번호 확인
-        String loginId = accountService.verifyByPassword(userInfo.getId(), reqDto);
+    public ResponseEntity<?> getInfo(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        // 1. 비밀번호 확인 (사라짐)
+        String loginId = accountService.verifyByPassword(userInfo.getId());
 
         // 2. 유저 정보 가져오기
         AuthBaseInfoResDto info = infoService.getInfo(userInfo, loginId);
