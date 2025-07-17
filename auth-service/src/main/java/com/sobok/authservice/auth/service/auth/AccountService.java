@@ -188,15 +188,15 @@ public class AccountService {
      *
      * @return loginId
      */
-    public String verifyByPassword(Long id, AuthPasswordReqDto reqDto) {
+    public String verifyByPassword(Long id) {
         Auth auth = authRepository.findById(id).orElseThrow(
                 () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
-        boolean isMatch = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
-        if (!isMatch) {
-            throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
-        }
+//        boolean isMatch = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
+//        if (!isMatch) {
+//            throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+//        }
 
         return auth.getLoginId();
     }

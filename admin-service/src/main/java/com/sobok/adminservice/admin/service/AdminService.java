@@ -68,6 +68,7 @@ public class AdminService {
 
         // payment-service 로부터 PagedResponse<AdminPaymentResDto> 응답 받음
         ApiResponse<PagedResponse<AdminPaymentResDto>> response = adminPaymentClient.getAllPayments(page, size);
+        log.info(response.getData().getContent().toString());
         PagedResponse<AdminPaymentResDto> payments = response.getData();
 
         // 각 결제에 필요한 정보 조합
@@ -76,7 +77,10 @@ public class AdminService {
             UserInfoResDto userInfoResDto = userFeignClient.getUserInfo(payment.getUserAddressId());
 
             // 라이더 정보
-            RiderPaymentInfoResDto rider = adminRiderClient.getRiderName(payment.getId());
+            log.info(payment.getId().toString());
+            RiderPaymentInfoResDto rider = payment.getRiderId() == null
+                    ? new RiderPaymentInfoResDto()
+                    : adminRiderClient.getRiderName(payment.getRiderId());
 
             // 가게 정보
             Long shopId = adminRiderClient.getShopIdByPaymentId(payment.getId());

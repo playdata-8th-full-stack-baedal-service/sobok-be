@@ -16,7 +16,7 @@ public class IngreReqDto {
     @NotBlank(message = "식재료 이름은 필수입니다.")
     private String ingreName;
 
-    @NotBlank(message = "식재료 가격은 필수입니다.")
+//    @NotBlank(message = "식재료 가격은 필수입니다.")
     private Integer price;
 
     @NotBlank(message = "식재료 원산지는 필수입니다.")

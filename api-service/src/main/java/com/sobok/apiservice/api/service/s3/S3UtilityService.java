@@ -1,9 +1,12 @@
-package com.sobok.apiservice.common.util;
+package com.sobok.apiservice.api.service.s3;
 
 import com.sobok.apiservice.common.exception.CustomException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -17,50 +20,50 @@ import static com.sobok.apiservice.common.util.Constants.*;
 import static com.sobok.apiservice.common.util.Constants.EXT_TO_CONTENT_TYPE;
 import static com.sobok.apiservice.common.util.Constants.validationFailMsg;
 
+@Component
 @Slf4j
-public class S3Util {
-    public S3Util() {
-        throw new RuntimeException();
-    }
+@RequiredArgsConstructor
+public class S3UtilityService {
+
+    @Value("${cloudfront.origin}")
+    private String URL_FRONT;
+    @Value("${cloudfront.alter}")
+    private String ALTER_URL;
 
     private static final Tika tika = new Tika();
 
     /**
      * 파일 이름 생성 메서드
+     *
      * @return temp/category/UUID/name
      */
-    public static String getFileName(String name, String category, boolean isTempImg) {
+    public String getFileName(String name, String category, boolean isTempImg) {
         String temp = isTempImg ? "temp/" : "";
-        return new String((temp + category + "/" + UUID.randomUUID() + name).getBytes(), StandardCharsets.UTF_8);
+        return new String((temp + category + "/" + UUID.randomUUID() + name).getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
     }
 
     /**
      * 파일의 metadata 생성 메서드
+     *
      * @return {"original-filename" : "name", "upload-time" : "현재 시각"}
      */
-    public static Map<String, String> getMetaData(String name) {
+    public Map<String, String> getMetaData(String name) {
         return Map.of(
-                "original-filename", name,
+                "original-filename", new String((name).getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8),
                 "upload-time", Instant.now().toString()
         );
     }
 
     /**
-     * Image URL 생성 메서드
-     */
-    public static String getImageUrl(String fileName) {
-        return URL_FRONT + fileName;
-    }
-
-    /**
      * Image URL에서 key 값 분리 메서드
      */
-    public static String detachImageUrl(String url) {
-        if(url.contains("temp")) {
-            return url.replace(URL_FRONT + "temp/", "");
-        } else {
-            return url.replace(URL_FRONT, "");
-        }
+    public String detachImageUrl(String url) {
+        if (url.contains("temp")) return url.replace(ALTER_URL + "temp/", "");
+        else return url.replace(ALTER_URL, "");
+    }
+
+    public String returnImageUrl(String fileName) {
+        return ALTER_URL + fileName;
     }
 
     /**
@@ -68,7 +71,7 @@ public class S3Util {
      * - 확장자와 이미지 파일 형식 비교
      * - 이미지 파일 형식이 허용되는 형식인지 검증
      */
-    public static void checkImageValidation(MultipartFile image, String name) throws IOException {
+    public void checkImageValidation(MultipartFile image, String name) throws IOException {
         // 파일 이름에서 확장자 가져오기
         String ext = name.substring(name.lastIndexOf('.') + 1);
 
@@ -89,7 +92,7 @@ public class S3Util {
         }
     }
 
-    public static String getContentType(String key) {
+    public String getContentType(String key) {
         String extension = key.substring(key.lastIndexOf(".") + 1).toLowerCase();
 
         switch (extension) {
