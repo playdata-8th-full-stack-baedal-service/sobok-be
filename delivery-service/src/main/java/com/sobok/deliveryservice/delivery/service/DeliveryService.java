@@ -154,6 +154,7 @@ public class DeliveryService {
                             .orderId(payment.getOrderId())
                             .orderState(payment.getOrderState())
                             .createdAt(payment.getCreatedAt())
+                            .updatedAt(payment.getUpdatedAt())
                             .roadFull(address != null ? address.getRoadFull() : null)
                             .addrDetail(address != null ? address.getAddrDetail() : null)
                             .build();

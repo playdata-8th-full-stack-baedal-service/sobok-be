@@ -94,6 +94,9 @@ public class TossPayService {
                 // paymentKey를 사용한 결제 취소
                 cancelPayment(resDto.getPaymentKey(), "서비스 내부 주문 등록 오류");
                 log.error("결제 정보를 등록하는 과정에서 오류가 발생함. | orderId = {}", reqDto.getOrderId());
+            } catch (CustomException e) {
+                log.error(e.getMessage(), e);
+                throw e;
             } catch (Exception e) {
                 log.error("결제를 취소하는 과정에서 문제가 발생했습니다.");
                 throw new CustomException("결제를 취소하는 과정에서 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -104,7 +107,6 @@ public class TossPayService {
 
             throw new CustomException("결제 정보를 등록하는 과정에서 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
 
         return resDto;
     }
@@ -196,7 +198,7 @@ public class TossPayService {
     /**
      * 토스 페이 결제 취소
      */
-    private void cancelPayment(String paymentKey, String cancelReason) {
+    private void cancelPaymentA(String paymentKey, String cancelReason) {
         log.info("토스 페이 결제 취소 시작 | paymentKey = {}, cancelReason : {}", paymentKey, cancelReason);
 
         TossCancelReqDto requestDto = new TossCancelReqDto(cancelReason);
@@ -224,5 +226,47 @@ public class TossPayService {
         }
 
         log.info("토스 결제 취소 성공 | paymentKey : {}, method : {}", resDto.getPaymentKey(), resDto.getMethod());
+    }
+
+    private void cancelPayment(String paymentKey, String cancelReason) throws ParseException, IOException, JSONException {
+        log.info("토스 페이 결제 취소 시작 | paymentKey = {}, cancelReason : {}", paymentKey, cancelReason);
+
+        JSONObject obj = new JSONObject();
+        obj.put("paymentKey", paymentKey);
+        obj.put("cancelReason", cancelReason);
+
+        // 토스페이먼츠 API는 시크릿 키를 사용자 ID로 사용하고, 비밀번호는 사용하지 않습니다.
+        // 비밀번호가 없다는 것을 알리기 위해 시크릿 키 뒤에 콜론을 추가합니다.
+        String widgetSecretKey = "test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6";
+        Base64.Encoder encoder = Base64.getEncoder();
+        byte[] encodedBytes = encoder.encode((widgetSecretKey + ":").getBytes(StandardCharsets.UTF_8));
+        String authorizations = "Basic " + new String(encodedBytes);
+
+        // 결제를 승인하면 결제수단에서 금액이 차감돼요.
+        URL url = new URL("https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("Authorization", authorizations);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+
+        OutputStream outputStream = connection.getOutputStream();
+        outputStream.write(obj.toString().getBytes("UTF-8"));
+
+        int code = connection.getResponseCode();
+        boolean isSuccess = code == 200;
+
+        InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
+
+        // 결제 성공 및 실패 비즈니스 로직을 구현하세요.
+        Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
+        JSONParser parser = new JSONParser(reader);
+        LinkedHashMap<String, String> jsonObject = (LinkedHashMap<String, String>) parser.parse();
+        responseStream.close();
+
+        if(!isSuccess) {
+            log.error("토스 페이 결제 취소 실패 ㅠㅠ");
+            throw new CustomException("토스 페이 결제 취소가 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
