@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -58,11 +59,11 @@ public class AccountService {
             log.info("문자 검증 통과");
 
             // 모든 서비스에 요청보내서 유효한 값만 리스트에 담기
-            List<ApiResponse<ByPhoneResDto>> response = Stream.of(
+            List<ResponseEntity<ByPhoneResDto>> response = Stream.of(
                             userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
 //                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
 //                            deliveryClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
-                    ).filter(resp -> resp != null && resp.getData() != null)
+                    ).filter(resp -> resp != null && resp.getBody() != null)
                     .toList();
 
             log.info("페인으로 응답받은 response <ByPhoneResDto>: {}", response);
@@ -70,8 +71,11 @@ public class AccountService {
             // 각 응답에서 authId 추출 → authRepository 조회 → AuthFindIdResDto로 변환
             List<AuthFindIdResDto> result = new ArrayList<>();
 
-            for (ApiResponse<ByPhoneResDto> res : response) {
-                Long authId = res.getData().getAuthId();
+            for (ResponseEntity<ByPhoneResDto> res : response) {
+                if (res.getBody() == null || res.getBody().getAuthId() == null) {
+                    throw new CustomException("유저 인증 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+                }
+                Long authId = res.getBody().getAuthId();
 
                 Optional<Auth> authById = authRepository.findByIdAndActive(authId, "Y");
 
@@ -114,26 +118,26 @@ public class AccountService {
         log.info("role: {}", auth.getRole());
 
         // 전화번호로 정보 조회 (각 service) - authId와 해당 전화번호의 authId가 같은지 확인
-        ApiResponse<ByPhoneResDto> findAuth;
+        ResponseEntity<ByPhoneResDto> findAuth;
 
         switch (auth.getRole()) {
             case USER -> {
                 findAuth = userServiceClient.findByPhone(authVerifyReqDto.getUserPhoneNumber());
-                if (findAuth == null || !findAuth.isSuccess() || findAuth.getData() == null) {
+                if (findAuth == null || !findAuth.getStatusCode().is2xxSuccessful() || findAuth.getBody() == null) {
                     throw new CustomException("유저 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
                 }
             }
 
             case RIDER -> {
                 findAuth = deliveryClient.findByPhone(authVerifyReqDto.getUserPhoneNumber());
-                if (findAuth == null || !findAuth.isSuccess() || findAuth.getData() == null) {
+                if (findAuth == null || !findAuth.getStatusCode().is2xxSuccessful() || findAuth.getBody() == null) {
                     throw new CustomException("라이더 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
                 }
             }
 
             case HUB -> {
                 findAuth = shopServiceClient.findByPhone(authVerifyReqDto.getUserPhoneNumber());
-                if (findAuth == null || !findAuth.isSuccess() || findAuth.getData() == null) {
+                if (findAuth == null || !findAuth.getStatusCode().is2xxSuccessful() || findAuth.getBody() == null) {
                     throw new CustomException("허브 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
                 }
             }
@@ -142,7 +146,7 @@ public class AccountService {
         }
 
         // auth ID 일치 확인
-        if (!auth.getId().equals(findAuth.getData().getAuthId())) {
+        if (!auth.getId().equals(findAuth.getBody().getAuthId())) {
             throw new CustomException("해당 ID와 전화번호를 가진 사용자가 없습니다.", HttpStatus.BAD_REQUEST);
         }
 
@@ -164,6 +168,8 @@ public class AccountService {
     public void resetPassword(AuthResetPwReqDto authResetPwReqDto) {
 
         try {
+            //인증번호 추가 검증
+
             // auth 정보 조회
             Auth auth = authRepository.findById(authResetPwReqDto.getAuthId())
                     .orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));

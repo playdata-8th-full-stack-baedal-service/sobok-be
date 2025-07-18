@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface ShopServiceClient {
 
     @PostMapping("/api/register")
-    ApiResponse<AuthShopResDto> shopSignup(@RequestBody ShopSignupReqDto shopDto);
+    ResponseEntity<AuthShopResDto> shopSignup(@RequestBody ShopSignupReqDto shopDto);
 
     @PostMapping("/api/findByPhoneNumber")
-    ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
+    ResponseEntity<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
     // 가게 지점명 중복 검증
     @GetMapping("/api/check-shopName")

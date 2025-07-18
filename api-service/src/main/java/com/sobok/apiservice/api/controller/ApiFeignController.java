@@ -8,7 +8,6 @@ import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import com.sobok.apiservice.api.service.s3.S3Service;
-import com.sobok.apiservice.api.service.s3.S3PutService;
 import com.sobok.apiservice.api.service.socialLogin.GoogleLoginService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
 import com.sobok.apiservice.api.service.socialLogin.SocialLoginService;
@@ -27,32 +26,14 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping("/api")
 @Slf4j
-public class ApiController {
+public class ApiFeignController {
 
     private final S3Service s3Service;
-    private final TossPayService tossPayService;
     private final ConvertAddressService convertAddressService;
+    private final TossPayService tossPayService;
+    private final SocialLoginService socialLoginService;
     private final KakaoLoginService kakaoLoginService;
     private final GoogleLoginService googleLoginService;
-    private final SocialLoginService socialLoginService;
-
-    /**
-     * S3 사진 삭제
-     */
-    @DeleteMapping("/delete-S3-image")
-    public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
-        s3Service.deleteImage(key);
-        return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
-    }
-
-    /**
-     * S3 이미지 업로드 - 10분 내 register 필요
-     */
-    @PutMapping("/upload-image/{category}")
-    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category) {
-        String imgUrl = s3Service.uploadImage(image, category);
-        return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
-    }
 
     /**
      * FEIGN
@@ -73,17 +54,37 @@ public class ApiController {
     }
 
     /**
-     * 토스페이 결제
+     * FEIGN
+     *
+     * @param oauthId
+     * @return
      */
-    @PostMapping("/confirm")
-    public ResponseEntity<?> confirmPayment(@RequestBody TossPayReqDto reqDto) {
-        TossPayResDto resDto = tossPayService.confirmPayment(reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
+    @GetMapping("/findByOauthId")
+    public ResponseEntity<?> findByOauthId(@RequestParam("id") Long oauthId) {
+        return ResponseEntity.ok().body(socialLoginService.findOauth(oauthId));
     }
 
     @GetMapping("/convert-addr")
     public LocationResDto convertAddress(@RequestParam String roadFull) {
         return convertAddressService.getLocation(roadFull);
+    }
+
+    /**
+     * S3 사진 삭제
+     */
+    @DeleteMapping("/delete-S3-image")
+    public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
+        s3Service.deleteImage(key);
+        return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
+    }
+
+    /**
+     * S3 이미지 업로드 - 10분 내 register 필요
+     */
+    @PutMapping("/upload-image/{category}")
+    public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category) {
+        String imgUrl = s3Service.uploadImage(image, category);
+        return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
     }
 
     /**
@@ -110,10 +111,12 @@ public class ApiController {
         return ResponseEntity.ok(googleLoginService.getGoogleLoginView());
     }
 
-    //feign요청으로 들어올 api
-    @GetMapping("/findByOauthId")
-    public OauthResDto findByOauthId(@RequestParam("id") Long oauthId) {
-        return socialLoginService.findOauth(oauthId);
+    /**
+     * 토스페이 결제
+     */
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirmPayment(@RequestBody TossPayReqDto reqDto) {
+        TossPayResDto resDto = tossPayService.confirmPayment(reqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
     }
-
 }

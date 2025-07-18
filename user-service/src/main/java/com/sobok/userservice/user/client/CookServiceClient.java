@@ -16,6 +16,6 @@ public interface CookServiceClient {
     ResponseEntity<?> checkCook(@RequestParam("cookId") Long cookId);
 
     @PostMapping("/api/preLookup-cook")
-    List<UserBookmarkResDto> cookPreLookup(@RequestBody List<Long> cookIds);
+    ResponseEntity<List<UserBookmarkResDto>> cookPreLookup(@RequestBody List<Long> cookIds);
 
 }

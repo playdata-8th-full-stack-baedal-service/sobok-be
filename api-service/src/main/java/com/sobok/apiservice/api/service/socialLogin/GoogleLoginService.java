@@ -85,7 +85,7 @@ public class GoogleLoginService {
                 .name(googleDetailResDto.getName())
                 .email(googleDetailResDto.getEmail())
                 .picture(googleDetailResDto.getPicture())
-                .isNew(oauthResDto.isNew())
+                .isNew(oauthResDto.isNewUser())
                 .build();
     }
 
