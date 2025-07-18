@@ -21,6 +21,7 @@ public class DeliveryAvailOrderResDto {
     private String orderId;
     private OrderState orderState;
     private Long createdAt;
+    private Long updatedAt;
     private String roadFull;
     private String addrDetail;
 }
