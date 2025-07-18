@@ -11,7 +11,6 @@ import lombok.*;
 public class OauthResDto {
     private Long oauthId;
     private Long authId;
-    @JsonProperty("isNew")
-    private boolean isNew;
+    private boolean newUser;
     private String socialId;
 }

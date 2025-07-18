@@ -111,7 +111,7 @@ public class KakaoLoginService {
         return KakaoCallResDto.builder()
                 .oauthId(oauthResDto.getOauthId())
                 .authId(oauthResDto.getAuthId())
-                .isNew(oauthResDto.isNew())
+                .newUser(oauthResDto.isNewUser())
                 .nickname(kakaoUserDto.getProperties().getNickname())
                 .profileImage(kakaoUserDto.getProperties().getProfileImage())
                 .email(kakaoUserDto.getAccount().getEmail())
