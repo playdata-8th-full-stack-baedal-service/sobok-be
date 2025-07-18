@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -216,7 +217,7 @@ public class RegisterService {
 
         // feign으로 save 요청
         try {
-            ApiResponse<AuthShopResDto> response = shopServiceClient.shopSignup(shopDto);
+            ResponseEntity<AuthShopResDto> response = shopServiceClient.shopSignup(shopDto);
         } catch (Exception e) {
             if (e.getMessage().contains("409")) {
                 throw new CustomException("중복된 정보로 인해 가게 등록에 실패했습니다.", HttpStatus.CONFLICT);
@@ -244,12 +245,12 @@ public class RegisterService {
             throw new CustomException("이미 등록된 회원입니다.", HttpStatus.CONFLICT);
         });
 
-        OauthResDto oauthResDto = apiServiceClient.oauthIdById(authByOauthReqDto.getOauthId());
-        if (oauthResDto == null) {
+        ResponseEntity<OauthResDto> oauthResDto = apiServiceClient.oauthIdById(authByOauthReqDto.getOauthId());
+        if (oauthResDto == null || !oauthResDto.getStatusCode().is2xxSuccessful() || oauthResDto.getBody() == null) {
             throw new CustomException("oauth 정보가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
-        String dummyId = "social" + oauthResDto.getSocialId();
+        String dummyId = "social" + oauthResDto.getBody().getSocialId();
         String dummyPassword = PasswordGenerator.generate(12);
 
         createAndRegisterUser(UnifiedSignupReqDto.builder()

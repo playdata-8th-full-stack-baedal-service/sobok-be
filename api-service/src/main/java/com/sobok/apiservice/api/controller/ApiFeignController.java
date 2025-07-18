@@ -60,8 +60,8 @@ public class ApiFeignController {
      * @return
      */
     @GetMapping("/findByOauthId")
-    public OauthResDto findByOauthId(@RequestParam("id") Long oauthId) {
-        return socialLoginService.findOauth(oauthId);
+    public ResponseEntity<?> findByOauthId(@RequestParam("id") Long oauthId) {
+        return ResponseEntity.ok().body(socialLoginService.findOauth(oauthId));
     }
 
     @GetMapping("/convert-addr")
