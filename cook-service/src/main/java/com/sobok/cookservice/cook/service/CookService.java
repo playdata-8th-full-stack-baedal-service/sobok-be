@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -360,14 +361,14 @@ public class CookService {
      */
     @Cacheable(value = "popularCooks", key = "'page:' + #page + ':size:' + #size")
     public PagedResponse<PopularCookResDto> getPopularCooks(int page, int size) {
-        List<CookOrderCountDto> popularCooks;
+        ResponseEntity<List<CookOrderCountDto>> popularCooks;
         try {
             popularCooks = paymentFeignClient.getPopularCookIds(page, size);
         } catch (Exception e) {
             throw new CustomException("payment-service 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<Long> cookIds = popularCooks.stream()
+        List<Long> cookIds = popularCooks.getBody().stream()
                 .map(CookOrderCountDto::getCookId)
                 .collect(Collectors.toList());
 
@@ -375,7 +376,7 @@ public class CookService {
         Map<Long, Cook> cookMap = cooks.stream()
                 .collect(Collectors.toMap(Cook::getId, c -> c));
 
-        List<PopularCookResDto> result = popularCooks.stream()
+        List<PopularCookResDto> result = popularCooks.getBody().stream()
                 .map(dto -> {
                     Cook cook = cookMap.get(dto.getCookId());
                     if (cook == null) {
