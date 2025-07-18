@@ -237,12 +237,19 @@ public class UserService {
                 .map(UserBookmark::getCookId)
                 .collect(Collectors.toList());
 
-        List<UserBookmarkResDto> cookInfoList = cookServiceClient.cookPreLookup(cookIdList);
+        ResponseEntity<List<UserBookmarkResDto>> cookInfoList = cookServiceClient.cookPreLookup(cookIdList);
 
         log.info("cookInfoList: {}", cookInfoList);
 
+        if (cookInfoList == null || cookInfoList.getBody() == null) {
+            throw new CustomException("cook 정보 조회 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+        } else if (cookInfoList.getBody().isEmpty()) {
+            log.warn("조회된 cook 정보가 없습니다.");
+            throw new CustomException("조회된 cook 정보가 없습니다.", HttpStatus.NO_CONTENT);
+        }
+
         // cookId를 기준으로 매핑
-        Map<Long, UserBookmarkResDto> cookInfoMap = cookInfoList.stream()
+        Map<Long, UserBookmarkResDto> cookInfoMap = cookInfoList.getBody().stream()
                 .collect(Collectors.toMap(UserBookmarkResDto::getCookId, Function.identity()));
 
         return cookIdList.stream()
@@ -307,7 +314,7 @@ public class UserService {
     }
 
     @Transactional
-     public String editPhoto(TokenUserInfo userInfo, MultipartFile image, String category) {
+    public String editPhoto(TokenUserInfo userInfo, MultipartFile image, String category) {
         log.info("사용자 이미지 수정 시작 | userId : {}", userInfo.getUserId());
 
         User user = userRepository.findById(userInfo.getUserId()).orElseThrow(
@@ -395,6 +402,7 @@ public class UserService {
                 .phone(user.getPhone())
                 .build();
     }
+
     /**
      * userId로 authId를 조회함
      */
@@ -406,6 +414,7 @@ public class UserService {
                 })
                 .orElseThrow(() -> new CustomException("해당 유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
     }
+
     /**
      * 해당 주소 ID를 가진 user_address 조회 후, 그 주소에 연결된 유저의 ID (userId)를 반환
      */
