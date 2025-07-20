@@ -122,8 +122,8 @@ public class PaymentFeignController {
      * 배달 목록 조회에 사용되는 paymentId로 주문 정보 받기
      */
     @GetMapping("/getRiderPayment")
-    public List<ShopPaymentResDto> getRiderPayment(@RequestParam List<Long> id) {
-        return paymentService.getRiderAvailPaymentList(id, null);
+    public ResponseEntity<List<ShopPaymentResDto>> getRiderPayment(@RequestParam List<Long> id) {
+         return ResponseEntity.ok().body(paymentService.getRiderAvailPaymentList(id, null));
     }
 
     /**
