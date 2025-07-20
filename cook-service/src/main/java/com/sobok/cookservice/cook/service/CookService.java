@@ -6,6 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
+import com.sobok.cookservice.cook.client.ApiServiceClient;
 import com.sobok.cookservice.cook.client.PaymentFeignClient;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.*;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,7 @@ public class CookService {
     private final IngredientRepository ingredientRepository;
     private final JPAQueryFactory factory;
     private final PaymentFeignClient paymentFeignClient;
+    private final ApiServiceClient apiServiceClient;
 
     @Transactional
     public CookCreateResDto createCook(CookCreateReqDto dto) {
@@ -51,8 +54,18 @@ public class CookService {
                     throw new CustomException("이미 존재하는 요리 이름입니다.", HttpStatus.BAD_REQUEST);
                 });
 
+
+        // 사진 등록
+        String photoUrl;
+        try {
+            photoUrl = apiServiceClient.registerImg(dto.getThumbnailUrl());
+        } catch (Exception e) {
+            log.error("사진 등록 실패", e);
+            throw new CustomException("사진 등록 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         // 레시피 썸네일 중복 검증
-        cookRepository.findByThumbnail(dto.getThumbnailUrl())
+        cookRepository.findByThumbnail(photoUrl)
                 .ifPresent(cook -> {
                     throw new CustomException("이미 사용 중인 썸네일입니다.", HttpStatus.BAD_REQUEST);
                 });
@@ -63,7 +76,7 @@ public class CookService {
                 .allergy(dto.getAllergy())
                 .recipe(dto.getRecipe())
                 .category(CookCategory.valueOf(dto.getCategory().toUpperCase()))
-                .thumbnail(dto.getThumbnailUrl())
+                .thumbnail(photoUrl)
                 .build();
 
         cookRepository.save(cook); // DB 저장
@@ -348,14 +361,14 @@ public class CookService {
      */
     @Cacheable(value = "popularCooks", key = "'page:' + #page + ':size:' + #size")
     public PagedResponse<PopularCookResDto> getPopularCooks(int page, int size) {
-        List<CookOrderCountDto> popularCooks;
+        ResponseEntity<List<CookOrderCountDto>> popularCooks;
         try {
             popularCooks = paymentFeignClient.getPopularCookIds(page, size);
         } catch (Exception e) {
             throw new CustomException("payment-service 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<Long> cookIds = popularCooks.stream()
+        List<Long> cookIds = popularCooks.getBody().stream()
                 .map(CookOrderCountDto::getCookId)
                 .collect(Collectors.toList());
 
@@ -363,7 +376,7 @@ public class CookService {
         Map<Long, Cook> cookMap = cooks.stream()
                 .collect(Collectors.toMap(Cook::getId, c -> c));
 
-        List<PopularCookResDto> result = popularCooks.stream()
+        List<PopularCookResDto> result = popularCooks.getBody().stream()
                 .map(dto -> {
                     Cook cook = cookMap.get(dto.getCookId());
                     if (cook == null) {

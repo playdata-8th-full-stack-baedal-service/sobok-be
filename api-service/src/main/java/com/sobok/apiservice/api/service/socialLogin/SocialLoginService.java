@@ -31,7 +31,7 @@ public class SocialLoginService {
     private final AuthFeignClient authFeignClient;
 
     @Transactional
-    public OauthResDto findOrCreateKakaoUser(SocialUserDto dto) {
+    public OauthResDto findOrCreateSocialUser(SocialUserDto dto) {
         // 기존 소셜 로그인 사용자
         // 소셜 ID로 기존 사용자 찾기
         Optional<Oauth> oauth = oauthRepository.findBySocialProviderAndSocialId(dto.getProvider(), dto.getSocialId());
@@ -50,7 +50,7 @@ public class SocialLoginService {
                 return OauthResDto.builder()
                         .oauthId(foundUser.getId())
                         .socialId(foundUser.getSocialId())
-                        .isNew(true)
+                        .newUser(true)
                         .build();
             } catch (FeignException e) {
                 log.error("Feign 호출 중 예외 발생", e);
@@ -61,7 +61,7 @@ public class SocialLoginService {
                     .oauthId(foundUser.getId())
                     .socialId(foundUser.getSocialId())
                     .authId(oauthResDto.getAuthId())
-                    .isNew(false)
+                    .newUser(false)
                     .build();
         }
 
@@ -79,7 +79,7 @@ public class SocialLoginService {
 
         return OauthResDto.builder()
                 .oauthId(saved.getId())
-                .isNew(true)
+                .newUser(true)
                 .build();
     }
 

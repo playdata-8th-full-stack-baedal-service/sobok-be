@@ -29,7 +29,8 @@ public class Post extends BaseTimeEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
+    @Lob
     private String content;
 
     public void setTitle(String title) {

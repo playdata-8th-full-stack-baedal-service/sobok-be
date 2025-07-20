@@ -11,7 +11,7 @@ import lombok.*;
 public class IngreResDto {
     private Long id;
     private String ingreName;
-    private String price;
+    private Integer price;
     private String origin;
     private String unit;
 

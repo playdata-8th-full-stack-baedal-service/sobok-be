@@ -172,6 +172,7 @@ public class PaymentService {
      */
     public PagedResponse<AdminPaymentResDto> getAllPaymentsForAdmin(Pageable pageable) {
         Page<Payment> payments = paymentRepository.findAllByOrderByCreatedAtDesc(pageable);
+        log.info(payments.toString());
 
         List<AdminPaymentResDto> content = payments.getContent().stream()
                 .map(payment -> AdminPaymentResDto.builder()
@@ -184,6 +185,7 @@ public class PaymentService {
                         .userAddressId(payment.getUserAddressId())
                         .build())
                 .toList();
+        log.info("<UNK> <UNK> <UNK> <UNK> <UNK> | <UNK> : {}", content);
 
         return PagedResponse.<AdminPaymentResDto>builder()
                 .content(content)

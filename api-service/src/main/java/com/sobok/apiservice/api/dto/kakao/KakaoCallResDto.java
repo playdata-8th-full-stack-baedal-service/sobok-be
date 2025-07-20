@@ -9,8 +9,7 @@ import lombok.*;
 public class KakaoCallResDto implements SocialCallbackDto {
     private Long oauthId;
     private Long authId;
-    @JsonProperty("isNew")
-    private boolean isNew;
+    private boolean newUser;
     private String nickname;
     private String profileImage;
     private String email;
@@ -18,7 +17,7 @@ public class KakaoCallResDto implements SocialCallbackDto {
     // 인터페이스 메서드 구현
     @Override
     public boolean isNew() {
-        return this.isNew;
+        return this.newUser;
     }
 
     @Override

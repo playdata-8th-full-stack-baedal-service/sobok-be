@@ -39,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
     List<String> whiteList = List.of(
             "/actuator/**", "/ingredient/keyword-search"
             , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
-            , "/cook/get-cook/**","/cook/popular"
+            , "/cook/get-cook/**", "/cook/popular"
     );
 
     @Override
@@ -88,17 +88,24 @@ public class JwtFilter extends OncePerRequestFilter {
             long id = Long.parseLong(claims.getSubject());
             Role role = Role.from(claims.get("role", String.class));
 
+            // FEIGN일 경우 URI 검사
+            if (role == Role.FEIGN && !antPathMatcher.match("/api/**", path)) {
+                log.warn("FEIGN 역할이 허용되지 않은 URI에 접근하려 했습니다: {}", path);
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "FEIGN은 이 경로에 접근할 수 없습니다.");
+                return;
+            }
+
             // @AuthenticationPrinciple, @PreAuthorize("hasRole('ADMIN')") 같은 로직을 사용하기 위한 로직
             TokenUserInfo tokenUserInfo = TokenUserInfo.builder().id(id).role(role.name()).build();
-            String roleClaim = switch(role) {
+            String roleClaim = switch (role) {
                 case USER -> "userId";
                 case HUB -> "shopId";
-                case RIDER ->  "riderId";
+                case RIDER -> "riderId";
                 default -> null;
             };
-            if(roleClaim != null) {
+            if (roleClaim != null) {
                 Long roleId = Long.parseLong(claims.get(roleClaim, String.class));
-                switch(role) {
+                switch (role) {
                     case USER -> tokenUserInfo.setUserId(roleId);
                     case HUB -> tokenUserInfo.setShopId(roleId);
                     case RIDER -> tokenUserInfo.setRiderId(roleId);

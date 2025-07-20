@@ -3,7 +3,6 @@ package com.sobok.authservice.auth.client;
 import com.sobok.authservice.auth.dto.info.AuthRiderInfoResDto;
 import com.sobok.authservice.auth.dto.request.RiderReqDto;
 import com.sobok.authservice.auth.dto.response.ByPhoneResDto;
-import com.sobok.authservice.auth.dto.response.UserResDto;
 import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
 import com.sobok.authservice.common.dto.ApiResponse;
@@ -19,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface DeliveryClient {
 
     @PostMapping("/api/signup")
-    ApiResponse<AuthRiderResDto> registerRider(@RequestBody RiderReqDto dto);
+    ResponseEntity<AuthRiderResDto> registerRider(@RequestBody RiderReqDto dto);
 
     @PostMapping("/api/findByPhoneNumber")
-    ApiResponse<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
+    ResponseEntity<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
 
     // 라이더 면허 번호 검증

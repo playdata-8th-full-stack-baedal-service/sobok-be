@@ -76,7 +76,7 @@ public class GoogleLoginService {
                 .provider("GOOGLE")
                 .build();
         // 회원가입 or 로그인 처리
-        OauthResDto oauthResDto = socialLoginService.findOrCreateKakaoUser(socialDto);  //authId와 닉네임
+        OauthResDto oauthResDto = socialLoginService.findOrCreateSocialUser(socialDto);  //authId와 닉네임
         log.info("oauthResDto: {}", oauthResDto);
 
         return GoogleCallResDto.builder()
@@ -85,7 +85,7 @@ public class GoogleLoginService {
                 .name(googleDetailResDto.getName())
                 .email(googleDetailResDto.getEmail())
                 .picture(googleDetailResDto.getPicture())
-                .isNew(oauthResDto.isNew())
+                .isNew(oauthResDto.isNewUser())
                 .build();
     }
 

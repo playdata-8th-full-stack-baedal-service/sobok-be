@@ -104,14 +104,14 @@ public class KakaoLoginService {
                 .provider("KAKAO")
                 .build();
         // 회원가입 or 로그인 처리
-        OauthResDto oauthResDto = socialLoginService.findOrCreateKakaoUser(socialDto);  //authId와 닉네임
+        OauthResDto oauthResDto = socialLoginService.findOrCreateSocialUser(socialDto);  //authId와 닉네임
 
         log.info("oauthResDto: {}", oauthResDto);
 
         return KakaoCallResDto.builder()
                 .oauthId(oauthResDto.getOauthId())
                 .authId(oauthResDto.getAuthId())
-                .isNew(oauthResDto.isNew())
+                .newUser(oauthResDto.isNewUser())
                 .nickname(kakaoUserDto.getProperties().getNickname())
                 .profileImage(kakaoUserDto.getProperties().getProfileImage())
                 .email(kakaoUserDto.getAccount().getEmail())
