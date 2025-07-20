@@ -7,6 +7,7 @@ import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;
 import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
 import com.sobok.userservice.user.dto.response.UserBookmarkResDto;
+import com.sobok.userservice.user.dto.response.UserLikeResDto;
 import com.sobok.userservice.user.service.UserService;
 import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.user.service.UserAddressService;
@@ -133,5 +134,26 @@ public class UserController {
         userService.checkEmail(email);
         return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 이메일입니다."));
     }
+
+    /**
+     * 게시글 좋아요 등록
+     */
+    @PostMapping("/user-like")
+    public ResponseEntity<?> likePost(@RequestBody PostIdReqDto dto,
+                                      @AuthenticationPrincipal TokenUserInfo userInfo) {
+        UserLikeResDto res = userService.likePost(userInfo, dto.getPostId());
+        return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 등록 성공"));
+    }
+
+    /**
+     * 게시글 좋아요 해제
+     */
+    @DeleteMapping("/user-unlike")
+    public ResponseEntity<?> unlikePost(@RequestBody PostIdReqDto dto,
+                                        @AuthenticationPrincipal TokenUserInfo userInfo) {
+        UserLikeResDto res = userService.unlikePost(userInfo, dto.getPostId());
+        return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 해제 성공"));
+    }
+
 
 }

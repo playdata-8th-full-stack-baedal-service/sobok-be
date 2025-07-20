@@ -1,35 +1,23 @@
 package com.sobok.postservice.post.service;
 
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-
-import static com.sobok.postservice.post.entity.QPost.post;
-import static com.sobok.postservice.post.entity.QPostImage.postImage;
-import static com.sobok.postservice.post.entity.QUserLike.userLike;
-
 import com.sobok.postservice.common.dto.ApiResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
 import com.sobok.postservice.post.client.CookFeignClient;
 import com.sobok.postservice.post.client.PaymentFeignClient;
 import com.sobok.postservice.post.client.UserFeignClient;
-import com.sobok.postservice.post.dto.request.PostImageDto;
-import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
-import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
+import com.sobok.postservice.post.dto.request.*;
 import com.sobok.postservice.post.dto.response.*;
-import com.sobok.postservice.post.entity.*;
+import com.sobok.postservice.post.entity.Post;
+import com.sobok.postservice.post.entity.PostImage;
 import com.sobok.postservice.post.repository.PostImageRepository;
 import com.sobok.postservice.post.repository.PostRepository;
-import com.sobok.postservice.post.repository.UserLikeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,12 +28,10 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final PaymentFeignClient paymentClient;
     private final PostImageRepository postImageRepository;
+    private final PaymentFeignClient paymentClient;
     private final CookFeignClient cookClient;
     private final UserFeignClient userClient;
-    private final UserLikeRepository userLikeRepository;
-    private final JPAQueryFactory queryFactory;
 
     /**
      * 게시글 등록
@@ -54,10 +40,7 @@ public class PostService {
     public PostRegisterResDto registerPost(PostRegisterReqDto dto, TokenUserInfo userInfo) {
         Long userId = userInfo.getUserId();
 
-        // 배달 완료 상태 확인
         boolean isCompleted = paymentClient.isPaymentCompleted(dto.getPaymentId(), userId);
-
-        // 요리 정보 받아옴
         Long cookId = paymentClient.getCookIdByPaymentId(dto.getPaymentId());
         String cookName = cookClient.getCookNameById(cookId);
 
@@ -72,16 +55,14 @@ public class PostService {
                 .content(dto.getContent())
                 .paymentId(dto.getPaymentId())
                 .build();
-
         postRepository.save(post);
 
-        // 이미지 저장
         if (dto.getImages() != null && !dto.getImages().isEmpty()) {
             List<PostImage> imagesToSave = dto.getImages().stream()
-                    .map(imageDto -> PostImage.builder()
+                    .map(img -> PostImage.builder()
                             .postId(post.getId())
-                            .imagePath(imageDto.getImageUrl())
-                            .index(imageDto.getIndex())
+                            .imagePath(img.getImageUrl())
+                            .index(img.getIndex())
                             .build())
                     .toList();
             postImageRepository.saveAll(imagesToSave);
@@ -95,150 +76,168 @@ public class PostService {
      */
     @Transactional
     public PostUpdateResDto updatePost(PostUpdateReqDto dto, TokenUserInfo userInfo) {
-        Post post = findPostByIdOrThrow(dto.getPostId());
-        checkPostOwnership(post, userInfo);
+        Post post = postRepository.findById(dto.getPostId())
+                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
-        // 필드가 null이 아닐 때만 수정
+        if (!post.getUserId().equals(userInfo.getUserId())) {
+            throw new CustomException("해당 게시글에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+
         if (dto.getTitle() != null) post.setTitle(dto.getTitle());
         if (dto.getContent() != null) post.setContent(dto.getContent());
 
-        List<PostImage> savedImages = postImageRepository.findAllByPostId(post.getId());
+        postImageRepository.deleteByPostId(post.getId());
 
-        // 이미지 교체 (기존 삭제 후 저장)
-        if (dto.getImages() != null) {
-            postImageRepository.deleteByPostId(post.getId());
-            if (!dto.getImages().isEmpty()) {
-                List<PostImage> newImages = dto.getImages().stream()
-                        .map(img -> PostImage.builder()
-                                .postId(post.getId())
-                                .imagePath(img.getImageUrl())
-                                .index(img.getIndex())
-                                .build())
-                        .toList();
-                savedImages = postImageRepository.saveAll(newImages);
-            } else {
-                savedImages = Collections.emptyList();
-            }
-        }
+        List<PostImage> newImages = dto.getImages() != null ? dto.getImages().stream()
+                .map(img -> PostImage.builder()
+                        .postId(post.getId())
+                        .imagePath(img.getImageUrl())
+                        .index(img.getIndex())
+                        .build())
+                .toList() : Collections.emptyList();
+
+        postImageRepository.saveAll(newImages);
+
         return PostUpdateResDto.builder()
                 .postId(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .images(
-                        savedImages.stream()
-                                .map(img -> new PostImageDto(img.getImagePath(), img.getIndex()))
-                                .toList()
-                )
+                .images(newImages.stream()
+                        .map(img -> new PostImageDto(img.getImagePath(), img.getIndex()))
+                        .toList())
                 .build();
     }
-    /**
-     * todo: s3 연결 필요
-     */
-
 
     /**
      * 게시글 삭제
      */
     @Transactional
     public void deletePost(Long postId, TokenUserInfo userInfo) {
-        Post post = findPostByIdOrThrow(postId);
-        checkPostOwnership(post, userInfo);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        if (!post.getUserId().equals(userInfo.getUserId())) {
+            throw new CustomException("해당 게시글에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
 
         postImageRepository.deleteByPostId(postId);
         postRepository.delete(post);
     }
-    /**
-     * todo: s3 연결 필요
-     */
 
     /**
      * 게시글 조회
      */
     public PagedResponse<PostListResDto> getPostList(int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Post> postPage;
+        boolean isLikeSort = "like".equalsIgnoreCase(sortBy);
+        List<Post> posts;
+        Map<Long, Long> likeMap;
 
-        if ("like".equalsIgnoreCase(sortBy)) {
-            List<Long> postIds = queryFactory
-                    .select(post.id)
-                    .from(post)
-                    .leftJoin(userLike).on(post.id.eq(userLike.postId))
-                    .groupBy(post.id, post.updatedAt)
-                    .orderBy(userLike.count().desc(), post.updatedAt.desc())
-                    .offset(pageable.getOffset())
-                    .limit(pageable.getPageSize())
-                    .fetch();
+        if (isLikeSort) {
+            // 좋아요순 정렬은 user-service에서 postIds만 가져옴
+            LikedPostPagedResDto likedRes = userClient.getMostLikedPostIds(page, size);
+            List<Long> postIds = likedRes.getContent();
+            posts = postRepository.findAllById(postIds);
 
-            if (postIds.isEmpty()) {
-                return new PagedResponse<>(Collections.emptyList(), page, size, 0, 0, true);
-            }
-
-            List<Post> content = postRepository.findAllById(postIds).stream()
-                    .sorted(Comparator.comparing(p -> postIds.indexOf(p.getId())))
+            Map<Long, Post> postMap = posts.stream().collect(Collectors.toMap(Post::getId, p -> p));
+            posts = postIds.stream()
+                    .map(postMap::get)
+                    .filter(Objects::nonNull)
                     .toList();
 
-            Long total = queryFactory.select(post.id.countDistinct()).from(post).fetchOne();
-            postPage = new PageImpl<>(content, pageable, total != null ? total : 0);
+            // 좋아요 수는 postIds 기준으로 조회
+            likeMap = userClient.getAllLikeCounts();
+
+            return new PagedResponse<>(
+                    buildPostListRes(posts, likeMap),
+                    page, size,
+                    likedRes.getTotalElements(),
+                    likedRes.getTotalPages(),
+                    likedRes.isLast()
+            );
+
         } else {
-            postPage = postRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt")));
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
+            Page<Post> postPage = postRepository.findAll(pageable);
+            posts = postPage.getContent();
+            likeMap = userClient.getAllLikeCounts();
+
+            return new PagedResponse<>(
+                    buildPostListRes(posts, likeMap),
+                    page, size,
+                    postPage.getTotalElements(),
+                    postPage.getTotalPages(),
+                    postPage.isLast()
+            );
         }
+    }
 
-        if (postPage.isEmpty()) {
-            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
-        }
+    // 공통 메서드 분리
+    private List<PostListResDto> buildPostListRes(List<Post> posts, Map<Long, Long> likeMap) {
+        return posts.stream().map(post -> {
+            String cookName = cookClient.getCookNameById(post.getCookId());
+            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
+            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
+                    .map(PostImage::getImagePath).orElse(null);
 
-        List<PostListResDto> result = postListResDtos(postPage.getContent());
-
-        return new PagedResponse<>(
-                result,
-                page,
-                size,
-                postPage.getTotalElements(),
-                postPage.getTotalPages(),
-                postPage.isLast()
-        );
+            return PostListResDto.builder()
+                    .postId(post.getId())
+                    .title(post.getTitle())
+                    .cookName(cookName)
+                    .userId(user.getUserId())
+                    .nickName(user.getNickname())
+                    .likeCount(likeMap.getOrDefault(post.getId(), 0L))
+                    .thumbnail(thumbnail)
+                    .updatedAt(post.getUpdatedAt())
+                    .build();
+        }).toList();
     }
 
     /**
-     * 요리별 좋아요순, 최신순 게시글 조회
+     * 요리별 요리별 좋아요순, 최신순 정렬 조회
      */
     public CookPostGroupResDto getCookPostsByCookId(Long cookId, String sortBy) {
-        NumberExpression<Long> likeCount = userLike.countDistinct();
-
-        List<CookPostGroupResDto.PostSummaryDto> posts = queryFactory
-                .select(Projections.constructor(CookPostGroupResDto.PostSummaryDto.class,
-                        post.id,
-                        post.title,
-                        JPAExpressions
-                                .select(postImage.imagePath)
-                                .from(postImage)
-                                .where(postImage.postId.eq(post.id), postImage.index.eq(1))
-                                .limit(1),
-                        likeCount
-                ))
-                .from(post)
-                .leftJoin(userLike).on(userLike.postId.eq(post.id))
-                .where(post.cookId.eq(cookId))
-                .groupBy(post.id, post.title, post.updatedAt)
-                .orderBy(
-                        "like".equalsIgnoreCase(sortBy)
-                                ? likeCount.desc()
-                                : post.updatedAt.desc()
-                )
-                .fetch();
-
+        List<Post> posts = postRepository.findByCookId(cookId);
 
         if (posts.isEmpty()) {
             throw new CustomException("해당 요리에 대한 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
+        Map<Long, Long> likeCount = userClient.getAllLikeCounts();
+
+        List<CookPostGroupResDto.PostSummaryDto> summaries = posts.stream().map(post -> {
+            Long postId = post.getId();
+            String title = post.getTitle();
+            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(postId)
+                    .map(PostImage::getImagePath).orElse(null);
+            Long updatedAt = post.getUpdatedAt();
+
+            return CookPostGroupResDto.PostSummaryDto.builder()
+                    .postId(postId)
+                    .title(title)
+                    .thumbnail(thumbnail)
+                    .likeCount(likeCount.getOrDefault(postId, 0L))
+                    .updatedAt(updatedAt)
+                    .build();
+        }).collect(Collectors.toList());
+
+        // 정렬
+        if ("like".equalsIgnoreCase(sortBy)) {
+            summaries.sort((a, b) -> Long.compare(
+                    b.getLikeCount() != null ? b.getLikeCount() : 0,
+                    a.getLikeCount() != null ? a.getLikeCount() : 0
+            ));
+        } else {
+            summaries.sort((a, b) -> {
+                if (a.getUpdatedAt() == null) return 1;
+                if (b.getUpdatedAt() == null) return -1;
+                return b.getUpdatedAt().compareTo(a.getUpdatedAt());
+            });
+        }
         return CookPostGroupResDto.builder()
                 .cookId(cookId)
-                .posts(posts)
+                .posts(summaries)
                 .build();
     }
-
-    // todo s3 연결 필요 썸네일
 
     /**
      * 사용자별 게시글 조회
@@ -247,79 +246,12 @@ public class PostService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
 
-        List<PostListResDto> posts = postListResDtos(postPage.getContent());
-
-        PagedResponse<PostListResDto> response = new PagedResponse<>(
-                posts,
-                page,
-                size,
-                postPage.getTotalElements(),
-                postPage.getTotalPages(),
-                postPage.isLast()
-        );
-
-        String message = posts.isEmpty()
-                ? "작성한 게시글이 없습니다."
-                : "사용자 게시글 조회 성공";
-
-        return ApiResponse.ok(response, message);
-    }
-    // todo s3 연결 필요 썸네일
-
-
-    /**
-     * 사용자가 좋아요한 게시글 조회
-     */
-    public PagedResponse<PostListResDto> getLikePost(TokenUserInfo userInfo, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Long userId = userInfo.getUserId();
-
-        Page<UserLike> userLikePage = userLikeRepository.findAllByUserId(userId, pageable);
-
-        List<Post> posts = postRepository.findAllById(
-                userLikePage.getContent().stream().map(UserLike::getPostId).toList()
-        );
-
-        List<PostListResDto> result = postListResDtos(posts);
-
-        return new PagedResponse<>(
-                result,
-                page,
-                size,
-                userLikePage.getTotalElements(),
-                userLikePage.getTotalPages(),
-                userLikePage.isLast()
-        );
-    }
-
-    /**
-     * 게시글 목록 (N+1 해결을 위해 한번의 쿼리로 가저욤)
-     */
-    private List<PostListResDto> postListResDtos(List<Post> posts) {
-        if (posts.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<Long> postIds = posts.stream().map(Post::getId).toList();
-
-        Map<Long, Long> likeCountMap = queryFactory
-                .select(userLike.postId, userLike.count())
-                .from(userLike)
-                .where(userLike.postId.in(postIds))
-                .groupBy(userLike.postId)
-                .fetch().stream()
-                .collect(Collectors.toMap(
-                        tuple -> tuple.get(userLike.postId),
-                        tuple -> tuple.get(userLike.count())
-                ));
-
-        Map<Long, String> thumbnailMap = postImageRepository.findAllByPostIdInAndIndex(postIds, 1)
-                .stream()
-                .collect(Collectors.toMap(PostImage::getPostId, PostImage::getImagePath, (first, second) -> first));
-
-        return posts.stream().map(post -> {
+        List<PostListResDto> result = postPage.getContent().stream().map(post -> {
             String cookName = cookClient.getCookNameById(post.getCookId());
             UserInfoResDto user = userClient.getUserInfo(post.getUserId());
+            Long likeCount = userClient.getLikeCount(post.getId());
+            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
+                    .map(PostImage::getImagePath).orElse(null);
 
             return PostListResDto.builder()
                     .postId(post.getId())
@@ -327,69 +259,56 @@ public class PostService {
                     .cookName(cookName)
                     .userId(user.getUserId())
                     .nickName(user.getNickname())
-                    .likeCount(likeCountMap.getOrDefault(post.getId(), 0L).intValue())
-                    .thumbnail(thumbnailMap.get(post.getId()))
+                    .likeCount(likeCount)
+                    .thumbnail(thumbnail)
                     .updatedAt(post.getUpdatedAt())
                     .build();
         }).toList();
+
+        return ApiResponse.ok(new PagedResponse<>(result, page, size, postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
     }
 
     /**
-     * 게시글 좋아요 등록
+     * 사용자가 좋아요한 게시글 조회
      */
-    @Transactional
-    public UserLikeResDto likePost(TokenUserInfo userInfo, Long postId) {
-        Long userId = userInfo.getUserId();
+    public PagedResponse<PostListResDto> getLikePost(TokenUserInfo userInfo, int page, int size) {
+        LikedPostPagedResDto likedPostRes = userClient.getLikedPostIds(userInfo.getUserId(), page, size);
 
-        if (!postRepository.existsById(postId)) {
-            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
-        }
+        List<Post> posts = postRepository.findAllById(likedPostRes.getContent());
 
-        if (userLikeRepository.findByUserIdAndPostId(userId, postId).isPresent()) {
-            throw new CustomException("이미 좋아요한 게시글입니다.", HttpStatus.BAD_REQUEST);
-        }
+        List<PostListResDto> result = posts.stream().map(post -> {
+            String cookName = cookClient.getCookNameById(post.getCookId());
+            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
+            Long likeCount = userClient.getLikeCount(post.getId());
+            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
+                    .map(PostImage::getImagePath).orElse(null);
 
-        userLikeRepository.save(
-                UserLike.builder()
-                        .userId(userId)
-                        .postId(postId)
-                        .build()
-        );
-        return UserLikeResDto.builder()
-                .postId(postId)
-                .build();
-    }
+            return PostListResDto.builder()
+                    .postId(post.getId())
+                    .title(post.getTitle())
+                    .cookName(cookName)
+                    .userId(user.getUserId())
+                    .nickName(user.getNickname())
+                    .likeCount(likeCount)
+                    .thumbnail(thumbnail)
+                    .updatedAt(post.getUpdatedAt())
+                    .build();
+        }).toList();
 
-    /**
-     * 게시글 좋아요 해제
-     */
-    @Transactional
-    public UserLikeResDto unlikePost(TokenUserInfo userInfo, Long postId) {
-        Long userId = userInfo.getUserId();
-
-        if (!postRepository.existsById(postId)) {
-            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
-        }
-
-        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId)
-                .orElseThrow(() -> new CustomException("좋아요 정보가 없습니다.", HttpStatus.NOT_FOUND));
-
-        userLikeRepository.delete(like);
-
-        return UserLikeResDto.builder()
-                .postId(postId)
-                .build();
+        return new PagedResponse<>(result, page, size,
+                likedPostRes.getTotalElements(), likedPostRes.getTotalPages(), likedPostRes.isLast());
     }
 
     /**
      * 게시글 상세 조회
      */
     public PostDetailResDto getPostDetail(Long postId) {
-        Post post = findPostByIdOrThrow(postId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
         String cookName = paymentClient.getCookName(post.getCookId());
         String nickname = userClient.getNicknameById(post.getUserId());
-        int likeCount = userLikeRepository.countByPostId(postId);
+        Long likeCount = userClient.getLikeCount(postId);
 
         List<String> imagePaths = postImageRepository.findAllByPostId(postId).stream()
                 .sorted(Comparator.comparingInt(PostImage::getIndex))
@@ -397,7 +316,6 @@ public class PostService {
                 .toList();
 
         Long cartCookId = paymentClient.getCartCookIdByPaymentId(post.getPaymentId());
-
         List<IngredientResDto> defaultIngredients = paymentClient.getDefaultIngredients(post.getCookId());
         List<IngredientResDto> extraIngredients = paymentClient.getExtraIngredients(cartCookId);
 
@@ -417,19 +335,9 @@ public class PostService {
     }
 
     /**
-     * 게시글 존재 여부 공통 메서드
+     * 게시글 존재 여부 확인
      */
-    private Post findPostByIdOrThrow(Long postId) {
-        return postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-    }
-
-    /**
-     * 게시글 권환 체크 공통 메서드
-     */
-    private void checkPostOwnership(Post post, TokenUserInfo userInfo) {
-        if (!post.getUserId().equals(userInfo.getUserId())) {
-            throw new CustomException("해당 게시글에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
+    public Boolean checkPostExists(Long postId) {
+        return postRepository.existsById(postId);
     }
 }

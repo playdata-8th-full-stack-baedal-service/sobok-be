@@ -6,6 +6,7 @@ import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.client.ApiServiceClient;
 import com.sobok.userservice.user.client.CookServiceClient;
+import com.sobok.userservice.user.client.PostServiceClient;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
@@ -14,12 +15,17 @@ import com.sobok.userservice.user.dto.request.*;
 import com.sobok.userservice.user.dto.response.*;
 import com.sobok.userservice.user.entity.UserAddress;
 import com.sobok.userservice.user.entity.UserBookmark;
+import com.sobok.userservice.user.entity.UserLike;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserBookmarkRepository;
+import com.sobok.userservice.user.repository.UserLikeRepository;
 import com.sobok.userservice.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +52,8 @@ public class UserService {
     private final UserBookmarkRepository userBookmarkRepository;
     private final CookServiceClient cookServiceClient;
     private final ApiServiceClient apiServiceClient;
+    private final PostServiceClient postServiceClient;
+    private final UserLikeRepository userLikeRepository;
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -474,4 +482,115 @@ public class UserService {
                 .orElseThrow(() -> new CustomException("해당 유저가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
         return user.getNickname();
     }
+
+    /**
+     * 게시글 좋아요 등록
+     */
+    @Transactional
+    public UserLikeResDto likePost(TokenUserInfo userInfo, Long postId) {
+        Long userId = userInfo.getUserId();
+
+        boolean exists = postServiceClient.checkPostExists(postId);
+        if (!exists) {
+            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        if (userLikeRepository.findByUserIdAndPostId(userId, postId).isPresent()) {
+            throw new CustomException("이미 좋아요한 게시글입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        userLikeRepository.save(
+                UserLike.builder()
+                        .userId(userId)
+                        .postId(postId)
+                        .build()
+        );
+        return UserLikeResDto.builder()
+                .postId(postId)
+                .build();
+    }
+
+    /**
+     * 게시글 좋아요 해제
+     */
+    @Transactional
+    public UserLikeResDto unlikePost(TokenUserInfo userInfo, Long postId) {
+        Long userId = userInfo.getUserId();
+
+        boolean exists = postServiceClient.checkPostExists(postId);
+        if (!exists) {
+            throw new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        UserLike like = userLikeRepository.findByUserIdAndPostId(userId, postId)
+                .orElseThrow(() -> new CustomException("좋아요 정보가 없습니다.", HttpStatus.NOT_FOUND));
+
+        userLikeRepository.delete(like);
+
+        return UserLikeResDto.builder()
+                .postId(postId)
+                .build();
+    }
+
+    /**
+     * 게시글의 좋아요 개수를 조회
+     */
+    public Long getLikeCount(Long postId) {
+        return userLikeRepository.countByPostId(postId);
+    }
+
+    /**
+     * 사용자가 좋아요 누른 게시글 목록을 페이징하여 조회
+     */
+    public LikedPostPagedResDto getLikedPosts(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserLike> pageResult = userLikeRepository.findAllByUserId(userId, pageable);
+
+        List<Long> postIds = pageResult.getContent().stream()
+                .map(UserLike::getPostId)
+                .toList();
+
+        return new LikedPostPagedResDto(
+                postIds,
+                page,
+                size,
+                pageResult.getTotalElements(),
+                pageResult.getTotalPages(),
+                pageResult.isLast()
+        );
+    }
+
+    /**
+     * 모든 게시글에 대한 좋아요 수
+     */
+    public Map<Long, Long> getAllLikeCounts() {
+        List<PostLikeCount> counts = userLikeRepository.countLikesGroupedByPostId();
+
+        return counts.stream()
+                .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
+    }
+
+    /**
+     * 좋아요 수 기준으로 게시글을 정렬하여 페이징된 postId 목록을 반환
+     */
+    public LikedPostPagedResDto getMostLikedPostIds(int page, int size) {
+        int offset = page * size;
+
+        List<PostLikeCount> topLiked = userLikeRepository.findMostLikedPosts(offset, size);
+        Long totalElements = userLikeRepository.countDistinctPostId();
+
+        List<Long> postIds = topLiked.stream()
+                .map(PostLikeCount::getPostId)
+                .toList();
+
+        return LikedPostPagedResDto.builder()
+                .content(postIds)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages((int) Math.ceil((double) totalElements / size))
+                .last((page + 1) * size >= totalElements)
+                .build();
+    }
+
 }
