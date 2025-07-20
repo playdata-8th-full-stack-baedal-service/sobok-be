@@ -551,11 +551,37 @@ public class UserService {
         );
     }
 
+    /**
+     * 모든 게시글에 대한 좋아요 수
+     */
     public Map<Long, Long> getAllLikeCounts() {
         List<PostLikeCount> counts = userLikeRepository.countLikesGroupedByPostId();
 
         return counts.stream()
                 .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
+    }
+
+    /**
+     * 좋아요 수 기준으로 게시글을 정렬하여 페이징된 postId 목록을 반환
+     */
+    public LikedPostPagedResDto getMostLikedPostIds(int page, int size) {
+        int offset = page * size;
+
+        List<PostLikeCount> topLiked = userLikeRepository.findMostLikedPosts(offset, size);
+        Long totalElements = userLikeRepository.countDistinctPostId();
+
+        List<Long> postIds = topLiked.stream()
+                .map(PostLikeCount::getPostId)
+                .toList();
+
+        return LikedPostPagedResDto.builder()
+                .content(postIds)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages((int) Math.ceil((double) totalElements / size))
+                .last((page + 1) * size >= totalElements)
+                .build();
     }
 
 }

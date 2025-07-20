@@ -172,9 +172,25 @@ public class UserFeignController {
     ) {
         return userService.getLikedPosts(userId, page, size);
     }
+
+    /**
+     * 전체 게시글의 좋아요 수 Map 반환
+     */
     @GetMapping("/user-like/all-counts")
     public Map<Long, Long> getAllLikeCounts() {
         return userService.getAllLikeCounts();
     }
+
+    /**
+     * 좋아요 수 기준 인기 게시글 목록을 페이징하여 반환
+     */
+    @GetMapping("/user-like/most-liked")
+    public LikedPostPagedResDto getMostLikedPostIds(
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return userService.getMostLikedPostIds(page, size);
+    }
+
 
 }

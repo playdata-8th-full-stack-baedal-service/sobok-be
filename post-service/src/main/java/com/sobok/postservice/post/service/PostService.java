@@ -128,40 +128,52 @@ public class PostService {
      * 게시글 조회
      */
     public PagedResponse<PostListResDto> getPostList(int page, int size, String sortBy) {
-        // 전체 좋아요 수 가져옴
-        Map<Long, Long> likeCount = userClient.getAllLikeCounts();
-
-        List<Post> posts;
         boolean isLikeSort = "like".equalsIgnoreCase(sortBy);
+        List<Post> posts;
+        Map<Long, Long> likeMap;
 
         if (isLikeSort) {
-            // 좋아요순 정렬 전체 게시글 불러옴
-            posts = postRepository.findAll();
+            // 좋아요순 정렬은 user-service에서 postIds만 가져옴
+            LikedPostPagedResDto likedRes = userClient.getMostLikedPostIds(page, size);
+            List<Long> postIds = likedRes.getContent();
+            posts = postRepository.findAllById(postIds);
 
-            // 정렬 (좋아요 높은 순)
-            posts.sort((a, b) -> {
-                Long likeA = likeCount.getOrDefault(a.getId(), 0L);
-                Long likeB = likeCount.getOrDefault(b.getId(), 0L);
-                return Long.compare(likeB, likeA);
-            });
+            Map<Long, Post> postMap = posts.stream().collect(Collectors.toMap(Post::getId, p -> p));
+            posts = postIds.stream()
+                    .map(postMap::get)
+                    .filter(Objects::nonNull)
+                    .toList();
 
-            // 수동으로 페이징
-            int start = page * size;
-            if (start >= posts.size()) {
-                posts = Collections.emptyList();
-            } else {
-                int end = Math.min(start + size, posts.size());
-                posts = posts.subList(start, end);
-            }
+            // 좋아요 수는 postIds 기준으로 조회
+            likeMap = userClient.getAllLikeCounts();
+
+            return new PagedResponse<>(
+                    buildPostListRes(posts, likeMap),
+                    page, size,
+                    likedRes.getTotalElements(),
+                    likedRes.getTotalPages(),
+                    likedRes.isLast()
+            );
 
         } else {
-            // 최신순 정렬
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
             Page<Post> postPage = postRepository.findAll(pageable);
             posts = postPage.getContent();
-        }
+            likeMap = userClient.getAllLikeCounts();
 
-        List<PostListResDto> result = posts.stream().map(post -> {
+            return new PagedResponse<>(
+                    buildPostListRes(posts, likeMap),
+                    page, size,
+                    postPage.getTotalElements(),
+                    postPage.getTotalPages(),
+                    postPage.isLast()
+            );
+        }
+    }
+
+    // 공통 메서드 분리
+    private List<PostListResDto> buildPostListRes(List<Post> posts, Map<Long, Long> likeMap) {
+        return posts.stream().map(post -> {
             String cookName = cookClient.getCookNameById(post.getCookId());
             UserInfoResDto user = userClient.getUserInfo(post.getUserId());
             String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
@@ -173,18 +185,11 @@ public class PostService {
                     .cookName(cookName)
                     .userId(user.getUserId())
                     .nickName(user.getNickname())
-                    .likeCount(likeCount.getOrDefault(post.getId(), 0L))
+                    .likeCount(likeMap.getOrDefault(post.getId(), 0L))
                     .thumbnail(thumbnail)
                     .updatedAt(post.getUpdatedAt())
                     .build();
         }).toList();
-
-        // 페이징 응답
-        long totalElements = isLikeSort ? likeCount.size() : postRepository.count();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        boolean last = ((page + 1) * size >= totalElements);
-
-        return new PagedResponse<>(result, page, size, totalElements, totalPages, last);
     }
 
     /**

@@ -41,7 +41,16 @@ public interface UserFeignClient {
             @RequestParam int size
     );
 
+    /**
+     * 전체 게시글의 좋아요 수
+     */
     @GetMapping("/api/user-like/all-counts")
     Map<Long, Long> getAllLikeCounts();
+
+    /**
+     * 좋아요 수 기준으로 게시글 postId 목록을 페이징하여 반환
+     */
+    @GetMapping("/api/user-like/most-liked")
+    LikedPostPagedResDto getMostLikedPostIds(@RequestParam int page, @RequestParam int size);
 
 }
