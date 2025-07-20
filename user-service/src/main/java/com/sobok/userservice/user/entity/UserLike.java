@@ -1,4 +1,4 @@
-package com.sobok.postservice.post.entity;
+package com.sobok.userservice.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
