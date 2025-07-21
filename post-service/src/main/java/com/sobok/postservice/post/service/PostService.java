@@ -278,27 +278,38 @@ public class PostService {
     public ApiResponse<PagedResponse<PostListResDto>> getUserPost(TokenUserInfo userInfo, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
+        List<Post> posts = postPage.getContent();
 
-        List<PostListResDto> result = postPage.getContent().stream().map(post -> {
-            String cookName = cookClient.getCookNameById(post.getCookId());
-            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
-            Long likeCount = userClient.getLikeCount(post.getId());
-            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
-                    .map(PostImage::getImagePath).orElse(null);
+        //Id 목록 추출
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        List<Long> cookIds = posts.stream().map(Post::getCookId).distinct().toList();
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
+
+        Map<Long, Long> likeCountMap = userClient.getLikeCountMap(postIds);
+        Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+                .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
+        Map<Long, UserInfoResDto> userInfoMap = userClient.getUserInfos(userIds);
+
+        List<PostListResDto> result = posts.stream().map(post -> {
+            Long postId = post.getId();
+            Long cookId = post.getCookId();
+            Long userId = post.getUserId();
 
             return PostListResDto.builder()
-                    .postId(post.getId())
+                    .postId(postId)
                     .title(post.getTitle())
-                    .cookName(cookName)
-                    .userId(user.getUserId())
-                    .nickName(user.getNickname())
-                    .likeCount(likeCount)
-                    .thumbnail(thumbnail)
+                    .cookName(cookNameMap.get(cookId))
+                    .userId(userId)
+                    .nickName(userInfoMap.get(userId).getNickname())
+                    .likeCount(likeCountMap.getOrDefault(postId, 0L))
+                    .thumbnail(postImageRepository.findTopByPostIdOrderByIndexAsc(postId)
+                            .map(PostImage::getImagePath).orElse(null))
                     .updatedAt(post.getUpdatedAt())
                     .build();
         }).toList();
 
-        return ApiResponse.ok(new PagedResponse<>(result, page, size, postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
+        return ApiResponse.ok(new PagedResponse<>(result, page, size,
+                postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
     }
 
     /**

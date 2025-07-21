@@ -604,4 +604,12 @@ public class UserService {
                 ));
     }
 
+    /**
+     * 게시글 ID 목록에 대한 좋아요 수를 group by 조회
+     */
+    public Map<Long, Long> getLikeCountMap(List<Long> postIds) {
+        return userLikeRepository.countLikesByPostIds(postIds).stream()
+                .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
+    }
+
 }
