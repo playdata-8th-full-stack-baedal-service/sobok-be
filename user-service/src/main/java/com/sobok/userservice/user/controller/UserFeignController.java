@@ -38,7 +38,7 @@ public class UserFeignController {
     public ResponseEntity<?> getUser(@RequestBody String phoneNumber) {
         UserResDto byPhoneNumber = userService.findByPhoneNumber(phoneNumber);
         log.info("검색한 사용자 정보 with phone number: {}", byPhoneNumber);
-        return ResponseEntity.ok().body(ApiResponse.ok(byPhoneNumber, "전화번호로 찾은 user 정보입니다."));
+        return ResponseEntity.ok().body(byPhoneNumber);
 
     }
 
