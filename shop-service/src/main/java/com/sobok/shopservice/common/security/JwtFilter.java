@@ -38,12 +38,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     List<String> whiteList = List.of(
             "/actuator/**", "/auth/check-shopName",
-            "/auth/check-shopAddress", "/shop/check-shopName", "/shop/check-shopAddress"
+            "/auth/check-shopAddress", "/shop/check-shopName", "/shop/check-shopAddress", "/v3/**"
     );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("Shop Service에 요청이 발생했습니다.");
+        log.info("Shop Service에 요청이 발생했습니다. {}", request.getRequestURI());
 
         // Path 점검
         String path = request.getRequestURI();
@@ -53,8 +53,9 @@ public class JwtFilter extends OncePerRequestFilter {
         boolean isAllowed = whiteList.stream()
                 .anyMatch(url -> antPathMatcher.match(url, path));
 
+        log.info(path.contains("swagger")? "true":"false");
         // 허용 path라면 Filter 동작하지 않고 넘기기
-        if (isAllowed) {
+        if (isAllowed || path.contains("swagger")) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -34,7 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/**", "/user/findByPhoneNumber", "/auth/findLoginId",
                                 "/auth/check-nickname", "/auth/check-email", "/error",
-                                "/user/check-nickname","/user/check-email"
+                                "/user/check-nickname","/user/check-email", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-resources/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
