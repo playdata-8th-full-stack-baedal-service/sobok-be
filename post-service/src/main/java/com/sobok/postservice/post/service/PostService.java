@@ -48,6 +48,12 @@ public class PostService {
         List<PostRegisterResDto.PostInfo> postInfos = new ArrayList<>();
 
         for (PostRegisterReqDto.PostUnitDto postDto : dto.getPosts()) {
+            // 게시글 중복 등록 방지
+            boolean alreadyExists = postRepository.existsByPaymentIdAndCookId(dto.getPaymentId(), postDto.getCookId());
+            if (alreadyExists) {
+                throw new CustomException("해당 요리에 대한 게시글이 이미 등록되어 있습니다.", HttpStatus.CONFLICT);
+            }
+
             String cookName = cookClient.getCookNameById(postDto.getCookId());
 
             Post post = Post.builder()
@@ -235,7 +241,9 @@ public class PostService {
             throw new CustomException("해당 요리에 대한 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
-        Map<Long, Long> likeCount = userClient.getAllLikeCounts();
+        // 좋아요 수 postIds 기준으로만 조회
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        Map<Long, Long> likeCount = userClient.getLikeCountMap(postIds);
 
         List<CookPostGroupResDto.PostSummaryDto> summaries = posts.stream().map(post -> {
             Long postId = post.getId();
@@ -278,59 +286,87 @@ public class PostService {
     public ApiResponse<PagedResponse<PostListResDto>> getUserPost(TokenUserInfo userInfo, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
+        List<Post> posts = postPage.getContent();
 
-        List<PostListResDto> result = postPage.getContent().stream().map(post -> {
-            String cookName = cookClient.getCookNameById(post.getCookId());
-            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
-            Long likeCount = userClient.getLikeCount(post.getId());
-            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
-                    .map(PostImage::getImagePath).orElse(null);
+        //Id 목록 추출
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        List<Long> cookIds = posts.stream().map(Post::getCookId).distinct().toList();
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
+
+        Map<Long, Long> likeCountMap = userClient.getLikeCountMap(postIds);
+        Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+                .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
+        Map<Long, UserInfoResDto> userInfoMap = userClient.getUserInfos(userIds);
+
+        List<PostListResDto> result = posts.stream().map(post -> {
+            Long postId = post.getId();
+            Long cookId = post.getCookId();
+            Long userId = post.getUserId();
 
             return PostListResDto.builder()
-                    .postId(post.getId())
+                    .postId(postId)
                     .title(post.getTitle())
-                    .cookName(cookName)
-                    .userId(user.getUserId())
-                    .nickName(user.getNickname())
-                    .likeCount(likeCount)
-                    .thumbnail(thumbnail)
+                    .cookName(cookNameMap.get(cookId))
+                    .userId(userId)
+                    .nickName(userInfoMap.get(userId).getNickname())
+                    .likeCount(likeCountMap.getOrDefault(postId, 0L))
+                    .thumbnail(postImageRepository.findTopByPostIdOrderByIndexAsc(postId)
+                            .map(PostImage::getImagePath).orElse(null))
                     .updatedAt(post.getUpdatedAt())
                     .build();
         }).toList();
 
-        return ApiResponse.ok(new PagedResponse<>(result, page, size, postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
+        return ApiResponse.ok(new PagedResponse<>(result, page, size,
+                postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
     }
 
     /**
      * 사용자가 좋아요한 게시글 조회
      */
     public PagedResponse<PostListResDto> getLikePost(TokenUserInfo userInfo, int page, int size) {
+        // 좋아요한 게시글 Id 페이징 조회
         LikedPostPagedResDto likedPostRes = userClient.getLikedPostIds(userInfo.getUserId(), page, size);
+        List<Long> postIds = likedPostRes.getContent();
 
-        List<Post> posts = postRepository.findAllById(likedPostRes.getContent());
+        // 게시글 목록 조회
+        List<Post> posts = postRepository.findAllById(postIds);
+
+        // Id 목록 추출
+        List<Long> cookIds = posts.stream().map(Post::getCookId).distinct().toList();
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
+
+        // 외부 정보 조회
+        Map<Long, Long> likeCountMap = userClient.getLikeCountMap(postIds);
+        Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+                .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
+        Map<Long, UserInfoResDto> userInfoMap = userClient.getUserInfos(userIds);
 
         List<PostListResDto> result = posts.stream().map(post -> {
-            String cookName = cookClient.getCookNameById(post.getCookId());
-            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
-            Long likeCount = userClient.getLikeCount(post.getId());
-            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
-                    .map(PostImage::getImagePath).orElse(null);
+            Long postId = post.getId();
+            Long cookId = post.getCookId();
+            Long userId = post.getUserId();
 
             return PostListResDto.builder()
-                    .postId(post.getId())
+                    .postId(postId)
                     .title(post.getTitle())
-                    .cookName(cookName)
-                    .userId(user.getUserId())
-                    .nickName(user.getNickname())
-                    .likeCount(likeCount)
-                    .thumbnail(thumbnail)
+                    .cookName(cookNameMap.get(cookId))
+                    .userId(userId)
+                    .nickName(userInfoMap.get(userId).getNickname())
+                    .likeCount(likeCountMap.getOrDefault(postId, 0L))
+                    .thumbnail(postImageRepository.findTopByPostIdOrderByIndexAsc(postId)
+                            .map(PostImage::getImagePath).orElse(null))
                     .updatedAt(post.getUpdatedAt())
                     .build();
         }).toList();
 
-        return new PagedResponse<>(result, page, size,
-                likedPostRes.getTotalElements(), likedPostRes.getTotalPages(), likedPostRes.isLast());
+        return new PagedResponse<>(
+                result, page, size,
+                likedPostRes.getTotalElements(),
+                likedPostRes.getTotalPages(),
+                likedPostRes.isLast()
+        );
     }
+
 
     /**
      * 게시글 상세 조회

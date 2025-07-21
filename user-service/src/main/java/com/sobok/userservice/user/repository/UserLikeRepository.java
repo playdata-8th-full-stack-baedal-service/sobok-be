@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface UserLikeRepository extends JpaRepository<UserLike, Long> {
@@ -54,5 +55,16 @@ public interface UserLikeRepository extends JpaRepository<UserLike, Long> {
                 FROM user_like u
             """, nativeQuery = true)
     Long countDistinctPostId();
+
+    /**
+     * 여러 게시글의 ID를 받아서 각 게시글에 눌린 좋아요 수를 알려줌
+     */
+    @Query(value = """
+    SELECT u.post_id AS postId, COUNT(*) AS count
+    FROM user_like u
+    WHERE u.post_id IN (:postIds)
+    GROUP BY u.post_id
+""", nativeQuery = true)
+    List<PostLikeCount> countLikesByPostIds(@Param("postIds") List<Long> postIds);
 
 }

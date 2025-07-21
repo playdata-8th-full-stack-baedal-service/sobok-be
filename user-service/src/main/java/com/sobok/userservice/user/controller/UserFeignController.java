@@ -200,6 +200,12 @@ public class UserFeignController {
         return userService.getUserInfos(userIds);
     }
 
-
+    /**
+     * 게시글 ID 목록의 좋아요 수를 Map 형태로 반환
+     */
+    @PostMapping("/user-like/count-map")
+    public Map<Long, Long> getLikeCountMap(@RequestBody List<Long> postIds) {
+        return userService.getLikeCountMap(postIds);
+    }
 
 }

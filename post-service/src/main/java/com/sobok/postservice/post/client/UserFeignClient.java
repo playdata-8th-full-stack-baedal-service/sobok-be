@@ -58,4 +58,10 @@ public interface UserFeignClient {
     @PostMapping("/api/post-info/batch")
     Map<Long, UserInfoResDto> getUserInfos(@RequestBody List<Long> userIds);
 
+    /**
+     * 특정 게시글 목록의 좋아요 수를 Map으로 반환
+     */
+    @PostMapping("/api/user-like/count-map")
+    Map<Long, Long> getLikeCountMap(@RequestBody List<Long> postIds);
+
 }
