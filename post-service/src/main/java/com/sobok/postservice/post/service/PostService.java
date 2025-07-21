@@ -316,32 +316,49 @@ public class PostService {
      * 사용자가 좋아요한 게시글 조회
      */
     public PagedResponse<PostListResDto> getLikePost(TokenUserInfo userInfo, int page, int size) {
+        // 좋아요한 게시글 Id 페이징 조회
         LikedPostPagedResDto likedPostRes = userClient.getLikedPostIds(userInfo.getUserId(), page, size);
+        List<Long> postIds = likedPostRes.getContent();
 
-        List<Post> posts = postRepository.findAllById(likedPostRes.getContent());
+        // 게시글 목록 조회
+        List<Post> posts = postRepository.findAllById(postIds);
+
+        // Id 목록 추출
+        List<Long> cookIds = posts.stream().map(Post::getCookId).distinct().toList();
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
+
+        // 외부 정보 조회
+        Map<Long, Long> likeCountMap = userClient.getLikeCountMap(postIds);
+        Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+                .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
+        Map<Long, UserInfoResDto> userInfoMap = userClient.getUserInfos(userIds);
 
         List<PostListResDto> result = posts.stream().map(post -> {
-            String cookName = cookClient.getCookNameById(post.getCookId());
-            UserInfoResDto user = userClient.getUserInfo(post.getUserId());
-            Long likeCount = userClient.getLikeCount(post.getId());
-            String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(post.getId())
-                    .map(PostImage::getImagePath).orElse(null);
+            Long postId = post.getId();
+            Long cookId = post.getCookId();
+            Long userId = post.getUserId();
 
             return PostListResDto.builder()
-                    .postId(post.getId())
+                    .postId(postId)
                     .title(post.getTitle())
-                    .cookName(cookName)
-                    .userId(user.getUserId())
-                    .nickName(user.getNickname())
-                    .likeCount(likeCount)
-                    .thumbnail(thumbnail)
+                    .cookName(cookNameMap.get(cookId))
+                    .userId(userId)
+                    .nickName(userInfoMap.get(userId).getNickname())
+                    .likeCount(likeCountMap.getOrDefault(postId, 0L))
+                    .thumbnail(postImageRepository.findTopByPostIdOrderByIndexAsc(postId)
+                            .map(PostImage::getImagePath).orElse(null))
                     .updatedAt(post.getUpdatedAt())
                     .build();
         }).toList();
 
-        return new PagedResponse<>(result, page, size,
-                likedPostRes.getTotalElements(), likedPostRes.getTotalPages(), likedPostRes.isLast());
+        return new PagedResponse<>(
+                result, page, size,
+                likedPostRes.getTotalElements(),
+                likedPostRes.getTotalPages(),
+                likedPostRes.isLast()
+        );
     }
+
 
     /**
      * 게시글 상세 조회
