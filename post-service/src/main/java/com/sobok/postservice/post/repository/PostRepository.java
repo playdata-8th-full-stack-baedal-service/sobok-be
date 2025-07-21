@@ -13,4 +13,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 요리별 게시글 목록 조회
     List<Post> findByCookId(Long cookId);
+
+    // 게시글 중복 등록 방지
+    boolean existsByPaymentIdAndCookId(Long paymentId, Long cookId);
+
 }

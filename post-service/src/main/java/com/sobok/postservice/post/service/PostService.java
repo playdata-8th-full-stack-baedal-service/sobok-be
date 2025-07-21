@@ -48,6 +48,12 @@ public class PostService {
         List<PostRegisterResDto.PostInfo> postInfos = new ArrayList<>();
 
         for (PostRegisterReqDto.PostUnitDto postDto : dto.getPosts()) {
+            // 게시글 중복 등록 방지
+            boolean alreadyExists = postRepository.existsByPaymentIdAndCookId(dto.getPaymentId(), postDto.getCookId());
+            if (alreadyExists) {
+                throw new CustomException("해당 요리에 대한 게시글이 이미 등록되어 있습니다.", HttpStatus.CONFLICT);
+            }
+
             String cookName = cookClient.getCookNameById(postDto.getCookId());
 
             Post post = Post.builder()
