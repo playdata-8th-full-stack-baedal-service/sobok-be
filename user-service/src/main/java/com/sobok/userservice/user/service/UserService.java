@@ -593,4 +593,15 @@ public class UserService {
                 .build();
     }
 
+    /**
+     * 사용자 Id 리스트를 받아 사용자 정보를 조회하여 반환
+     */
+    public Map<Long, PostUserInfoResDto> getUserInfos(List<Long> userIds) {
+        return userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> new PostUserInfoResDto(user.getId(), user.getNickname())
+                ));
+    }
+
 }
