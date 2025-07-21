@@ -23,7 +23,7 @@ public class Post extends BaseTimeEntity {
     @Column(name = "cook_id", nullable = false)
     private Long cookId;
 
-    @Column(name = "payment_id", nullable = false, unique = true)
+    @Column(name = "payment_id", nullable = false)
     private Long paymentId;
 
     @Column(nullable = false)

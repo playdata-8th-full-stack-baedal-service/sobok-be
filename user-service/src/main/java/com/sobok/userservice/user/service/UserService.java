@@ -593,4 +593,23 @@ public class UserService {
                 .build();
     }
 
+    /**
+     * 사용자 Id 리스트를 받아 사용자 정보를 조회하여 반환
+     */
+    public Map<Long, PostUserInfoResDto> getUserInfos(List<Long> userIds) {
+        return userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> new PostUserInfoResDto(user.getId(), user.getNickname())
+                ));
+    }
+
+    /**
+     * 게시글 ID 목록에 대한 좋아요 수를 group by 조회
+     */
+    public Map<Long, Long> getLikeCountMap(List<Long> postIds) {
+        return userLikeRepository.countLikesByPostIds(postIds).stream()
+                .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
+    }
+
 }

@@ -4,10 +4,9 @@ import com.sobok.postservice.common.config.FeignConfig;
 import com.sobok.postservice.post.dto.response.LikedPostPagedResDto;
 import com.sobok.postservice.post.dto.response.UserInfoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @FeignClient(name = "user-service", configuration = FeignConfig.class)
@@ -52,5 +51,17 @@ public interface UserFeignClient {
      */
     @GetMapping("/api/user-like/most-liked")
     LikedPostPagedResDto getMostLikedPostIds(@RequestParam int page, @RequestParam int size);
+
+    /**
+     * 사용자 Id 목록을 기반으로 사용자 정보 조회
+     */
+    @PostMapping("/api/post-info/batch")
+    Map<Long, UserInfoResDto> getUserInfos(@RequestBody List<Long> userIds);
+
+    /**
+     * 특정 게시글 목록의 좋아요 수를 Map으로 반환
+     */
+    @PostMapping("/api/user-like/count-map")
+    Map<Long, Long> getLikeCountMap(@RequestBody List<Long> postIds);
 
 }
