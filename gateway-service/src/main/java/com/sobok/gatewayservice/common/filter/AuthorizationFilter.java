@@ -47,7 +47,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             , "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view",
             "/auth/social-user-signup","/user/check-nickname","/user/check-email","/delivery/check-permission",
             "/shop/check-shopName", "/shop/check-shopAddress","/post/post-list", "/post/cook-posts/**","/post/detail/{postId}"
-            ,"/cook/popular", "/cook/get-cook/**"
+            ,"/cook/popular", "/cook/get-cook/**", "/post/check-registered"
 
     );
 

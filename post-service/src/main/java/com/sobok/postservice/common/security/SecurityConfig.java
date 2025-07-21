@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/actuator/**","/post/post-list","/post/cook-posts/**","/post/detail/{postId}"
+                                ,"/post/check-registered"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

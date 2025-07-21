@@ -409,4 +409,19 @@ public class PostService {
     public Boolean checkPostExists(Long postId) {
         return postRepository.existsById(postId);
     }
+
+
+    /**
+     * 게시글 존재 여부 확인 (버튼 제거용)
+     */
+    public ApiResponse<PostRegisterCheckResDto> getRegisterCheckStatus(Long paymentId, Long cookId) {
+        boolean exists = postRepository.existsByPaymentIdAndCookId(paymentId, cookId);
+
+        String message = exists
+                ? "해당 요리에 대한 게시글이 이미 등록되어 있습니다."
+                : "해당 요리에 게시글을 등록할 수 있습니다.";
+
+        return ApiResponse.ok(new PostRegisterCheckResDto(exists), message);
+    }
+
 }
