@@ -41,34 +41,42 @@ public class PostService {
         Long userId = userInfo.getUserId();
 
         boolean isCompleted = paymentClient.isPaymentCompleted(dto.getPaymentId(), userId);
-        Long cookId = paymentClient.getCookIdByPaymentId(dto.getPaymentId());
-        String cookName = cookClient.getCookNameById(cookId);
-
         if (!isCompleted) {
             throw new CustomException("주문이 완료되지 않아 게시글을 작성할 수 없습니다.", HttpStatus.FORBIDDEN);
         }
 
-        Post post = Post.builder()
-                .userId(userId)
-                .title(dto.getTitle())
-                .cookId(cookId)
-                .content(dto.getContent())
-                .paymentId(dto.getPaymentId())
-                .build();
-        postRepository.save(post);
+        List<PostRegisterResDto.PostInfo> postInfos = new ArrayList<>();
 
-        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
-            List<PostImage> imagesToSave = dto.getImages().stream()
-                    .map(img -> PostImage.builder()
-                            .postId(post.getId())
-                            .imagePath(img.getImageUrl())
-                            .index(img.getIndex())
-                            .build())
-                    .toList();
-            postImageRepository.saveAll(imagesToSave);
+        for (PostRegisterReqDto.PostUnitDto postDto : dto.getPosts()) {
+            String cookName = cookClient.getCookNameById(postDto.getCookId());
+
+            Post post = Post.builder()
+                    .userId(userId)
+                    .title(postDto.getTitle())
+                    .cookId(postDto.getCookId())
+                    .content(postDto.getContent())
+                    .paymentId(dto.getPaymentId())
+                    .build();
+            postRepository.save(post);
+
+            if (postDto.getImages() != null && !postDto.getImages().isEmpty()) {
+                List<PostImage> images = postDto.getImages().stream()
+                        .map(img -> PostImage.builder()
+                                .postId(post.getId())
+                                .imagePath(img.getImageUrl())
+                                .index(img.getIndex())
+                                .build())
+                        .toList();
+                postImageRepository.saveAll(images);
+            }
+
+            postInfos.add(PostRegisterResDto.PostInfo.builder()
+                    .postId(post.getId())
+                    .cookName(cookName)
+                    .build());
         }
 
-        return new PostRegisterResDto(post.getId(), cookName);
+        return PostRegisterResDto.builder().posts(postInfos).build();
     }
 
     /**
