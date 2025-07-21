@@ -288,6 +288,7 @@ public class PaymentService {
                                 if (cookDetail == null)
                                     throw new CustomException("요리 정보가 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
                                 return GetPaymentResDto.Cook.builder()
+                                        .cookId(cookDetail.getCookId())
                                         .cookName(cookDetail.getName())
                                         .thumbnail(cookDetail.getThumbnail())
                                         .build();
