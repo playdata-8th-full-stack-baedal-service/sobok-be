@@ -162,13 +162,6 @@ public class PostService {
             // userId 목록 가져온 후 사용자 정보 조회
             List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
             Map<Long, UserInfoResDto> userMap = userClient.getUserInfos(userIds);
-            log.info("userIds: {}", userIds);
-            log.info("userMap: {}", userMap);
-            log.info("cookIds: {}", cookIds);
-            log.info("cookNameMap: {}", cookNameMap);
-            posts.forEach(post ->
-                    log.info("postId: {}, userId: {}, cookId: {}", post.getId(), post.getUserId(), post.getCookId()));
-
 
             return new PagedResponse<>(
                     buildPostListRes(posts, likeMap, cookNameMap, userMap),
@@ -231,7 +224,6 @@ public class PostService {
                     .build();
         }).toList();
     }
-
 
     /**
      * 요리별 요리별 좋아요순, 최신순 정렬 조회
