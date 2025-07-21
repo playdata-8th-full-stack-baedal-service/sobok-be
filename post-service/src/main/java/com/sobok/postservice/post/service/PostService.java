@@ -235,7 +235,9 @@ public class PostService {
             throw new CustomException("해당 요리에 대한 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
-        Map<Long, Long> likeCount = userClient.getAllLikeCounts();
+        // 좋아요 수 postIds 기준으로만 조회
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        Map<Long, Long> likeCount = userClient.getLikeCountMap(postIds);
 
         List<CookPostGroupResDto.PostSummaryDto> summaries = posts.stream().map(post -> {
             Long postId = post.getId();
