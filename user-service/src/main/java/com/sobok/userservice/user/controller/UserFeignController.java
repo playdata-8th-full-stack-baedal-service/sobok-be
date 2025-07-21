@@ -192,5 +192,14 @@ public class UserFeignController {
         return userService.getMostLikedPostIds(page, size);
     }
 
+    /**
+     * 사용자 Id 리스트를 받아 사용자 정보를 조회하여 반환
+     */
+    @PostMapping("/post-info/batch")
+    public Map<Long, PostUserInfoResDto> getUserInfos(@RequestBody List<Long> userIds) {
+        return userService.getUserInfos(userIds);
+    }
+
+
 
 }
