@@ -108,8 +108,20 @@ public class PostController {
      * 게시글 상세 조회
      */
     @GetMapping("/detail/{postId}")
-    public ApiResponse<PostDetailResDto> getPostDetail(@PathVariable Long postId) {
-        return ApiResponse.ok(postService.getPostDetail(postId));
+    public ResponseEntity<ApiResponse<PostDetailResDto>> getPostDetail(@PathVariable Long postId) {
+        PostDetailResDto result = postService.getPostDetail(postId);
+        return ResponseEntity.ok(ApiResponse.ok(result, "게시글 상세 조회 성공"));
     }
+
+    /**
+     * 게시글 존재 여부 확인 (버튼 제거용)
+     */
+    @GetMapping("/check-registered")
+    public ResponseEntity<ApiResponse<PostRegisterCheckResDto>> checkPostRegistered(
+            @RequestParam Long paymentId,
+            @RequestParam Long cookId) {
+        return ResponseEntity.ok(postService.getRegisterCheckStatus(paymentId, cookId));
+    }
+
 
 }
