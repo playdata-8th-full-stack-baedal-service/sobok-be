@@ -37,7 +37,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     List<String> whiteList = List.of(
-            "/actuator/**", "/post/post-list", "/post/cook-posts/**", "/post/detail/{postId}"
+
+            "/actuator/**", "/post/post-list", "/post/cook-posts/**", "/post/detail/{postId}", "/v3/**"
             ,"/post/check-registered"
     );
 
@@ -54,7 +55,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 .anyMatch(url -> antPathMatcher.match(url, path));
 
         // 허용 path라면 Filter 동작하지 않고 넘기기
-        if (isAllowed) {
+        if (isAllowed ||  path.contains("swagger")) {
             filterChain.doFilter(request, response);
             return;
         }

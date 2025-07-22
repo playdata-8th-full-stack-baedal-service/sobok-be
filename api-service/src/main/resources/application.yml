@@ -7,3 +7,7 @@ spring:
 
 server:
   port: 0
+
+openapi:
+  service:
+    url: https://localhost:8000/api-service

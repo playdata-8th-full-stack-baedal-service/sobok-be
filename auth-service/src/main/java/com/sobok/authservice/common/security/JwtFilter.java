@@ -40,7 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
             "/actuator/**", "/auth/login", "/auth/reissue", "/sms/send", "/auth/recover/**", "/sms/verify",
             "/auth/user-signup", "/auth/rider-signup", "/auth/shop-signup", "/auth/findLoginId", "/auth/verification", "/auth/reset-password",
             "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email", "/auth/check-permission", "/auth/check-shopName",
-            "/auth/check-shopAddress", "/auth/social-user-signup"
+            "/auth/check-shopAddress", "/auth/social-user-signup", "/v3/**"
     );
 
 
@@ -57,7 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 .anyMatch(url -> antPathMatcher.match(url, path));
 
         // 허용 path라면 Filter 동작하지 않고 넘기기
-        if (isAllowed) {
+        if (isAllowed || path.contains("swagger")) {
             filterChain.doFilter(request, response);
             return;
         }

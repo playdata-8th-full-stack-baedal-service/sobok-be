@@ -37,7 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
 
     List<String> whiteList = List.of(
-            "/actuator/**", "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view"
+            "/actuator/**", "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view", "/v3/**"
     );
 
     private static final List<String> deniedPaths = List.of(
@@ -61,7 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
         boolean isDenied = deniedPaths.stream().anyMatch(url -> antPathMatcher.match(url, path));
 
         // 허용 path라면 Filter 동작하지 않고 넘기기
-        if (isAllowed) {
+        if (isAllowed || path.contains("swagger")) {
             filterChain.doFilter(request, response);
             return;
         }
