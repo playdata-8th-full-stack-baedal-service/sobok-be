@@ -21,6 +21,7 @@ public class GetPaymentResDto {
     @Data
     @Builder
     public static class Cook {
+        private Long cookId;
         private String cookName;
         private String thumbnail;
     }

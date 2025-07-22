@@ -2,7 +2,6 @@ package com.sobok.postservice.post.controller;
 
 import com.sobok.postservice.common.dto.ApiResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
-import com.sobok.postservice.post.dto.request.PostIdRequestDto;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
 import com.sobok.postservice.post.dto.response.*;
@@ -13,12 +12,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/post")
 @RequiredArgsConstructor
 public class PostController {
+
     private final PostService postService;
 
     /**
@@ -28,7 +26,7 @@ public class PostController {
     public ResponseEntity<PostRegisterResDto> registerPost(
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestBody PostRegisterReqDto dto
-            ) {
+    ) {
         PostRegisterResDto res = postService.registerPost(dto, userInfo);
         return ResponseEntity.ok(res);
     }
@@ -41,7 +39,7 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostUpdateResDto>> updatePost(
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestBody PostUpdateReqDto dto
-            ) {
+    ) {
         PostUpdateResDto res = postService.updatePost(dto, userInfo);
         return ResponseEntity.ok(ApiResponse.ok(res, "게시글 수정 성공"));
     }
@@ -52,7 +50,8 @@ public class PostController {
     @DeleteMapping("/delete/{postId}")
     public ResponseEntity<ApiResponse<String>> deletePost(
             @PathVariable Long postId,
-            @AuthenticationPrincipal TokenUserInfo userInfo) {
+            @AuthenticationPrincipal TokenUserInfo userInfo
+    ) {
         postService.deletePost(postId, userInfo);
         return ResponseEntity.ok(ApiResponse.ok("게시글 삭제 성공"));
     }
@@ -69,6 +68,7 @@ public class PostController {
         PagedResponse<PostListResDto> result = postService.getPostList(page, size, sortBy);
         return ResponseEntity.ok(ApiResponse.ok(result, "전체 게시글 조회 성공"));
     }
+
     /**
      * 요리별 요리별 좋아요순, 최신순 정렬 조회
      */
@@ -87,8 +87,8 @@ public class PostController {
     public ResponseEntity<ApiResponse<PagedResponse<PostListResDto>>> getUserPosts(
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestParam int page,
-            @RequestParam int size) {
-
+            @RequestParam int size
+    ) {
         return ResponseEntity.ok(postService.getUserPost(userInfo, page, size));
     }
 
@@ -105,31 +105,23 @@ public class PostController {
     }
 
     /**
-     * 게시글 좋아요 등록
-     */
-    @PostMapping("user-like")
-    public ResponseEntity<?> likePost(@RequestBody PostIdRequestDto dto,
-                                      @AuthenticationPrincipal TokenUserInfo userInfo) {
-        UserLikeResDto res = postService.likePost(userInfo, dto.getPostId());
-        return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 등록 성공"));
-    }
-
-    /**
-     * 게시글 좋아요 해제
-     */
-    @DeleteMapping("user-unlike")
-    public ResponseEntity<?> unlikePost(@RequestBody PostIdRequestDto dto,
-                                        @AuthenticationPrincipal TokenUserInfo userInfo) {
-        UserLikeResDto res = postService.unlikePost(userInfo, dto.getPostId());
-        return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 해제 성공"));
-    }
-
-    /**
      * 게시글 상세 조회
      */
     @GetMapping("/detail/{postId}")
-    public ApiResponse<PostDetailResDto> getPostDetail(@PathVariable Long postId) {
-        return ApiResponse.ok(postService.getPostDetail(postId));
+    public ResponseEntity<ApiResponse<PostDetailResDto>> getPostDetail(@PathVariable Long postId) {
+        PostDetailResDto result = postService.getPostDetail(postId);
+        return ResponseEntity.ok(ApiResponse.ok(result, "게시글 상세 조회 성공"));
     }
+
+    /**
+     * 게시글 존재 여부 확인 (버튼 제거용)
+     */
+    @GetMapping("/check-registered")
+    public ResponseEntity<ApiResponse<PostRegisterCheckResDto>> checkPostRegistered(
+            @RequestParam Long paymentId,
+            @RequestParam Long cookId) {
+        return ResponseEntity.ok(postService.getRegisterCheckStatus(paymentId, cookId));
+    }
+
 
 }

@@ -90,7 +90,6 @@ public class CookFeignController {
         return cookService.getCookNameById(cookId);
     }
 
-
     /**
      * 특정 요리 ID에 대한 기본 식재료 목록을 조회 (게시글 상세 조회용)
      */
@@ -105,5 +104,13 @@ public class CookFeignController {
     @GetMapping("/cook/ingredient-info")
     public IngredientInfoResDto getIngredientInfo(@RequestParam Long ingreId) {
         return cookService.getIngredientInfo(ingreId);
+    }
+
+    /**
+     * 요리 Id 리스트를 받아 해당 요리들의 이름 정보를 반환
+     */
+    @PostMapping("/cook-names")
+    public ResponseEntity<List<CookNameResDto>> getCookNamesForPostService(@RequestBody List<Long> cookIds) {
+        return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
     }
 }

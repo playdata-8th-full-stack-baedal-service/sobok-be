@@ -1,26 +1,21 @@
 package com.sobok.userservice.user.controller;
 
 import com.sobok.userservice.common.dto.ApiResponse;
-import com.sobok.userservice.common.exception.CustomException;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
-import com.sobok.userservice.user.dto.response.UserLocationResDto;
-import com.sobok.userservice.user.dto.response.UserInfoResDto;
-import com.sobok.userservice.user.dto.response.UserPostInfoResDto;
-import com.sobok.userservice.user.dto.response.UserResDto;
+import com.sobok.userservice.user.dto.response.*;
 import com.sobok.userservice.user.repository.UserAddressRepository;
 import com.sobok.userservice.user.repository.UserRepository;
 import com.sobok.userservice.user.service.UserAddressService;
 import com.sobok.userservice.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -43,7 +38,7 @@ public class UserFeignController {
     public ResponseEntity<?> getUser(@RequestBody String phoneNumber) {
         UserResDto byPhoneNumber = userService.findByPhoneNumber(phoneNumber);
         log.info("검색한 사용자 정보 with phone number: {}", byPhoneNumber);
-        return ResponseEntity.ok().body(ApiResponse.ok(byPhoneNumber, "전화번호로 찾은 user 정보입니다."));
+        return ResponseEntity.ok().body(byPhoneNumber);
 
     }
 
@@ -156,6 +151,61 @@ public class UserFeignController {
     public ResponseEntity<String> getNicknameById(@RequestParam Long userId) {
         String nickname = userService.getNicknameById(userId);
         return ResponseEntity.ok(nickname);
+    }
+
+    /**
+     * 게시글의 좋아요 개수를 조회
+     */
+    @GetMapping("/user-like/count/{postId}")
+    public Long getLikeCount(@PathVariable Long postId) {
+        return userService.getLikeCount(postId);
+    }
+
+    /**
+     * 사용자가 좋아요 누른 게시글 목록을 페이징하여 조회
+     */
+    @GetMapping("/user-like/liked-posts")
+    public LikedPostPagedResDto getLikedPostIds(
+            @RequestParam Long userId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return userService.getLikedPosts(userId, page, size);
+    }
+
+    /**
+     * 전체 게시글의 좋아요 수 Map 반환
+     */
+    @GetMapping("/user-like/all-counts")
+    public Map<Long, Long> getAllLikeCounts() {
+        return userService.getAllLikeCounts();
+    }
+
+    /**
+     * 좋아요 수 기준 인기 게시글 목록을 페이징하여 반환
+     */
+    @GetMapping("/user-like/most-liked")
+    public LikedPostPagedResDto getMostLikedPostIds(
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        return userService.getMostLikedPostIds(page, size);
+    }
+
+    /**
+     * 사용자 Id 리스트를 받아 사용자 정보를 조회하여 반환
+     */
+    @PostMapping("/post-info/batch")
+    public Map<Long, PostUserInfoResDto> getUserInfos(@RequestBody List<Long> userIds) {
+        return userService.getUserInfos(userIds);
+    }
+
+    /**
+     * 게시글 ID 목록의 좋아요 수를 Map 형태로 반환
+     */
+    @PostMapping("/user-like/count-map")
+    public Map<Long, Long> getLikeCountMap(@RequestBody List<Long> postIds) {
+        return userService.getLikeCountMap(postIds);
     }
 
 }

@@ -18,7 +18,7 @@ public class PostListResDto {
     private String cookName;
     private String nickName;
     private Long userId;
-    private int likeCount;
+    private Long likeCount;
     private String thumbnail;
     private Long updatedAt;
 }

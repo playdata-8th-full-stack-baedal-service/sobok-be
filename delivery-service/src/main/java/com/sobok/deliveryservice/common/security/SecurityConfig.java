@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/actuator/**","/delivery/signup", "/auth/check-permission",
-                                "/delivery/check-permission"
+                                "/delivery/check-permission", "/v3/**", "/swagger-ui/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
