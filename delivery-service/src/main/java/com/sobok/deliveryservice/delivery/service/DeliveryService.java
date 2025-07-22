@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -124,22 +125,22 @@ public class DeliveryService {
 
         // 배달 전인 주문 조회 (Payment 정보)
         List<Long> paymentIdList = new ArrayList<>(paymentIdToDeliveryMap.keySet());
-        List<ShopPaymentResDto> riderAvailPayment = paymentFeignClient.getRiderAvailPayment(paymentIdList);
+        ResponseEntity<List<ShopPaymentResDto>> riderAvailPayment = paymentFeignClient.getRiderAvailPayment(paymentIdList);
         log.info("배달 가능한 주문들 Payment: {}", riderAvailPayment);
 
-        if (riderAvailPayment.isEmpty()) {
+        if (riderAvailPayment.getBody() == null || riderAvailPayment.getBody().isEmpty()) {
             return Collections.emptyList();
         }
 
         // 주소 정보 조회
-        Set<Long> addressIdSet = riderAvailPayment.stream()
+        Set<Long> addressIdSet = riderAvailPayment.getBody().stream()
                 .map(ShopPaymentResDto::getUserAddressId)
                 .collect(Collectors.toSet());
 
         Map<Long, UserAddressDto> addressMap = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIdSet)).stream()
                 .collect(Collectors.toMap(UserAddressDto::getId, Function.identity()));
 
-        return riderAvailPayment.stream()
+        return riderAvailPayment.getBody().stream()
                 .map(payment -> {
                     Delivery delivery = paymentIdToDeliveryMap.get(payment.getPaymentId());
                     DeliveryAvailShopResDto shop = shopMap.get(delivery.getShopId());
@@ -200,14 +201,16 @@ public class DeliveryService {
 
         // 3. paymentId 리스트로 Payment 정보 조회
         List<Long> paymentIds = deliveryList.stream().map(Delivery::getPaymentId).toList();
-        List<ShopPaymentResDto> paymentList = paymentFeignClient.getRiderPayment(paymentIds);
-        if (paymentList.isEmpty()) return Collections.emptyList();
+        ResponseEntity<List<ShopPaymentResDto>> paymentList = paymentFeignClient.getRiderPayment(paymentIds);
+        if (paymentList.getBody() == null || paymentList.getBody().isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        Map<Long, ShopPaymentResDto> paymentMap = paymentList.stream()
+        Map<Long, ShopPaymentResDto> paymentMap = paymentList.getBody().stream()
                 .collect(Collectors.toMap(ShopPaymentResDto::getPaymentId, Function.identity()));
 
         // 4. userAddressId → 주소 정보 조회
-        Set<Long> addressIds = paymentList.stream()
+        Set<Long> addressIds = paymentList.getBody().stream()
                 .map(ShopPaymentResDto::getUserAddressId)
                 .collect(Collectors.toSet());
         Map<Long, UserAddressDto> addressMap = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIds)).stream()

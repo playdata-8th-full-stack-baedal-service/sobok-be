@@ -49,8 +49,6 @@ public class AccountService {
     public List<AuthFindIdResDto> userFindId(AuthFindIdReqDto authFindIdReqDto) {
         boolean isVerified = smsService.verifySmsCode(authFindIdReqDto.getUserPhoneNumber(), authFindIdReqDto.getUserInputCode());
 
-        log.info("isVerified: {}", isVerified);
-
         if (!isVerified) {
             throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }

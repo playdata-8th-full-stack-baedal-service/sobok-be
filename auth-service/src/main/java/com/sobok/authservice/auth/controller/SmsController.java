@@ -25,7 +25,6 @@ public class SmsController {
 
     @PostMapping("/send")
     public ResponseEntity<?> SendSMS(@RequestBody SmsReqDto smsReqDto) {
-        log.info("문자 전송 시작");
         smsService.SendSms(smsReqDto);
         return ResponseEntity.ok(ApiResponse.ok("문자를 전송했습니다."));
     }

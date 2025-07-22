@@ -15,4 +15,5 @@ public class UnifiedSignupReqDto {
     private String photo;
     private String roadFull;
     private String addrDetail;
+    private String inputCode;
 }

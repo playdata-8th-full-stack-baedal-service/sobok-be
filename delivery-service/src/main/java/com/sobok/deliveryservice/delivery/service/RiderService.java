@@ -12,6 +12,7 @@ import com.sobok.deliveryservice.delivery.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -111,15 +112,20 @@ public class RiderService {
         return riderRepository.findAll()
                 .stream()
                 .map(rider -> {
-                    RiderInfoResDto authInfo = authFeignClient.getRiderAuthInfo(rider.getAuthId());
+                    ResponseEntity<RiderInfoResDto> authInfo = authFeignClient.getRiderAuthInfo(rider.getAuthId());
+
+                    if (authInfo == null || authInfo.getBody() == null) {
+                        throw new CustomException("cook 정보 조회 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
 
                     return RiderInfoResDto.builder()
                             .id(rider.getId())
-                            .loginId(authInfo.getLoginId())
+                            .authId(authInfo.getBody().getAuthId())
+                            .loginId(authInfo.getBody().getLoginId())
                             .name(rider.getName())
                             .phone(rider.getPhone())
                             .permissionNumber(rider.getPermissionNumber())
-                            .active(authInfo.getActive())
+                            .active(authInfo.getBody().getActive())
                             .build();
                 })
                 .toList();

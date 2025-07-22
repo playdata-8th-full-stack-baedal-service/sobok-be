@@ -84,7 +84,7 @@ public class InfoService {
 
     public List<Long> getInactiveRidersInfo() {
         List<Auth> inactiveRiders = authRepository.findInactiveRiders();
-        if (inactiveRiders == null) {
+        if (inactiveRiders == null || inactiveRiders.isEmpty()) {
             log.error("비활성화된 라이더가 존재하지 않습니다.");
             return new ArrayList<>();
         }
@@ -100,6 +100,7 @@ public class InfoService {
                 .orElseThrow(() -> new CustomException("authId에 해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND));
 
         return AuthRiderInfoResDto.builder()
+                .authId(auth.getId())
                 .loginId(auth.getLoginId())
                 .active(auth.getActive())
                 .build();
