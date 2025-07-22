@@ -36,5 +36,6 @@ public class AuthUserReqDto {
     private String photo;
     private String roadFull;
     private String addrDetail;
+    private String inputCode;
 
 }

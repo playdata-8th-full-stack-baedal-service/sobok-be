@@ -36,7 +36,7 @@ public class SmsService {
         log.info("생성된 인증 번호 Certification code: {}", certificationCode);
         // 3분 동안 Redis에 인증번호 저장
         String key = "auth:verify:" + smsReqDto.getPhone();
-        redisService.setDataExpire(key, certificationCode, 180);
+        redisService.setDataExpire(key, certificationCode, 300);
         sendSMS(smsReqDto.getPhone(), certificationCode);
     }
 
