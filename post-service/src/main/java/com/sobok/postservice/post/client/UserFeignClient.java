@@ -64,4 +64,10 @@ public interface UserFeignClient {
     @PostMapping("/api/user-like/count-map")
     Map<Long, Long> getLikeCountMap(@RequestBody List<Long> postIds);
 
+    /**
+     * 게시물 등록할 때 기본 좋아요 등록
+     */
+    @PostMapping("/api/post-like")
+    void addPostLike(@RequestParam Long postId);
+
 }

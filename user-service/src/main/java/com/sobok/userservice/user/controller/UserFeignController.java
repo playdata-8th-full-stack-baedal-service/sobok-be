@@ -208,4 +208,13 @@ public class UserFeignController {
         return userService.getLikeCountMap(postIds);
     }
 
+    /**
+     * 게시글 기본 좋아요 등록
+     */
+    @PostMapping("/post-like")
+    public ResponseEntity<?> likePost(@RequestParam Long postId) {
+        userService.defaultLikePost(postId);
+        return ResponseEntity.ok("좋아요 등록 완료");
+    }
+
 }

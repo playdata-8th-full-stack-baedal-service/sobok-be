@@ -67,4 +67,5 @@ public interface UserLikeRepository extends JpaRepository<UserLike, Long> {
 """, nativeQuery = true)
     List<PostLikeCount> countLikesByPostIds(@Param("postIds") List<Long> postIds);
 
+    boolean existsByPostId(Long postId);
 }

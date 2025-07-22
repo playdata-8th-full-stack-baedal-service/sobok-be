@@ -45,44 +45,43 @@ public class PostService {
             throw new CustomException("주문이 완료되지 않아 게시글을 작성할 수 없습니다.", HttpStatus.FORBIDDEN);
         }
 
-        List<PostRegisterResDto.PostInfo> postInfos = new ArrayList<>();
-
-        for (PostRegisterReqDto.PostUnitDto postDto : dto.getPosts()) {
-            // 게시글 중복 등록 방지
-            boolean alreadyExists = postRepository.existsByPaymentIdAndCookId(dto.getPaymentId(), postDto.getCookId());
-            if (alreadyExists) {
-                throw new CustomException("해당 요리에 대한 게시글이 이미 등록되어 있습니다.", HttpStatus.CONFLICT);
-            }
-
-            String cookName = cookClient.getCookNameById(postDto.getCookId());
-
-            Post post = Post.builder()
-                    .userId(userId)
-                    .title(postDto.getTitle())
-                    .cookId(postDto.getCookId())
-                    .content(postDto.getContent())
-                    .paymentId(dto.getPaymentId())
-                    .build();
-            postRepository.save(post);
-
-            if (postDto.getImages() != null && !postDto.getImages().isEmpty()) {
-                List<PostImage> images = postDto.getImages().stream()
-                        .map(img -> PostImage.builder()
-                                .postId(post.getId())
-                                .imagePath(img.getImageUrl())
-                                .index(img.getIndex())
-                                .build())
-                        .toList();
-                postImageRepository.saveAll(images);
-            }
-
-            postInfos.add(PostRegisterResDto.PostInfo.builder()
-                    .postId(post.getId())
-                    .cookName(cookName)
-                    .build());
+        // 게시글 중복 등록 방지
+        boolean alreadyExists = postRepository.existsByPaymentIdAndCookId(dto.getPaymentId(), dto.getCookId());
+        if (alreadyExists) {
+            throw new CustomException("해당 요리에 대한 게시글이 이미 등록되어 있습니다.", HttpStatus.CONFLICT);
         }
 
-        return PostRegisterResDto.builder().posts(postInfos).build();
+        String cookName = cookClient.getCookNameById(dto.getCookId());
+
+        Post post = Post.builder()
+                .userId(userId)
+                .title(dto.getTitle())
+                .cookId(dto.getCookId())
+                .content(dto.getContent())
+                .paymentId(dto.getPaymentId())
+                .build();
+        postRepository.save(post);
+
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            List<PostImage> images = dto.getImages().stream()
+                    .map(img -> PostImage.builder()
+                            .postId(post.getId())
+                            .imagePath(img.getImageUrl())
+                            .index(img.getIndex())
+                            .build())
+                    .toList();
+            postImageRepository.saveAll(images);
+        }
+
+        PostRegisterResDto build = PostRegisterResDto.builder()
+                .postId(post.getId())
+                .cookName(cookName)
+                .build();
+
+        // 게시물 좋아요 등록
+        userClient.addPostLike(build.getPostId());
+
+        return build;
     }
 
     /**

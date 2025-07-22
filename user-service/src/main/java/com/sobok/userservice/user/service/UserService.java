@@ -612,4 +612,20 @@ public class UserService {
                 .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
     }
 
+    /**
+     * 게시글 디폴트 좋아요 등록
+     */
+    @Transactional
+    public void defaultLikePost(Long postId) {
+        if (userLikeRepository.existsByPostId(postId)) {
+            throw new CustomException("이미 좋아요가 등록된 게시글입니다.", HttpStatus.BAD_REQUEST);
+        }
+        userLikeRepository.save(
+                UserLike.builder()
+                        .userId(0L)
+                        .postId(postId)
+                        .build()
+        );
+    }
+
 }
