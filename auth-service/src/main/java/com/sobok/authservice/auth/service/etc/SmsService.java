@@ -33,7 +33,6 @@ public class SmsService {
 
     public void SendSms(SmsReqDto smsReqDto) {
         String certificationCode = Integer.toString((int) (Math.random() * (999999 - 100000 + 1)) + 100000); // 6자리 인증 코드를 랜덤으로 생성
-        log.info("생성된 인증 번호 Certification code: {}", certificationCode);
         // 3분 동안 Redis에 인증번호 저장
         String key = "auth:verify:" + smsReqDto.getPhone();
         redisService.setDataExpire(key, certificationCode, 300);
@@ -54,7 +53,6 @@ public class SmsService {
     // 단일 메시지 발송
     public void sendSMS(String phoneNumber, String certificationCode) {
         try {
-            log.info("phone number: {}", phoneNumber);
             Message message = new Message(); // 새 메시지 객체 생성
             message.setFrom(fromNumber); // 발신자 번호 설정
             message.setTo(phoneNumber); // 수신자 번호 설정
