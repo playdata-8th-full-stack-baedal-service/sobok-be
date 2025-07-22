@@ -11,6 +11,7 @@ import com.sobok.authservice.auth.dto.response.AuthUserResDto;
 import com.sobok.authservice.auth.dto.response.OauthResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
+import com.sobok.authservice.auth.service.etc.SmsService;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
@@ -37,6 +38,7 @@ public class RegisterService {
     private final ShopServiceClient shopServiceClient;
     private final DeliveryClient deliveryClient;
     private final ApiServiceClient apiServiceClient;
+    private final SmsService smsService;
 
 
     /**
@@ -63,6 +65,7 @@ public class RegisterService {
                 .photo(authUserReqDto.getPhoto())
                 .roadFull(authUserReqDto.getRoadFull())
                 .addrDetail(authUserReqDto.getAddrDetail())
+                .inputCode(authUserReqDto.getInputCode())
                 .build());
 
         return AuthUserResDto.builder()
@@ -82,6 +85,11 @@ public class RegisterService {
         authRepository.findByLoginId(dto.getLoginId()).ifPresent(auth -> {
             throw new CustomException("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST);
         });
+
+        //sms 인증번호 검증
+        if (!smsService.verifySmsCode(dto.getPhone(), dto.getInputCode())) {
+            throw new CustomException("인증된 전화번호가 아닙니다.", HttpStatus.BAD_REQUEST);
+        }
 
         // 사진 등록
         String photoUrl;

@@ -364,6 +364,11 @@ public class CookService {
         ResponseEntity<List<CookOrderCountDto>> popularCooks;
         try {
             popularCooks = paymentFeignClient.getPopularCookIds(page, size);
+            if (popularCooks.getBody() == null || popularCooks.getBody().isEmpty()) {
+                throw new CustomException("주문 데이터가 없습니다.", HttpStatus.NO_CONTENT);
+            }
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             throw new CustomException("payment-service 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
         }

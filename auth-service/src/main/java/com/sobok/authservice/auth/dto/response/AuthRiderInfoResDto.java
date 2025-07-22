@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
  라이더 정보 전달 dto
  */
 public class AuthRiderInfoResDto {
-    private Long id;
+    private Long authId;
     private String loginId;
     private String active;
 }

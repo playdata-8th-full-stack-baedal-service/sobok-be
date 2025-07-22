@@ -113,20 +113,21 @@ public class PaymentFeignController {
      * 배달 가능한 주문 목록 조회에 사용되는 paymentId로 주문 정보 받기
      */
     @GetMapping("/getRiderAvailPayment")
-    public List<ShopPaymentResDto> getRiderAvailPayment(@RequestParam List<Long> id) {
-        return paymentService.getRiderAvailPaymentList(id, List.of(OrderState.READY_FOR_DELIVERY));
+    public ResponseEntity<List<ShopPaymentResDto>> getRiderAvailPayment(@RequestParam List<Long> id) {
+        List<ShopPaymentResDto> riderAvailPaymentList = paymentService.getRiderAvailPaymentList(id, List.of(OrderState.READY_FOR_DELIVERY));
+        return ResponseEntity.ok().body(riderAvailPaymentList);
     }
 
     /**
      * 배달 목록 조회에 사용되는 paymentId로 주문 정보 받기
      */
     @GetMapping("/getRiderPayment")
-    public List<ShopPaymentResDto> getRiderPayment(@RequestParam List<Long> id) {
-        return paymentService.getRiderAvailPaymentList(id, null);
+    public ResponseEntity<List<ShopPaymentResDto>> getRiderPayment(@RequestParam List<Long> id) {
+         return ResponseEntity.ok().body(paymentService.getRiderAvailPaymentList(id, null));
     }
 
     /**
-     *  요리 ID로 기본 식재료 목록 조회
+     * 요리 ID로 기본 식재료 목록 조회
      */
     @GetMapping("/payment/cart-cook-id")
     public Long getCartCookIdByPaymentId(@RequestParam Long paymentId) {
@@ -163,7 +164,7 @@ public class PaymentFeignController {
      */
     @GetMapping("/popular-cook-ids")
     public ResponseEntity<?> getPopularCookIds(@RequestParam int page,
-                                                     @RequestParam int size) {
+                                               @RequestParam int size) {
         return ResponseEntity.ok().body(cartService.getPopularCookIds(page, size));
     }
 
