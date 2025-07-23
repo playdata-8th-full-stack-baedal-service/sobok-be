@@ -23,7 +23,6 @@ public class CookFeignController {
     private final CombinationService combinationService;
     private final IngredientService ingredientService;
     private final CookService cookService;
-    private final CookRepository cookRepository;
 
 
     @GetMapping("/get-cook-default-ingre")
@@ -85,7 +84,7 @@ public class CookFeignController {
     /**
      * 게시글 등록(요리 이름 조회)
      */
-    @GetMapping("/cook/name")
+    @GetMapping("/cook-name")
     public String getCookNameById(@RequestParam Long cookId) {
         return cookService.getCookNameById(cookId);
     }

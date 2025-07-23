@@ -17,7 +17,7 @@ public interface CookFeignClient {
     /**
      * 요리 Id로 요리 이름을 조회
      */
-    @GetMapping("/api/cook/name")
+    @GetMapping("/api/cook-name")
     String getCookNameById(@RequestParam Long cookId);
 
     /**
