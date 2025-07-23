@@ -215,7 +215,7 @@ public class CartService {
                 .toList();
 
         // 요리 상세 정보 조회 (기본 재료 Id만 포함됨)
-        Map<Long, CookDetailResDto> cookMap = cookFeignClient.getCookDetails(cookIds).stream()
+        Map<Long, CookDetailResDto> cookMap = cookFeignClient.getCookDetail(cookIds).stream()
                 .collect(Collectors.toMap(CookDetailResDto::getCookId, Function.identity()));
 
         // 사용자 cartCookList에서 cartCookId만 뽑기

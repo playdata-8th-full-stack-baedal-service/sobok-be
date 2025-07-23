@@ -160,72 +160,8 @@ public class CookService {
         return searchCook("category:" + category, pageNo, numOfRows);
     }
 
-
     // 장바구니용 조회
-    public CookDetailResDto getCookDetail(Long cookId) {
-        // 요리 있는지부터 검증 없으면 예외
-        Cook cook = cookRepository.findById(cookId)
-                .orElseThrow(() -> new CustomException("해당 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-
-        // cook 테이블에 해당되는 식재료 찾기
-        List<Combination> combinations = combinationRepository.findByCookId(cookId);
-
-        // 각 조합에서 식재료 정보를 추출하여 dto로 변환
-        List<CookIngredientResDto> ingredients = combinations.stream().map(comb -> {
-            Ingredient ingre = comb.getIngredient(); // 연관된 식재료
-
-            // 식재료가 없거나 존재하지 않으면 예외 던짐
-            if (ingre == null) {
-                ingre = ingredientRepository.findById(comb.getIngreId())
-                        .orElseThrow(() -> new CustomException("식재료가 존재하지 않습니다: id=" + comb.getIngreId(), HttpStatus.NOT_FOUND));
-            }
-
-            return CookIngredientResDto.builder()
-                    .ingredientId(ingre.getId())
-                    .ingreName(ingre.getIngreName())
-                    .unitQuantity(comb.getUnitQuantity())
-                    .unit(ingre.getUnit())
-                    .price(ingre.getPrice())
-                    .origin(ingre.getOrigin())
-                    .build();
-        }).toList();
-
-        return CookDetailResDto.builder()
-                .cookId(cook.getId())
-                .name(cook.getName())
-                .thumbnail(cook.getThumbnail())
-                .active(cook.getActive())
-                .ingredients(ingredients)
-                .build();
-    }
-
-
-    public boolean checkCook(Long cookId) {
-        log.info("컨트롤러 통과");
-        boolean exists = cookRepository.existsByIdAndActive(cookId, "Y");
-        log.info(exists ? "존재" : "없음");
-        return exists;
-    }
-
-    public List<UserBookmarkResDto> findCookById(List<Long> cookIds) {
-
-        List<Cook> cooks = cookRepository.findAllByIdInAndActive(cookIds, "Y");
-
-        List<UserBookmarkResDto> collect = cooks.stream()
-                .map(cook -> new UserBookmarkResDto(
-                        cook.getId(),
-                        cook.getName(),
-                        cook.getThumbnail()
-                ))
-                .toList();
-
-        log.info("collect: " + collect);
-
-        return collect;
-    }
-
-    //주문 내역 조회용
-    public List<CookDetailResDto> getCookDetailList(List<Long> cookIds) {
+    public List<CookDetailResDto> getCookDetail(List<Long> cookIds) {
         // 요리 리스트 조회
         Map<Long, Cook> cookMap = cookRepository.findAllById(cookIds).stream()
                 .collect(Collectors.toMap(Cook::getId, Function.identity()));
@@ -264,6 +200,53 @@ public class CookService {
                     .ingredientIds(ingredientIds)  // 재료 상세 정보는 따로 조회해서 세팅
                     .build();
         }).toList();
+    }
+
+
+    public boolean checkCook(Long cookId) {
+        log.info("컨트롤러 통과");
+        boolean exists = cookRepository.existsByIdAndActive(cookId, "Y");
+        log.info(exists ? "존재" : "없음");
+        return exists;
+    }
+
+    public List<UserBookmarkResDto> findCookById(List<Long> cookIds) {
+
+        List<Cook> cooks = cookRepository.findAllByIdInAndActive(cookIds, "Y");
+
+        List<UserBookmarkResDto> collect = cooks.stream()
+                .map(cook -> new UserBookmarkResDto(
+                        cook.getId(),
+                        cook.getName(),
+                        cook.getThumbnail()
+                ))
+                .toList();
+
+        log.info("collect: " + collect);
+
+        return collect;
+    }
+
+    //주문 내역 조회용
+    public List<CookInfoResDto> getCooksInfolList(List<Long> cookIds) {
+        List<Cook> foundCooks = cookRepository.findAllById(cookIds);
+        Map<Long, Cook> cookMap = foundCooks.stream()
+                .collect(Collectors.toMap(Cook::getId, Function.identity()));
+
+        return cookIds.stream()
+                .map(id -> {
+                    Cook cook1 = cookMap.get(id);
+                    if (cook1 == null) {
+                        return null;
+                    }
+                    return CookInfoResDto.builder()
+                            .cookId(cook1.getId())
+                            .name(cook1.getName())
+                            .thumbnail(cook1.getThumbnail())
+                            .active(cook1.getActive())
+                            .build();
+                })
+                .toList();
     }
 
     /**
