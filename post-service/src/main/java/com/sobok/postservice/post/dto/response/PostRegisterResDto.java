@@ -10,16 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostRegisterResDto {
-    private List<PostInfo> posts;
-
-    @Getter
-    @Builder
-    @Setter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class PostInfo {
-        private Long postId;
-        private String cookName;
-    }
-
+    private Long postId;
+    private String cookName;
 }

@@ -10,17 +10,9 @@ import java.util.List;
 @Builder
 public class PostRegisterReqDto {
     private Long paymentId;
-    private List<PostUnitDto> posts;
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class PostUnitDto {
-        private Long cookId;
-        private String title;
-        private String content;
-        private List<PostImageDto> images;
-    }
+    private Long cookId;
+    private String title;
+    private String content;
+    private List<PostImageDto> images;
 
 }

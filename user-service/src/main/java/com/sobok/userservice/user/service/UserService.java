@@ -471,6 +471,7 @@ public class UserService {
         return UserPostInfoResDto.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
+                .authId(user.getAuthId())
                 .build();
     }
 
@@ -536,7 +537,8 @@ public class UserService {
      * 게시글의 좋아요 개수를 조회
      */
     public Long getLikeCount(Long postId) {
-        return userLikeRepository.countByPostId(postId);
+        long count = userLikeRepository.countByPostId(postId);
+        return Math.max(count - 1, 0);
     }
 
     /**
@@ -565,9 +567,11 @@ public class UserService {
      */
     public Map<Long, Long> getAllLikeCounts() {
         List<PostLikeCount> counts = userLikeRepository.countLikesGroupedByPostId();
-
         return counts.stream()
-                .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
+                .collect(Collectors.toMap(
+                        PostLikeCount::getPostId,
+                        c -> Math.max(0L, c.getCount() - 1) // 최소 0 보장
+                ));
     }
 
     /**
@@ -609,7 +613,25 @@ public class UserService {
      */
     public Map<Long, Long> getLikeCountMap(List<Long> postIds) {
         return userLikeRepository.countLikesByPostIds(postIds).stream()
-                .collect(Collectors.toMap(PostLikeCount::getPostId, PostLikeCount::getCount));
+                .collect(Collectors.toMap(
+                        PostLikeCount::getPostId,
+                        c -> Math.max(0L, c.getCount() - 1) // 최소 0 보장
+                ));
+    }
+
+    /**
+     * 게시글 디폴트 좋아요 등록
+     */
+    public void defaultLikePost(Long postId) {
+        if (userLikeRepository.existsByPostId(postId)) {
+            throw new CustomException("이미 좋아요가 등록된 게시글입니다.", HttpStatus.BAD_REQUEST);
+        }
+        userLikeRepository.save(
+                UserLike.builder()
+                        .userId(0L)
+                        .postId(postId)
+                        .build()
+        );
     }
 
 }
