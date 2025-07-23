@@ -27,7 +27,7 @@ public class S3Service {
     public String uploadImage(MultipartFile image, String category) throws CustomException {
         log.info("S3 이미지 임시 업로드 서비스 시작 | category: {}",  category);
 
-        return s3PutService.putImage(image, category, true);
+        return s3PutService.putImage(image, category, "profile".equals(category));
     }
 
     /**
