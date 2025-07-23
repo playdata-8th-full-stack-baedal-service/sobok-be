@@ -62,7 +62,7 @@ public class CookService {
             photoUrl = apiServiceClient.registerImg(dto.getThumbnailUrl());
         } catch (Exception e) {
             log.error("사진 등록 실패", e);
-            throw new CustomException("사진 등록 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+            photoUrl = dto.getThumbnailUrl();
         }
 
         // 레시피 썸네일 중복 검증

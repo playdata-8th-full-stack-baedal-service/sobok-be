@@ -51,6 +51,7 @@ public class PostService {
             throw new CustomException("해당 요리에 대한 게시글이 이미 등록되어 있습니다.", HttpStatus.CONFLICT);
         }
 
+        log.info(dto.getCookId().toString());
         String cookName = cookClient.getCookNameById(dto.getCookId());
 
         Post post = Post.builder()

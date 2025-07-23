@@ -156,5 +156,10 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 해제 성공"));
     }
 
+    @GetMapping("/check-like")
+    public ResponseEntity<?> checkPostLike(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long postId) {
+        boolean result = userService.checkPostLike(userInfo, postId);
+        return ResponseEntity.ok(ApiResponse.ok(result, "해당 사용자의 좋아요 상태가 정상적으로 조회되었습니다."));
+    }
 
 }

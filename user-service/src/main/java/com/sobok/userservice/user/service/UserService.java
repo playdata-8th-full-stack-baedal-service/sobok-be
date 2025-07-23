@@ -640,4 +640,7 @@ public class UserService {
         );
     }
 
+    public boolean checkPostLike(TokenUserInfo userInfo, Long postId) {
+        return userLikeRepository.findByUserIdAndPostId(userInfo.getUserId(), postId).isPresent();
+    }
 }
