@@ -33,4 +33,8 @@ public class Cook extends BaseTimeEntity {
     @Column(nullable = false, unique = true)
     private String thumbnail;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private String active = "Y";
+
 }

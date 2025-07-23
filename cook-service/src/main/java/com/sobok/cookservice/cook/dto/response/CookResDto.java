@@ -18,4 +18,5 @@ public class CookResDto {
     private String recipe;
     private CookCategory category;
     private String thumbnail;
+    private String active;
 }
