@@ -1,6 +1,8 @@
 package com.sobok.paymentservice.payment.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.querydsl.core.Tuple;
+import com.sobok.paymentservice.payment.dto.cart.CartMonthlyHotDto;
 import com.sobok.paymentservice.payment.entity.QPayment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.Projections;
@@ -11,11 +13,11 @@ import com.sobok.paymentservice.payment.client.CookFeignClient;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
-import com.sobok.paymentservice.payment.dto.payment.PagedResponse;
 import com.sobok.paymentservice.payment.dto.response.*;
 import com.sobok.paymentservice.payment.entity.CartCook;
 import com.sobok.paymentservice.payment.entity.CartIngredient;
 import com.sobok.paymentservice.payment.entity.QCartCook;
+import com.sobok.paymentservice.payment.repository.CartCookQueryRepository;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.CartIngreRepository;
 import feign.FeignException;
@@ -23,7 +25,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,8 +34,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.sobok.paymentservice.payment.entity.QCartCook.cartCook;
+import static com.sobok.paymentservice.payment.entity.QPayment.payment;
 
 @Service
 @Slf4j
@@ -45,6 +48,8 @@ public class CartService {
     private final CartCookRepository cartCookRepository;
     private final CartIngreRepository cartIngreRepository;
     private final UserServiceClient userServiceClient;
+
+    private final CartCookQueryRepository cartCookQueryRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -252,8 +257,8 @@ public class CartService {
      * 한달 주문량 기준 요리 페이지 조회
      */
     public List<CookOrderCountDto> getPopularCookIds(int page, int size) {
-        QCartCook cc = QCartCook.cartCook;
-        QPayment p = QPayment.payment;
+        QCartCook cc = cartCook;
+        QPayment p = payment;
         // 현재 시각 기준으로 한달 전 주문 조회
         long fromMillis = LocalDateTime.now().minusMonths(1)
                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -271,5 +276,29 @@ public class CartService {
                 .offset(PageRequest.of(page, size).getOffset()) // 페이징
                 .limit(size)
                 .fetch();
+    }
+
+    public CartMonthlyHotDto getMonthlyHotList(int pageNo, int numOfRows) {
+        // 현재 시각 기준으로 한달 전 주문 조회
+        long monthToMillis = LocalDateTime.now().minusMonths(1)
+                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        // 페이징에 필요한 주문된 요리 최소 갯수
+        int pagingMinimum = pageNo * numOfRows;
+
+        // 주문량 순 요리 조회
+        List<CartMonthlyHotDto.MonthlyHot> monthlyHotList = cartCookQueryRepository.getMonthlyHotCartCook(monthToMillis).stream()
+                .map(t -> new CartMonthlyHotDto.MonthlyHot(t.get(cartCook.cookId), t.get(cartCook.count.sum().intValue())))
+                .toList();
+
+        // 페이징이 가능한지 확인
+        boolean isAvailable = monthlyHotList.size() >= pagingMinimum;
+
+        // 개수가 모자라다면 전체, 아니라면 개수에 맞게
+        List<CartMonthlyHotDto.MonthlyHot> result = isAvailable ?
+                monthlyHotList.subList(pagingMinimum - numOfRows, pagingMinimum) :
+                monthlyHotList;
+
+        return new CartMonthlyHotDto(result, isAvailable,  monthlyHotList.size());
     }
 }

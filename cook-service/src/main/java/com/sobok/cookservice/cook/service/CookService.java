@@ -12,6 +12,7 @@ import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.entity.*;
 import com.sobok.cookservice.cook.repository.CombinationRepository;
+import com.sobok.cookservice.cook.repository.CookQueryRepository;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
 import jakarta.transaction.Transactional;
@@ -23,9 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCombination.*;
@@ -44,6 +43,7 @@ public class CookService {
     private final JPAQueryFactory factory;
     private final PaymentFeignClient paymentFeignClient;
     private final ApiServiceClient apiServiceClient;
+    private final CookQueryRepository  cookQueryRepository;
 
     @Transactional
     public CookCreateResDto createCook(CookCreateReqDto dto) {
@@ -415,5 +415,90 @@ public class CookService {
         getPopularCooks(0, 10); // 0페이지 10개짜리 캐싱
     }
 
+
+
+    public List<MonthlyHotCookDto> getMonthlyHotCooks(int pageNo, int numOfRows) {
+        CartMonthlyHotDto resDto;
+        try {
+            resDto = paymentFeignClient.getMonthlyHotCooks(pageNo, numOfRows);
+            if (resDto == null) {
+                throw new CustomException("<UNK> <UNK> <UNK>.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException("payment-service <UNK> <UNK> <UNK>.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+        List<CartMonthlyHotDto.MonthlyHot> monthlyHot = resDto.getMonthlyHot();
+
+        // CookId List 만들기
+        List<Long> cookIdList = getCookIdList(monthlyHot);
+
+
+        // 주문량 순으로는 페이징이 불가능한 경우
+        if (!resDto.isAvailable()) {
+            int offset = Math.max((pageNo - 1) * numOfRows - resDto.getCount(), 0);
+            int limit = Math.min(pageNo * numOfRows - resDto.getCount(), numOfRows);
+
+            // 주문하지 않은 CookId 조회
+            List<CartMonthlyHotDto.MonthlyHot> notOrderedCookIdList
+                    = cookQueryRepository.getNotOrderCookIdList(cookIdList)
+                    .stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .toList();
+
+            List<CartMonthlyHotDto.MonthlyHot> limitHot
+                    = numOfRows == limit ?
+                    new ArrayList<>() :
+                    monthlyHot.stream()
+                    .skip((long) (pageNo - 1) * numOfRows)
+                    .limit(numOfRows - limit)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            log.error("limitHot : {}", limitHot);
+
+            limitHot.addAll(notOrderedCookIdList);
+            log.error("notOrderedCookIdList : {}", notOrderedCookIdList);
+            log.error("limit : {}", limitHot);
+            resDto.setMonthlyHot(limitHot);
+            log.error("resDto.getMonthlyHot() : {}", resDto.getMonthlyHot());
+        }
+
+       return getMonthlyHotCookList(resDto);
+    }
+
+    private List<MonthlyHotCookDto> getMonthlyHotCookList(CartMonthlyHotDto resDto) {
+        List<MonthlyHotCookDto> result = new ArrayList<>();
+        List<CartMonthlyHotDto.MonthlyHot> monthlyHot = resDto.getMonthlyHot();
+        List<Long> cookIdList = getCookIdList(monthlyHot);
+
+        // 인덱스 맵핑
+        Map<Long, Integer> cookIdMap = new HashMap<>();
+        for (int i = 0; i < cookIdList.size(); i++) cookIdMap.put(cookIdList.get(i), i);
+
+        // CookId List 기반 Cook List 정렬
+        List<Cook> sortedCookList = cookRepository.findByIdIn(cookIdList)
+                .stream()
+                .sorted(Comparator.comparing(key -> cookIdMap.get(key.getId())))
+                .toList();
+
+        // 응답 객체 생성
+        for (int i = 0; i < sortedCookList.size(); i++) {
+            result.add(new MonthlyHotCookDto(sortedCookList.get(i), monthlyHot.get(i)));
+        }
+
+        return result;
+    }
+
+    private static List<Long> getCookIdList(List<CartMonthlyHotDto.MonthlyHot> monthlyHot) {
+        // CookId List 만들기
+        return monthlyHot
+                .stream()
+                .map(CartMonthlyHotDto.MonthlyHot::getCookId)
+                .toList();
+    }
 }
 

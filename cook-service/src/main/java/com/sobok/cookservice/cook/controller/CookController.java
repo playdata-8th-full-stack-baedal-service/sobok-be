@@ -67,10 +67,15 @@ public class CookController {
     /**
      * 한달 주문량 기준 요리 페이지 조회
      */
-    @GetMapping("/popular")
+    @GetMapping("/popular-12")
     public PagedResponse<PopularCookResDto> getPopularCooks(@RequestParam int page,
                                                             @RequestParam int size) {
         return cookService.getPopularCooks(page, size);
     }
 
+    @GetMapping("/popular")
+    public ResponseEntity<?> getMonthlyHotCooks(@RequestParam int pageNo, @RequestParam int numOfRows) {
+        List<MonthlyHotCookDto> resDto = cookService.getMonthlyHotCooks(pageNo, numOfRows);
+        return ResponseEntity.ok().body(ApiResponse.ok(resDto, "페이징으로 요청한 한달 주문량 순 요리 검색 정보가 조회되었습니다."));
+    }
 }
