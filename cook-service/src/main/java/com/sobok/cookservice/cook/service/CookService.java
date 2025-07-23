@@ -117,6 +117,7 @@ public class CookService {
 
         // 조건 분기
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(cook.active.eq("Y"));
         try {
             if (keyword.startsWith("category:")) { // 카테고리 조회
                 // 카테고리 뽑기
@@ -125,7 +126,7 @@ public class CookService {
                 CookCategory categoryEnum = CookCategory.valueOf(category);
 
                 builder.and(cook.category.eq(categoryEnum));
-            } else if (!keyword.isBlank()) { // 전체 조회
+            } else if (!keyword.isBlank()) { // 키워드 조회
                 builder.and(cook.name.contains(keyword));
             }
         } catch (IllegalArgumentException e) {
@@ -141,7 +142,8 @@ public class CookService {
                                 cook.allergy,
                                 cook.recipe,
                                 cook.category,
-                                cook.thumbnail
+                                cook.thumbnail,
+                                cook.active
                         )
                 )
                 .from(cook)
@@ -198,14 +200,14 @@ public class CookService {
 
     public boolean checkCook(Long cookId) {
         log.info("컨트롤러 통과");
-        boolean exists = cookRepository.existsById(cookId);
+        boolean exists = cookRepository.existsByIdAndActive(cookId, "Y");
         log.info(exists ? "존재" : "없음");
         return exists;
     }
 
     public List<UserBookmarkResDto> findCookById(List<Long> cookIds) {
 
-        List<Cook> cooks = cookRepository.findAllById(cookIds);
+        List<Cook> cooks = cookRepository.findAllByIdInAndActive(cookIds, "Y");
 
         List<UserBookmarkResDto> collect = cooks.stream()
                 .map(cook -> new UserBookmarkResDto(
@@ -262,6 +264,9 @@ public class CookService {
         return cook.getName();
     }
 
+    /**
+     * 요리 단건 조회
+     */
     public CookIndividualResDto getCookById(Long cookId) {
         log.info("요리 단건 조회 시작 | cookId: " + cookId);
 
@@ -279,7 +284,7 @@ public class CookService {
                         combination.unitQuantity
                 )
                 .from(cook)
-                .where(cook.id.eq(cookId))
+                .where(cook.id.eq(cookId).and(cook.active.eq("Y")))
                 .join(combination)
                 .on(combination.cookId.eq(cook.id))
                 .join(ingredient)
