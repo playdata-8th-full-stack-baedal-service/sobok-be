@@ -471,6 +471,7 @@ public class UserService {
         return UserPostInfoResDto.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
+                .authId(user.getAuthId())
                 .build();
     }
 

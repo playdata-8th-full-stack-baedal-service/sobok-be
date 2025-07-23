@@ -13,4 +13,5 @@ import lombok.*;
 public class UserInfoResDto {
     private Long userId;
     private String nickname;
+    private Long authId;
 }

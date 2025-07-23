@@ -375,7 +375,7 @@ public class PostService {
                 .orElseThrow(() -> new CustomException("게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
         String cookName = paymentClient.getCookName(post.getCookId());
-        String nickname = userClient.getNicknameById(post.getUserId());
+        UserInfoResDto userInfo = userClient.getUserInfo(post.getUserId());
         Long likeCount = userClient.getLikeCount(postId);
 
         List<String> imagePaths = postImageRepository.findAllByPostId(postId).stream()
@@ -391,8 +391,9 @@ public class PostService {
                 .postId(postId)
                 .title(post.getTitle())
                 .cookName(cookName)
-                .nickname(nickname)
+                .nickname(userInfo.getNickname())
                 .userId(post.getUserId())
+                .authId(userInfo.getAuthId())
                 .likeCount(likeCount)
                 .images(imagePaths)
                 .updatedAt(post.getUpdatedAt())
