@@ -233,6 +233,7 @@ public class CartService {
                     .cookId(cook.getCookId())
                     .cookName(cook.getName())
                     .thumbnail(cook.getThumbnail())
+                    .active(cook.getActive())
                     .quantity(cartCook.getCount())
                     .baseIngredients(baseIngredients) // 기본 식재료
                     .additionalIngredients(additionalDtos) // 추가 식재료

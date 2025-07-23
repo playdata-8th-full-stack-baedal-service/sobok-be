@@ -193,6 +193,7 @@ public class CookService {
                 .cookId(cook.getId())
                 .name(cook.getName())
                 .thumbnail(cook.getThumbnail())
+                .active(cook.getActive())
                 .ingredients(ingredients)
                 .build();
     }
