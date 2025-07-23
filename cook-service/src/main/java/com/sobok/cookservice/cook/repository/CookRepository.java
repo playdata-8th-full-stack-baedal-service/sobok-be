@@ -11,4 +11,6 @@ public interface CookRepository extends JpaRepository<Cook, Long> {
     Optional<Cook> findByThumbnail(String thumbnailUrl);
     boolean existsById(Long id);
     List<Cook> findByIdIn(List<Long> ids);
+    boolean existsByIdAndActive(Long id, String active);
+    List<Cook> findAllByIdInAndActive(List<Long> ids, String active);
 }

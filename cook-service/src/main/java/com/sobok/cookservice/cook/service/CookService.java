@@ -200,14 +200,14 @@ public class CookService {
 
     public boolean checkCook(Long cookId) {
         log.info("컨트롤러 통과");
-        boolean exists = cookRepository.existsById(cookId);
+        boolean exists = cookRepository.existsByIdAndActive(cookId, "Y");
         log.info(exists ? "존재" : "없음");
         return exists;
     }
 
     public List<UserBookmarkResDto> findCookById(List<Long> cookIds) {
 
-        List<Cook> cooks = cookRepository.findAllById(cookIds);
+        List<Cook> cooks = cookRepository.findAllByIdInAndActive(cookIds, "Y");
 
         List<UserBookmarkResDto> collect = cooks.stream()
                 .map(cook -> new UserBookmarkResDto(
