@@ -2,11 +2,10 @@ package com.sobok.cookservice.cook.dto.response;
 
 import lombok.*;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Data
 // 기본 식재료 응답
 public class CookIngredientResDto {
     private Long ingredientId;      // 재료 Id

@@ -16,5 +16,5 @@ public class CookDetailResDto {
     private String name;
     private String thumbnail;
     private String active;
-    private List<IngredientResDto> ingredients;
+    private List<Long> ingredientIds; // 식재료 id
 }
