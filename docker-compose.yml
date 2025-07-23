@@ -24,16 +24,6 @@ services:
     networks:
       - backend
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: sobok-rabbitmq
-    restart: always
-    ports:
-      - "5682:5672"
-      - "15682:15672"
-    networks:
-      - backend
-
 volumes:
   mysql_data:
 

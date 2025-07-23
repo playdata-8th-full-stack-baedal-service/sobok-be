@@ -396,8 +396,9 @@ public class PaymentService {
         List<CartCook> cartCookList = cartCookRepository.findByPaymentId(payment.getId());
         for (CartCook cartCook : cartCookList) {
             cartCook.detachFromPayment();
-            cartCookRepository.save(cartCook);
         }
+
+        cartCookRepository.saveAll(cartCookList);
 
         paymentRepository.delete(payment);
 

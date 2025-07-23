@@ -1,20 +1,18 @@
 package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.ApiResponse;
-import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.UserServiceClient;
+import com.sobok.paymentservice.payment.dto.cart.CartMonthlyHotDto;
 import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.*;
-import com.sobok.paymentservice.payment.entity.Payment;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import com.sobok.paymentservice.payment.dto.shop.ShopPaymentResDto;
 import com.sobok.paymentservice.payment.service.CartService;
 import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -22,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -168,4 +167,8 @@ public class PaymentFeignController {
         return ResponseEntity.ok().body(cartService.getPopularCookIds(page, size));
     }
 
+    @GetMapping("/monthly-hot")
+    public CartMonthlyHotDto getMonthlyHotCooks(@RequestParam int pageNo, @RequestParam int numOfRows) {
+        return cartService.getMonthlyHotList(pageNo, numOfRows);
+    }
 }

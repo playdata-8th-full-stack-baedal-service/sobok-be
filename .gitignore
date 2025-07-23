@@ -73,3 +73,5 @@ bin/
 /.nb-gradle/
 
 sobok.erd.json
+
+.claude/

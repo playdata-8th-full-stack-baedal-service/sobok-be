@@ -23,6 +23,7 @@ import com.sobok.userservice.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -58,6 +59,9 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
+    @Value("${cloudfront.alter}")
+    private String ALTER_URL;
+
     public UserResDto findByPhoneNumber(String phoneNumber) {
         Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
         if (byPhone.isPresent()) {
@@ -89,12 +93,14 @@ public class UserService {
     public void signup(UserSignupReqDto reqDto) {
         log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
 
+        String photoUrl = reqDto.getPhoto() == null ? ALTER_URL + "profile/default_profile.png" : reqDto.getPhoto();
+
         // 유저 객체 생성
         User user = User.builder()
                 .authId(reqDto.getAuthId())
                 .nickname(reqDto.getNickname())
                 .phone(reqDto.getPhone())
-                .photo(reqDto.getPhoto())
+                .photo(photoUrl)
                 .email(reqDto.getEmail())
                 .build();
 
