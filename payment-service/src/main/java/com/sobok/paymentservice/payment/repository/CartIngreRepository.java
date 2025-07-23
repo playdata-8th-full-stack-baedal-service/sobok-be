@@ -16,4 +16,5 @@ public interface CartIngreRepository extends JpaRepository<CartIngredient, Long>
      */
     List<CartIngredient> findByCartCookIdAndDefaultIngre(Long cartCookId, String defaultIngre);
 
+    List<CartIngredient> findByCartCookIdIn(List<Long> cartCookIds);
 }

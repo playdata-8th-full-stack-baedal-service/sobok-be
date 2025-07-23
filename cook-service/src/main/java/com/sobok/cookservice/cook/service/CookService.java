@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCombination.*;
@@ -43,7 +44,7 @@ public class CookService {
     private final JPAQueryFactory factory;
     private final PaymentFeignClient paymentFeignClient;
     private final ApiServiceClient apiServiceClient;
-    private final CookQueryRepository  cookQueryRepository;
+    private final CookQueryRepository cookQueryRepository;
 
     @Transactional
     public CookCreateResDto createCook(CookCreateReqDto dto) {
@@ -225,26 +226,44 @@ public class CookService {
 
     //주문 내역 조회용
     public List<CookDetailResDto> getCookDetailList(List<Long> cookIds) {
-        log.info("cookIds: " + cookIds);
+        // 요리 리스트 조회
+        Map<Long, Cook> cookMap = cookRepository.findAllById(cookIds).stream()
+                .collect(Collectors.toMap(Cook::getId, Function.identity()));
 
-        // 요리 있는지부터 검증 없으면 예외
-        List<Cook> cooksList = new ArrayList<>();
+        // 조합을 cookId 기준으로 그룹화
+        List<Combination> allCombinations = combinationRepository.findByCookIdIn(cookIds);
+        Map<Long, List<Combination>> combinationMap = allCombinations.stream()
+                .collect(Collectors.groupingBy(Combination::getCookId));
 
-        for (Long id : cookIds) {
-            Cook cook = cookRepository.findById(id)
-                    .orElseThrow(() -> new CustomException("ID " + id + "에 해당하는 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-            cooksList.add(cook);
-        }
+        // 식재료 ID만 추출 (상세 정보는 여기서 조회하지 않음)
+        return cookIds.stream().map(cookId -> {
+            Cook cook = cookMap.get(cookId);
 
-        log.info("cooksList: " + cooksList);
+            if (cook == null) {
+                return CookDetailResDto.builder()
+                        .cookId(cookId)
+                        .name(null)
+                        .thumbnail(null)
+                        .active(null)
+                        .ingredientIds(Collections.emptyList())
+                        .build();
+            }
 
-        return cooksList.stream()
-                .map(cook -> CookDetailResDto.builder()
-                        .cookId(cook.getId())
-                        .name(cook.getName())
-                        .thumbnail(cook.getThumbnail())
-                        .build())
-                .toList();
+            List<Combination> combList = combinationMap.getOrDefault(cookId, Collections.emptyList());
+
+            // 식재료 ID 리스트만 전달
+            List<Long> ingredientIds = combList.stream()
+                    .map(Combination::getIngreId)
+                    .toList();
+
+            return CookDetailResDto.builder()
+                    .cookId(cook.getId())
+                    .name(cook.getName())
+                    .thumbnail(cook.getThumbnail())
+                    .active(cook.getActive())
+                    .ingredientIds(ingredientIds)  // 재료 상세 정보는 따로 조회해서 세팅
+                    .build();
+        }).toList();
     }
 
     /**
@@ -422,7 +441,6 @@ public class CookService {
     }
 
 
-
     public List<MonthlyHotCookDto> getMonthlyHotCooks(int pageNo, int numOfRows) {
         CartMonthlyHotDto resDto;
         try {
@@ -460,9 +478,9 @@ public class CookService {
                     = numOfRows == limit ?
                     new ArrayList<>() :
                     monthlyHot.stream()
-                    .skip((long) (pageNo - 1) * numOfRows)
-                    .limit(numOfRows - limit)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                            .skip((long) (pageNo - 1) * numOfRows)
+                            .limit(numOfRows - limit)
+                            .collect(Collectors.toCollection(ArrayList::new));
 
             log.error("limitHot : {}", limitHot);
 
@@ -473,7 +491,7 @@ public class CookService {
             log.error("resDto.getMonthlyHot() : {}", resDto.getMonthlyHot());
         }
 
-       return getMonthlyHotCookList(resDto);
+        return getMonthlyHotCookList(resDto);
     }
 
     private List<MonthlyHotCookDto> getMonthlyHotCookList(CartMonthlyHotDto resDto) {

@@ -23,7 +23,7 @@ public interface CookFeignClient {
 
     // 식재료 조회용
     @GetMapping("/api/ingredients/{id}")
-    IngredientResDto getIngredient(@PathVariable("id") Long ingreId);
+    List<IngredientResDto> getIngredients(@PathVariable("id") List<Long> ingreId);
 
     @GetMapping("/api/cooks")
     List<CookDetailResDto> getCookDetails(@RequestParam("id") List<Long> cookIds);
@@ -32,7 +32,7 @@ public interface CookFeignClient {
      * 요리 ID로 요리 이름을 조회
      */
     @GetMapping("/api/cook/name")
-    String getCookNameById(@RequestParam Long cookId);
+    String getCookNameById(@RequestParam("id") Long cookId);
 
     /**
      * 요리 ID로 기본 식재료 목록 조회

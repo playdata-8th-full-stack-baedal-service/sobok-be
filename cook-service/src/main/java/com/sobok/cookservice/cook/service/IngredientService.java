@@ -20,6 +20,9 @@ import com.querydsl.core.BooleanBuilder;
 import static com.sobok.cookservice.cook.entity.QIngredient.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -98,18 +101,30 @@ public class IngredientService {
     /**
      * 추가 식재료 조회 Feign
      */
-    public CookIngredientResDto getIngredientDtoById(Long id) {
-        Ingredient ingre = ingredientRepository.findById(id)
-                .orElseThrow(() -> new CustomException("식재료가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-        log.info("ingredient name: {}", ingre.getIngreName());
-        return CookIngredientResDto.builder()
-                .ingredientId(ingre.getId())
-                .ingreName(ingre.getIngreName())
-                .unit(ingre.getUnit())
-                .price(ingre.getPrice())
-                .origin(ingre.getOrigin())
-                .build();
+    public List<CookIngredientResDto> getIngredientDtoById(List<Long> ids) {
+        Map<Long, Ingredient> ingredientMap = ingredientRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Ingredient::getId, Function.identity()));
+
+        return ids.stream()
+                .map(id -> {
+                    Ingredient ingre = ingredientMap.get(id);
+                    if (ingre == null) {
+                        log.warn("식재료 ID {} 는 존재하지 않습니다.", id);
+                        return null; // 또는 예외 객체가 아닌 기본값 DTO로 대체 가능
+                    }
+
+                    log.info("ingredient name: {}", ingre.getIngreName());
+                    return CookIngredientResDto.builder()
+                            .ingredientId(ingre.getId())
+                            .ingreName(ingre.getIngreName())
+                            .unit(ingre.getUnit())
+                            .price(ingre.getPrice())
+                            .origin(ingre.getOrigin())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
+
     /**
      * 식재료 이름 조회용 (주문 전체 조회)
      */

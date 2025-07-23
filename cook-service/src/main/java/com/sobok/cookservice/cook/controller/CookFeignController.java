@@ -39,7 +39,7 @@ public class CookFeignController {
 
     // 추가 식재료 조회
     @GetMapping("/ingredients/{id}")
-    public CookIngredientResDto getIngredient(@PathVariable Long id) {
+    public List<CookIngredientResDto> getIngredient(@PathVariable List<Long> id) {
         return ingredientService.getIngredientDtoById(id);
     }
 
@@ -86,7 +86,7 @@ public class CookFeignController {
      * 게시글 등록(요리 이름 조회)
      */
     @GetMapping("/cook/name")
-    public String getCookNameById(@RequestParam Long cookId) {
+    public String getCookNameById(@RequestParam("id") Long cookId) {
         return cookService.getCookNameById(cookId);
     }
 
