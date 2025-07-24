@@ -10,7 +10,7 @@ import lombok.*;
 public class IngredientInfoResDto {
     private Long ingredientId;
     private String ingredientName;
-    private String unit;
+    private Integer unit;
     private Integer price;
     private String origin;
 }

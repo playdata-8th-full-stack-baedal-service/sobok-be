@@ -276,7 +276,7 @@ public class CookService {
                         .ingredientId(t.get(ingredient.id))
                         .ingredientName(t.get(ingredient.ingreName))
                         .price(t.get(ingredient.price))
-                        .unit(Integer.parseInt(t.get(ingredient.unit)))
+                        .unit(t.get(ingredient.unit))
                         .unitQuantity(t.get(combination.unitQuantity))
                         .build())
                 .collect(Collectors.toList());
@@ -300,7 +300,7 @@ public class CookService {
             return CookWithIngredientResDto.builder()
                     .ingredientId(ingre.getId())
                     .ingredientName(ingre.getIngreName())
-                    .unit(String.valueOf(ingre.getUnit()))
+                    .unit(ingre.getUnit() != null ? ingre.getUnit() : 0)
                     .quantity(comb.getUnitQuantity())
                     .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                     .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
@@ -319,7 +319,7 @@ public class CookService {
         return IngredientInfoResDto.builder()
                 .ingredientId(ingre.getId())
                 .ingredientName(ingre.getIngreName())
-                .unit(String.valueOf(ingre.getUnit()))
+                .unit(ingre.getUnit() != null ? ingre.getUnit() : 0)
                 .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                 .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                 .build();
