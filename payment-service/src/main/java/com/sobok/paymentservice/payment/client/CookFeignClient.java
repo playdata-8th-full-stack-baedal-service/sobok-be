@@ -2,6 +2,7 @@ package com.sobok.paymentservice.payment.client;
 
 import com.sobok.paymentservice.common.config.FeignConfig;
 import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
+import com.sobok.paymentservice.payment.dto.response.CookInfoResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientTwoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -18,15 +19,17 @@ public interface CookFeignClient {
     @GetMapping("/api/get-cook-default-ingre")
     Map<Long, Integer> getDefaultIngreInfoList(@RequestParam Long cookId);
 
+    // 장바구니 조회용
     @GetMapping("/api/cook/{cookId}")
-    CookDetailResDto getCookDetail(@PathVariable Long cookId);
+    List<CookDetailResDto> getCookDetail(@PathVariable List<Long> cookId);
 
     // 식재료 조회용
     @GetMapping("/api/ingredients/{id}")
-    IngredientResDto getIngredient(@PathVariable("id") Long ingreId);
+    List<IngredientResDto> getIngredients(@PathVariable("id") List<Long> ingreId);
 
-    @GetMapping("/api/cooks")
-    List<CookDetailResDto> getCookDetails(@RequestParam("id") List<Long> cookIds);
+    // 주문 내역 조회용
+    @GetMapping("/api/cooks-info")
+    List<CookInfoResDto> getCooksInfo(@RequestParam("id") List<Long> cookIds);
 
     /**
      * 요리 ID로 요리 이름을 조회

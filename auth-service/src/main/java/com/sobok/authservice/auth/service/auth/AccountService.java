@@ -172,6 +172,11 @@ public class AccountService {
             Auth auth = authRepository.findById(authResetPwReqDto.getAuthId())
                     .orElseThrow(() -> new CustomException("해당 auth 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
 
+            // 새 비밀번호가 기존 비밀번호와 동일한지 확인
+            if (passwordEncoder.matches(authResetPwReqDto.getNewPassword(), auth.getPassword())) {
+                throw new CustomException("기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다.", HttpStatus.BAD_REQUEST);
+            }
+
             // 새 비밀번호 암호화 후 저장
             String encodedPassword = passwordEncoder.encode(authResetPwReqDto.getNewPassword());
             auth.changePassword(encodedPassword);
