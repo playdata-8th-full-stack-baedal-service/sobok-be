@@ -463,13 +463,8 @@ public class CookService {
                     .limit(numOfRows - limit)
                     .collect(Collectors.toCollection(ArrayList::new));
 
-            log.error("limitHot : {}", limitHot);
-
             limitHot.addAll(notOrderedCookIdList);
-            log.error("notOrderedCookIdList : {}", notOrderedCookIdList);
-            log.error("limit : {}", limitHot);
             resDto.setMonthlyHot(limitHot);
-            log.error("resDto.getMonthlyHot() : {}", resDto.getMonthlyHot());
         }
 
        return getMonthlyHotCookList(resDto);
