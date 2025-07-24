@@ -38,6 +38,9 @@ public class PostService {
      */
     @Transactional
     public PostRegisterResDto registerPost(PostRegisterReqDto dto, TokenUserInfo userInfo) {
+        // 스크립트 태그 포함 여부 검사
+        validateNoScriptTag(dto.getContent());
+
         Long userId = userInfo.getUserId();
 
         boolean isCompleted = paymentClient.isPaymentCompleted(dto.getPaymentId(), userId);
@@ -85,6 +88,12 @@ public class PostService {
         return build;
     }
 
+    public void validateNoScriptTag(String html) {
+        if (html != null && html.toLowerCase().contains("<script")) {
+            throw new CustomException("해당 내용의 게시물은 등록할 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     /**
      * 게시글 수정
      */
@@ -98,7 +107,11 @@ public class PostService {
         }
 
         if (dto.getTitle() != null) post.setTitle(dto.getTitle());
-        if (dto.getContent() != null) post.setContent(dto.getContent());
+        if (dto.getContent() != null) {
+            // 스크립트 태그 포함 여부 검사
+            validateNoScriptTag(dto.getContent());
+            post.setContent(dto.getContent());
+        }
 
         postImageRepository.deleteByPostId(post.getId());
 
