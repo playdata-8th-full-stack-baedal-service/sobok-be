@@ -1,13 +1,12 @@
 package com.sobok.paymentservice.payment.client;
 
 import com.sobok.paymentservice.common.config.FeignConfig;
+import com.sobok.paymentservice.payment.dto.cart.MonthlyHot;
 import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientTwoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -45,5 +44,8 @@ public interface CookFeignClient {
      */
     @GetMapping("/api/cook/ingredient-info")
     IngredientTwoResDto getIngredientInfo(@RequestParam Long ingreId);
+
+    @PutMapping("/api/monthly-hot")
+    void updateMonthlyHotCooks(@RequestBody List<MonthlyHot> monthlyHotList);
 }
 

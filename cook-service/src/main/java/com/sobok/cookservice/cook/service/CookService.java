@@ -424,9 +424,9 @@ public class CookService {
 
 
     public List<MonthlyHotCookDto> getMonthlyHotCooks(int pageNo, int numOfRows) {
-        CartMonthlyHotDto resDto;
+        CartMonthlyHotDto resDto = null;
         try {
-            resDto = paymentFeignClient.getMonthlyHotCooks(pageNo, numOfRows);
+//            resDto = paymentFeignClient.getMonthlyHotCooks(pageNo, numOfRows);
             if (resDto == null) {
                 throw new CustomException("<UNK> <UNK> <UNK>.", HttpStatus.INTERNAL_SERVER_ERROR);
             }

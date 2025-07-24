@@ -1,12 +1,12 @@
 package com.sobok.cookservice.cook.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.cook.dto.display.BasicCookDisplay;
 import com.sobok.cookservice.cook.dto.display.DisplayParamDto;
 import com.sobok.cookservice.cook.dto.response.CartMonthlyHotDto;
-import com.sobok.cookservice.cook.entity.Cook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.sobok.cookservice.cook.entity.QCook.cook;
+import static com.sobok.cookservice.cook.entity.QCookOrderCountCache.cookOrderCountCache;
 
 @RequiredArgsConstructor
 @Repository
@@ -32,7 +33,7 @@ public class CookQueryRepository {
                 .toList();
     }
 
-    public List<BasicCookDisplay> getCookDisplaysByCondition(DisplayParamDto params, BooleanBuilder builder) {
+    public List<BasicCookDisplay> getCookDisplaysByCondition(DisplayParamDto params, BooleanBuilder builder, List<OrderSpecifier<?>> orderSpecifiers) {
         long offset = (params.getPageNo() - 1) * params.getNumOfRows();
         long limit = params.getNumOfRows();
 
@@ -46,7 +47,9 @@ public class CookQueryRepository {
                 )
                 .from(cook)
                 .where(builder)
-                .orderBy(cook.updatedAt.desc())
+                .leftJoin(cookOrderCountCache)
+                .on(cook.id.eq(cookOrderCountCache.cookId))
+                .orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]))
                 .offset(offset)
                 .limit(limit)
                 .fetch();

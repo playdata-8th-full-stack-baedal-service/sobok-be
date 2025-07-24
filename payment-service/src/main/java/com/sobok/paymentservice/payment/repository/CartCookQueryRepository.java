@@ -2,7 +2,9 @@ package com.sobok.paymentservice.payment.repository;
 
 import com.querydsl.core.Query;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sobok.paymentservice.payment.dto.cart.MonthlyHot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -18,10 +20,16 @@ import static com.sobok.paymentservice.payment.entity.QPayment.payment;
 public class CartCookQueryRepository {
     private final JPAQueryFactory queryFactory;
 
-    public List<Tuple> getMonthlyHotCartCook(Long monthToMillis) {
+    public List<MonthlyHot> getMonthlyHotCartCook(Long monthToMillis) {
         // 주문량 순 요리 조회
         return queryFactory
-                .select(cartCook.cookId, cartCook.count.sum())
+                .select(
+                        Projections.constructor(
+                                MonthlyHot.class,
+                                cartCook.cookId,
+                                cartCook.count.sum()
+                        )
+                )
                 .from(cartCook)
                 .where(payment.createdAt.goe(monthToMillis))
                 .join(payment)
