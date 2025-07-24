@@ -167,8 +167,8 @@ public class PaymentFeignController {
         return ResponseEntity.ok().body(cartService.getPopularCookIds(page, size));
     }
 
-    @GetMapping("/monthly-hot")
-    public CartMonthlyHotDto getMonthlyHotCooks(@RequestParam int pageNo, @RequestParam int numOfRows) {
-        return cartService.getMonthlyHotList(pageNo, numOfRows);
-    }
+//    @GetMapping("/monthly-hot")
+//    public CartMonthlyHotDto getMonthlyHotCooks(@RequestParam int pageNo, @RequestParam int numOfRows) {
+//        return cartService.getMonthlyHotList(pageNo, numOfRows);
+//    }
 }

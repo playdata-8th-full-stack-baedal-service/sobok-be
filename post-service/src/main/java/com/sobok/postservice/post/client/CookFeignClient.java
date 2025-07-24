@@ -26,5 +26,10 @@ public interface CookFeignClient {
     @PostMapping("/api/cook-names")
     List<CookNameResDto> getCookNamesByIds(@RequestBody List<Long> cookIds);
 
+    /**
+     * 요리 썸네일 가져오기
+     */
+    @GetMapping("/api/cook-thumbnail")
+    String getCookThumbnail(@RequestParam Long cookId);
 }
 

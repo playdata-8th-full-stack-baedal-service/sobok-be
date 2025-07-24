@@ -1,9 +1,12 @@
 package com.sobok.cookservice.cook.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sobok.cookservice.cook.dto.display.BasicCookDisplay;
+import com.sobok.cookservice.cook.dto.display.DisplayParamDto;
 import com.sobok.cookservice.cook.dto.response.CartMonthlyHotDto;
 import com.sobok.cookservice.cook.dto.response.CookResDto;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +17,9 @@ import java.util.List;
 
 import static com.sobok.cookservice.cook.entity.QCombination.combination;
 import static com.sobok.cookservice.cook.entity.QCook.cook;
+import static com.sobok.cookservice.cook.entity.QCookOrderCountCache.cookOrderCountCache;
 import static com.sobok.cookservice.cook.entity.QIngredient.ingredient;
+
 
 @RequiredArgsConstructor
 @Repository
@@ -32,6 +37,30 @@ public class CookQueryRepository {
                 .map(id -> new CartMonthlyHotDto.MonthlyHot(id, 0))
                 .toList();
     }
+
+
+    public List<BasicCookDisplay> getCookDisplaysByCondition(DisplayParamDto params, BooleanBuilder builder, List<OrderSpecifier<?>> orderSpecifiers) {
+        long offset = (params.getPageNo() - 1) * params.getNumOfRows();
+        long limit = params.getNumOfRows();
+
+        return factory.select(
+                        Projections.constructor(
+                                BasicCookDisplay.class,
+                                cook.id,
+                                cook.name,
+                                cook.thumbnail
+                                    )
+                )
+                .from(cook)
+                .where(builder)
+           .leftJoin(cookOrderCountCache)
+                .on(cook.id.eq(cookOrderCountCache.cookId))
+                .orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]))
+                .offset(offset)
+                .limit(limit)
+            .fetch();
+    }
+
 
     public List<CookResDto> getSearchCook(Long numOfRows, BooleanBuilder builder, long offset) {
         return factory.select(

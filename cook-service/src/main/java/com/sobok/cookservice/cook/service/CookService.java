@@ -13,6 +13,7 @@ import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.repository.CookQueryRepository;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,18 +53,18 @@ public class CookService {
                     throw new CustomException("이미 존재하는 요리 이름입니다.", HttpStatus.BAD_REQUEST);
                 });
 
-
-        // 사진 등록
-        String photoUrl;
-        try {
-            photoUrl = apiServiceClient.registerImg(dto.getThumbnailUrl());
-        } catch (Exception e) {
-            log.error("사진 등록 실패", e);
-            photoUrl = dto.getThumbnailUrl();
-        }
+//
+//        // 사진 등록
+//        String photoUrl;
+//        try {
+//            photoUrl = apiServiceClient.registerImg(dto.getThumbnailUrl());
+//        } catch (Exception e) {
+//            log.error("사진 등록 실패", e);
+//            photoUrl = dto.getThumbnailUrl();
+//        }
 
         // 레시피 썸네일 중복 검증
-        cookRepository.findByThumbnail(photoUrl)
+        cookRepository.findByThumbnail(dto.getThumbnailUrl())
                 .ifPresent(cook -> {
                     throw new CustomException("이미 사용 중인 썸네일입니다.", HttpStatus.BAD_REQUEST);
                 });
@@ -74,7 +75,7 @@ public class CookService {
                 .allergy(dto.getAllergy())
                 .recipe(dto.getRecipe())
                 .category(CookCategory.valueOf(dto.getCategory().toUpperCase()))
-                .thumbnail(photoUrl)
+                .thumbnail(dto.getThumbnailUrl())
                 .build();
 
         cookRepository.save(cook); // DB 저장
@@ -386,9 +387,9 @@ public class CookService {
 
 
     public List<MonthlyHotCookDto> getMonthlyHotCooks(int pageNo, int numOfRows) {
-        CartMonthlyHotDto resDto;
+        CartMonthlyHotDto resDto = null;
         try {
-            resDto = paymentFeignClient.getMonthlyHotCooks(pageNo, numOfRows);
+//            resDto = paymentFeignClient.getMonthlyHotCooks(pageNo, numOfRows);
             if (resDto == null) {
                 throw new CustomException("<UNK> <UNK> <UNK>.", HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -426,13 +427,8 @@ public class CookService {
                             .limit(numOfRows - limit)
                             .collect(Collectors.toCollection(ArrayList::new));
 
-            log.error("limitHot : {}", limitHot);
-
             limitHot.addAll(notOrderedCookIdList);
-            log.error("notOrderedCookIdList : {}", notOrderedCookIdList);
-            log.error("limit : {}", limitHot);
             resDto.setMonthlyHot(limitHot);
-            log.error("resDto.getMonthlyHot() : {}", resDto.getMonthlyHot());
         }
 
         return getMonthlyHotCookList(resDto);
@@ -467,6 +463,14 @@ public class CookService {
                 .stream()
                 .map(CartMonthlyHotDto.MonthlyHot::getCookId)
                 .toList();
+    }
+
+    public String getCookThumbnail(Long cookId) {
+        return cookRepository.findById(cookId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("해당하는 요리를 찾을 수 없습니다.")
+                )
+                .getThumbnail();
     }
 }
 

@@ -313,27 +313,28 @@ public class CartService {
                 .fetch();
     }
 
-    public CartMonthlyHotDto getMonthlyHotList(int pageNo, int numOfRows) {
-        // 현재 시각 기준으로 한달 전 주문 조회
-        long monthToMillis = LocalDateTime.now().minusMonths(1)
-                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+//    public CartMonthlyHotDto getMonthlyHotList(int pageNo, int numOfRows) {
+//        // 현재 시각 기준으로 한달 전 주문 조회
+//        long monthToMillis = LocalDateTime.now().minusMonths(1)
+//                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+//
+//        // 페이징에 필요한 주문된 요리 최소 갯수
+//        int pagingMinimum = pageNo * numOfRows;
+//
+//        // 주문량 순 요리 조회
+//        List<CartMonthlyHotDto.MonthlyHot> monthlyHotList = cartCookQueryRepository.getMonthlyHotCartCook(monthToMillis).stream()
+//                .map(t -> new CartMonthlyHotDto.MonthlyHot(t.get(cartCook.cookId), t.get(cartCook.count.sum().intValue())))
+//                .toList();
+//
+//        // 페이징이 가능한지 확인
+//        boolean isAvailable = monthlyHotList.size() >= pagingMinimum;
+//
+//        // 개수가 모자라다면 전체, 아니라면 개수에 맞게
+//        List<CartMonthlyHotDto.MonthlyHot> result = isAvailable ?
+//                monthlyHotList.subList(pagingMinimum - numOfRows, pagingMinimum) :
+//                monthlyHotList;
+//
+//        return new CartMonthlyHotDto(result, isAvailable,  monthlyHotList.size());
+//    }
 
-        // 페이징에 필요한 주문된 요리 최소 갯수
-        int pagingMinimum = pageNo * numOfRows;
-
-        // 주문량 순 요리 조회
-        List<CartMonthlyHotDto.MonthlyHot> monthlyHotList = cartCookQueryRepository.getMonthlyHotCartCook(monthToMillis).stream()
-                .map(t -> new CartMonthlyHotDto.MonthlyHot(t.get(cartCook.cookId), t.get(cartCook.count.sum().intValue())))
-                .toList();
-
-        // 페이징이 가능한지 확인
-        boolean isAvailable = monthlyHotList.size() >= pagingMinimum;
-
-        // 개수가 모자라다면 전체, 아니라면 개수에 맞게
-        List<CartMonthlyHotDto.MonthlyHot> result = isAvailable ?
-                monthlyHotList.subList(pagingMinimum - numOfRows, pagingMinimum) :
-                monthlyHotList;
-
-        return new CartMonthlyHotDto(result, isAvailable, monthlyHotList.size());
-    }
 }

@@ -1,11 +1,10 @@
 package com.sobok.cookservice.cook.controller;
 
 
+import com.sobok.cookservice.cook.dto.display.MonthlyHot;
 import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.repository.CookRepository;
-import com.sobok.cookservice.cook.service.CombinationService;
-import com.sobok.cookservice.cook.service.CookService;
-import com.sobok.cookservice.cook.service.IngredientService;
+import com.sobok.cookservice.cook.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +22,7 @@ public class CookFeignController {
     private final CombinationService combinationService;
     private final IngredientService ingredientService;
     private final CookService cookService;
+    private final MonthlyHotCookUpdater monthlyHotCookUpdater;
 
 
     @GetMapping("/get-cook-default-ingre")
@@ -111,5 +111,18 @@ public class CookFeignController {
     @PostMapping("/cook-names")
     public ResponseEntity<List<CookNameResDto>> getCookNamesForPostService(@RequestBody List<Long> cookIds) {
         return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
+    }
+
+    /**
+     * 대표 이미지가 없는 post를 위한 사진 공유
+     */
+    @GetMapping("/cook-thumbnail")
+    String getCookThumbnail(@RequestParam Long cookId) {
+        return cookService.getCookThumbnail(cookId);
+    }
+
+    @PutMapping("/monthly-hot")
+    void updateMonthlyHotCooks(@RequestBody List<MonthlyHot> monthlyHotList) {
+        monthlyHotCookUpdater.updateMonthlyHotCooks(monthlyHotList);
     }
 }
