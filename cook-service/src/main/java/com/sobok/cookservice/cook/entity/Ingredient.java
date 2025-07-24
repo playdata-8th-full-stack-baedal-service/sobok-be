@@ -29,13 +29,13 @@ public class Ingredient {
     private String origin;
 
     @Column(nullable = false)
-    private String unit;
+    private Integer unit;
 
     public void update(IngreEditReqDto dto) {
         if (StringUtils.hasText(dto.getIngreName())) this.ingreName = dto.getIngreName();
         if (dto.getPrice() != null) this.price = dto.getPrice();
         if (StringUtils.hasText(dto.getOrigin())) this.origin = dto.getOrigin();
-        if (StringUtils.hasText(dto.getUnit())) this.unit = dto.getUnit();
+        if (dto.getUnit() != null) this.unit = dto.getUnit();
     }
 
 

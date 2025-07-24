@@ -11,6 +11,7 @@ import com.sobok.userservice.user.dto.response.UserLikeResDto;
 import com.sobok.userservice.user.service.UserService;
 import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.user.service.UserAddressService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -56,7 +57,7 @@ public class UserController {
     }
 
     @PostMapping("/editEmail")
-    public ResponseEntity<?> editEmail(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserEmailDto reqDto) {
+    public ResponseEntity<?> editEmail(@AuthenticationPrincipal TokenUserInfo userInfo, @Valid @RequestBody UserEmailDto reqDto) {
         userService.editEmail(userInfo, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 변경하였습니다."));
     }

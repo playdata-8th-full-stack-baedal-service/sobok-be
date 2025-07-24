@@ -271,6 +271,7 @@ public class RegisterService {
                 .photo(authByOauthReqDto.getPhoto())
                 .roadFull(authByOauthReqDto.getRoadFull())
                 .addrDetail(authByOauthReqDto.getAddrDetail())
+                .inputCode(authByOauthReqDto.getInputCode())
                 .build());
         log.info("회원가입 성공: {}", oauthResDto);
     }

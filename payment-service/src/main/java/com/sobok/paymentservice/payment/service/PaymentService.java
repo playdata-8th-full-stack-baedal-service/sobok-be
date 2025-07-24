@@ -259,7 +259,7 @@ public class PaymentService {
         List<Long> paymentIdList = cartCookList.stream().map(CartCook::getPaymentId).distinct().toList();
 
         //cook-service로 요청보내서 요리 이름, 요리 이미지 주소 얻어오기
-        List<CookDetailResDto> cookDetails = cookFeignClient.getCookDetails(cookIdList);
+        List<CookInfoResDto> cookDetails = cookFeignClient.getCooksInfo(cookIdList);
         log.info("주문한 요리 정보 cookDetails : {}", cookDetails);
 
         //결제 정보 가져오기
@@ -270,8 +270,8 @@ public class PaymentService {
 
         // 근데 여러개의 cart_cook이 하나의 paymentId를 가질 수 있음
         //CartCook에서 cookId를 가지고 바로 요리정보 찾아오기 위해 맵으로 매핑
-        Map<Long, CookDetailResDto> cookMap = cookDetails.stream()
-                .collect(Collectors.toMap(CookDetailResDto::getCookId, Function.identity()));
+        Map<Long, CookInfoResDto> cookMap = cookDetails.stream()
+                .collect(Collectors.toMap(CookInfoResDto::getCookId, Function.identity()));
         //paymentId 기준으로 CartCook 묶기 (주문 단위로 그룹핑)
         Map<Long, List<CartCook>> cartCookByPayment = orderedCartCooks.stream()
                 .collect(Collectors.groupingBy(CartCook::getPaymentId));
@@ -284,7 +284,7 @@ public class PaymentService {
                     List<GetPaymentResDto.Cook> cookDtos = (cartCooks != null ? cartCooks : List.<CartCook>of())
                             .stream()
                             .map(cart -> {
-                                CookDetailResDto cookDetail = cookMap.get(cart.getCookId());
+                                CookInfoResDto cookDetail = cookMap.get(cart.getCookId());
                                 if (cookDetail == null)
                                     throw new CustomException("요리 정보가 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
                                 return GetPaymentResDto.Cook.builder()
@@ -304,7 +304,6 @@ public class PaymentService {
                             .build();
                 })
                 .toList();
-
 
         //응답: payment - 주문 번호(orderId), 주문 일자, 배송 상태, 결제 금액. cart_cook - 주문한 요리 사진과 이름
         //정렬 및 페이징 처리

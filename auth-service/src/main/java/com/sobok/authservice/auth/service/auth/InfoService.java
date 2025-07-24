@@ -73,7 +73,7 @@ public class InfoService {
     public OauthResDto findByOauthId(Long id) {
         // 회원 정보 가져오기
         Auth auth = authRepository.findByOauthId(id).orElseThrow(
-                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
+                () -> new CustomException("존재하지 않는 사용자입니다.", HttpStatus.NOT_FOUND)
         );
 
         return OauthResDto.builder()

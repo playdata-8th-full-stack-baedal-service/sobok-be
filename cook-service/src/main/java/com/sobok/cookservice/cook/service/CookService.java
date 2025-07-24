@@ -2,8 +2,6 @@ package com.sobok.cookservice.cook.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.client.ApiServiceClient;
@@ -26,6 +24,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.sobok.cookservice.cook.entity.QCombination.*;
@@ -41,10 +40,9 @@ public class CookService {
     private final CookRepository cookRepository;
     private final CombinationRepository combinationRepository;
     private final IngredientRepository ingredientRepository;
-    private final JPAQueryFactory factory;
     private final PaymentFeignClient paymentFeignClient;
     private final ApiServiceClient apiServiceClient;
-    private final CookQueryRepository  cookQueryRepository;
+    private final CookQueryRepository cookQueryRepository;
 
     @Transactional
     public CookCreateResDto createCook(CookCreateReqDto dto) {
@@ -135,24 +133,7 @@ public class CookService {
         }
 
 
-        return factory.select(
-                        Projections.fields(
-                                CookResDto.class,
-                                cook.id,
-                                cook.name,
-                                cook.allergy,
-                                cook.recipe,
-                                cook.category,
-                                cook.thumbnail,
-                                cook.active
-                        )
-                )
-                .from(cook)
-                .where(builder)
-                .offset(offset)
-                .orderBy(cook.updatedAt.desc())
-                .limit(numOfRows)
-                .fetch();
+        return cookQueryRepository.getSearchCook(numOfRows, builder, offset);
     }
 
     public List<CookResDto> getCookByCategory(String category, Long pageNo, Long numOfRows) {
@@ -160,42 +141,46 @@ public class CookService {
         return searchCook("category:" + category, pageNo, numOfRows);
     }
 
-
     // 장바구니용 조회
-    public CookDetailResDto getCookDetail(Long cookId) {
-        // 요리 있는지부터 검증 없으면 예외
-        Cook cook = cookRepository.findById(cookId)
-                .orElseThrow(() -> new CustomException("해당 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+    public List<CookDetailResDto> getCookDetail(List<Long> cookIds) {
+        // 요리 리스트 조회
+        Map<Long, Cook> cookMap = cookRepository.findAllById(cookIds).stream()
+                .collect(Collectors.toMap(Cook::getId, Function.identity()));
 
-        // cook 테이블에 해당되는 식재료 찾기
-        List<Combination> combinations = combinationRepository.findByCookId(cookId);
+        // 조합을 cookId 기준으로 그룹화
+        List<Combination> allCombinations = combinationRepository.findByCookIdIn(cookIds);
+        Map<Long, List<Combination>> combinationMap = allCombinations.stream()
+                .collect(Collectors.groupingBy(Combination::getCookId));
 
-        // 각 조합에서 식재료 정보를 추출하여 dto로 변환
-        List<CookIngredientResDto> ingredients = combinations.stream().map(comb -> {
-            Ingredient ingre = comb.getIngredient(); // 연관된 식재료
+        // 식재료 ID만 추출 (상세 정보는 여기서 조회하지 않음)
+        return cookIds.stream().map(cookId -> {
+            Cook cook = cookMap.get(cookId);
 
-            // 식재료가 없거나 존재하지 않으면 예외 던짐
-            if (ingre == null) {
-                ingre = ingredientRepository.findById(comb.getIngreId())
-                        .orElseThrow(() -> new CustomException("식재료가 존재하지 않습니다: id=" + comb.getIngreId(), HttpStatus.NOT_FOUND));
+            if (cook == null) {
+                return CookDetailResDto.builder()
+                        .cookId(cookId)
+                        .name(null)
+                        .thumbnail(null)
+                        .active(null)
+                        .ingredientIds(Collections.emptyList())
+                        .build();
             }
 
-            return CookIngredientResDto.builder()
-                    .ingredientId(ingre.getId())
-                    .ingreName(ingre.getIngreName())
-                    .unitQuantity(comb.getUnitQuantity())
-                    .unit(ingre.getUnit())
-                    .price(ingre.getPrice())
-                    .origin(ingre.getOrigin())
+            List<Combination> combList = combinationMap.getOrDefault(cookId, Collections.emptyList());
+
+            // 식재료 ID 리스트만 전달
+            List<Long> ingredientIds = combList.stream()
+                    .map(Combination::getIngreId)
+                    .toList();
+
+            return CookDetailResDto.builder()
+                    .cookId(cook.getId())
+                    .name(cook.getName())
+                    .thumbnail(cook.getThumbnail())
+                    .active(cook.getActive())
+                    .ingredientIds(ingredientIds)  // 재료 상세 정보는 따로 조회해서 세팅
                     .build();
         }).toList();
-
-        return CookDetailResDto.builder()
-                .cookId(cook.getId())
-                .name(cook.getName())
-                .thumbnail(cook.getThumbnail())
-                .ingredients(ingredients)
-                .build();
     }
 
 
@@ -224,26 +209,24 @@ public class CookService {
     }
 
     //주문 내역 조회용
-    public List<CookDetailResDto> getCookDetailList(List<Long> cookIds) {
-        log.info("cookIds: " + cookIds);
+    public List<CookInfoResDto> getCooksInfolList(List<Long> cookIds) {
+        List<Cook> foundCooks = cookRepository.findAllById(cookIds);
+        Map<Long, Cook> cookMap = foundCooks.stream()
+                .collect(Collectors.toMap(Cook::getId, Function.identity()));
 
-        // 요리 있는지부터 검증 없으면 예외
-        List<Cook> cooksList = new ArrayList<>();
-
-        for (Long id : cookIds) {
-            Cook cook = cookRepository.findById(id)
-                    .orElseThrow(() -> new CustomException("ID " + id + "에 해당하는 요리가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
-            cooksList.add(cook);
-        }
-
-        log.info("cooksList: " + cooksList);
-
-        return cooksList.stream()
-                .map(cook -> CookDetailResDto.builder()
-                        .cookId(cook.getId())
-                        .name(cook.getName())
-                        .thumbnail(cook.getThumbnail())
-                        .build())
+        return cookIds.stream()
+                .map(id -> {
+                    Cook cook1 = cookMap.get(id);
+                    if (cook1 == null) {
+                        return null;
+                    }
+                    return CookInfoResDto.builder()
+                            .cookId(cook1.getId())
+                            .name(cook1.getName())
+                            .thumbnail(cook1.getThumbnail())
+                            .active(cook1.getActive())
+                            .build();
+                })
                 .toList();
     }
 
@@ -271,26 +254,7 @@ public class CookService {
     public CookIndividualResDto getCookById(Long cookId) {
         log.info("요리 단건 조회 시작 | cookId: " + cookId);
 
-        List<Tuple> tuple = factory.select(
-                        cook.id,
-                        cook.name,
-                        cook.allergy,
-                        cook.category,
-                        cook.recipe,
-                        cook.thumbnail,
-                        ingredient.id,
-                        ingredient.ingreName,
-                        ingredient.price,
-                        ingredient.unit,
-                        combination.unitQuantity
-                )
-                .from(cook)
-                .where(cook.id.eq(cookId).and(cook.active.eq("Y")))
-                .join(combination)
-                .on(combination.cookId.eq(cook.id))
-                .join(ingredient)
-                .on(ingredient.id.eq(combination.ingreId))
-                .fetch();
+        List<Tuple> tuple = cookQueryRepository.getCookInfo(cookId);
 
         if (tuple.isEmpty()) {
             log.error("일치하는 요리가 존재하지 않습니다.");
@@ -313,7 +277,7 @@ public class CookService {
                         .ingredientId(t.get(ingredient.id))
                         .ingredientName(t.get(ingredient.ingreName))
                         .price(t.get(ingredient.price))
-                        .unit(Integer.parseInt(t.get(ingredient.unit)))
+                        .unit(t.get(ingredient.unit))
                         .unitQuantity(t.get(combination.unitQuantity))
                         .build())
                 .collect(Collectors.toList());
@@ -337,7 +301,7 @@ public class CookService {
             return CookWithIngredientResDto.builder()
                     .ingredientId(ingre.getId())
                     .ingredientName(ingre.getIngreName())
-                    .unit(String.valueOf(ingre.getUnit()))
+                    .unit(ingre.getUnit() != null ? ingre.getUnit() : 0)
                     .quantity(comb.getUnitQuantity())
                     .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                     .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
@@ -356,7 +320,7 @@ public class CookService {
         return IngredientInfoResDto.builder()
                 .ingredientId(ingre.getId())
                 .ingredientName(ingre.getIngreName())
-                .unit(String.valueOf(ingre.getUnit()))
+                .unit(ingre.getUnit() != null ? ingre.getUnit() : 0)
                 .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                 .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                 .build();
@@ -422,7 +386,6 @@ public class CookService {
     }
 
 
-
     public List<MonthlyHotCookDto> getMonthlyHotCooks(int pageNo, int numOfRows) {
         CartMonthlyHotDto resDto = null;
         try {
@@ -460,15 +423,15 @@ public class CookService {
                     = numOfRows == limit ?
                     new ArrayList<>() :
                     monthlyHot.stream()
-                    .skip((long) (pageNo - 1) * numOfRows)
-                    .limit(numOfRows - limit)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                            .skip((long) (pageNo - 1) * numOfRows)
+                            .limit(numOfRows - limit)
+                            .collect(Collectors.toCollection(ArrayList::new));
 
             limitHot.addAll(notOrderedCookIdList);
             resDto.setMonthlyHot(limitHot);
         }
 
-       return getMonthlyHotCookList(resDto);
+        return getMonthlyHotCookList(resDto);
     }
 
     private List<MonthlyHotCookDto> getMonthlyHotCookList(CartMonthlyHotDto resDto) {

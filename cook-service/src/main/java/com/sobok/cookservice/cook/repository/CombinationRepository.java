@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface CombinationRepository extends JpaRepository<Combination, Long> {
     List<Combination> findByCookId(Long cookId);
+
+    List<Combination> findByCookIdIn(List<Long> cookIds);
 }

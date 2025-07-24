@@ -32,13 +32,13 @@ public class CookFeignController {
 
     // 장바구니 조회용
     @GetMapping("/cook/{cookId}")
-    public CookDetailResDto getCookDetail(@PathVariable Long cookId) {
+    public List<CookDetailResDto> getCookDetail(@PathVariable List<Long> cookId) {
         return cookService.getCookDetail(cookId);
     }
 
     // 추가 식재료 조회
     @GetMapping("/ingredients/{id}")
-    public CookIngredientResDto getIngredient(@PathVariable Long id) {
+    public List<CookIngredientResDto> getIngredient(@PathVariable List<Long> id) {
         return ingredientService.getIngredientDtoById(id);
     }
 
@@ -76,9 +76,9 @@ public class CookFeignController {
 
 
     //주문 내역 조회용
-    @GetMapping("/cooks")
-    List<CookDetailResDto> getCookDetails(@RequestParam("id") List<Long> cookIds){
-        return cookService.getCookDetailList(cookIds);
+    @GetMapping("/cooks-info")
+    List<CookInfoResDto> getCookDetails(@RequestParam("id") List<Long> cookIds){
+        return cookService.getCooksInfolList(cookIds);
     }
 
     /**
