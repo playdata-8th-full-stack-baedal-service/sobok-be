@@ -15,6 +15,7 @@ import com.sobok.cookservice.cook.repository.CombinationRepository;
 import com.sobok.cookservice.cook.repository.CookQueryRepository;
 import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.repository.IngredientRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -499,6 +500,14 @@ public class CookService {
                 .stream()
                 .map(CartMonthlyHotDto.MonthlyHot::getCookId)
                 .toList();
+    }
+
+    public String getCookThumbnail(Long cookId) {
+        return cookRepository.findById(cookId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("해당하는 요리를 찾을 수 없습니다.")
+                )
+                .getThumbnail();
     }
 }
 

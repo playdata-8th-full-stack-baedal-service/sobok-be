@@ -112,4 +112,12 @@ public class CookFeignController {
     public ResponseEntity<List<CookNameResDto>> getCookNamesForPostService(@RequestBody List<Long> cookIds) {
         return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
     }
+
+    /**
+     * 대표 이미지가 없는 post를 위한 사진 공유
+     */
+    @GetMapping("/cook-thumbnail")
+    String getCookThumbnail(@RequestParam Long cookId) {
+        return cookService.getCookThumbnail(cookId);
+    }
 }

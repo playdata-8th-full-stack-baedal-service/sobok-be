@@ -18,4 +18,5 @@ public interface CookRepository extends JpaRepository<Cook, Long> {
     boolean existsByIdAndActive(Long id, String active);
     List<Cook> findAllByIdInAndActive(List<Long> ids, String active);
 
+    List<Cook> getCooksById(Long id);
 }

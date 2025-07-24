@@ -72,6 +72,16 @@ public class PostService {
                             .build())
                     .toList();
             postImageRepository.saveAll(images);
+        } else {
+            // Post에 사진이 없다면 음식 사진 가져오기
+            String url = cookClient.getCookThumbnail(dto.getCookId());
+            postImageRepository.save(
+                    PostImage.builder()
+                            .postId(post.getId())
+                            .imagePath(url)
+                            .index(1)
+                            .build()
+            );
         }
 
         PostRegisterResDto build = PostRegisterResDto.builder()
