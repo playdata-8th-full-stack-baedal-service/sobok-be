@@ -2,7 +2,6 @@ package com.sobok.shopservice.shop.service;
 
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberTemplate;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.shopservice.common.exception.CustomException;
 import com.sobok.shopservice.shop.client.DeliveryFeignClient;
 import com.sobok.shopservice.shop.client.UserFeignClient;
@@ -12,6 +11,7 @@ import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.response.DeliveryAvailShopResDto;
 import com.sobok.shopservice.shop.entity.QShop;
 import com.sobok.shopservice.shop.entity.Shop;
+import com.sobok.shopservice.shop.repository.ShopQueryRepository;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +28,8 @@ import static com.sobok.shopservice.shop.entity.QShop.*;
 @RequiredArgsConstructor
 public class ShopAssignService {
     private final UserFeignClient userFeignClient;
-    private final JPAQueryFactory factory;
     private final DeliveryFeignClient deliveryFeignClient;
+    private final ShopQueryRepository shopQueryRepository;
 
     public void assignNearestShop(ShopAssignDto reqDto) {
         log.info("가게 자동 배정 시작 | Request : {}", reqDto);
@@ -75,16 +75,7 @@ public class ShopAssignService {
         );
 
         // 3. 쿼리 실행
-        Shop nearestShop = factory
-                .select(shop)
-                .from(shop)
-                .where(
-                        shop.latitude.between(minLat, maxLat),
-                        shop.longitude.between(minLng, maxLng)
-                )
-                .orderBy(distance.asc())
-                .limit(1)
-                .fetchFirst();
+        Shop nearestShop = shopQueryRepository.getNearestShop(shop, minLat, maxLat, minLng, maxLng, distance);
 
         return Optional.ofNullable(nearestShop);
     }
@@ -111,15 +102,7 @@ public class ShopAssignService {
         );
 
         // 3. 쿼리 실행
-        List<Shop> nearShop = factory
-                .select(shop)
-                .from(shop)
-                .where(
-                        shop.latitude.between(minLat, maxLat),
-                        shop.longitude.between(minLng, maxLng)
-                )
-                .orderBy(distance.asc())
-                .fetch();
+        List<Shop> nearShop = shopQueryRepository.getShopsByDistance(shop, minLat, maxLat, minLng, maxLng, distance);
 
         return nearShop.stream().map(shops -> DeliveryAvailShopResDto.builder()
                         .shopId(shops.getId())

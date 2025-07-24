@@ -2,8 +2,6 @@ package com.sobok.cookservice.cook.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sobok.cookservice.common.enums.CookCategory;
 import com.sobok.cookservice.common.exception.CustomException;
 import com.sobok.cookservice.cook.client.ApiServiceClient;
@@ -41,7 +39,6 @@ public class CookService {
     private final CookRepository cookRepository;
     private final CombinationRepository combinationRepository;
     private final IngredientRepository ingredientRepository;
-    private final JPAQueryFactory factory;
     private final PaymentFeignClient paymentFeignClient;
     private final ApiServiceClient apiServiceClient;
     private final CookQueryRepository cookQueryRepository;
@@ -135,24 +132,7 @@ public class CookService {
         }
 
 
-        return factory.select(
-                        Projections.fields(
-                                CookResDto.class,
-                                cook.id,
-                                cook.name,
-                                cook.allergy,
-                                cook.recipe,
-                                cook.category,
-                                cook.thumbnail,
-                                cook.active
-                        )
-                )
-                .from(cook)
-                .where(builder)
-                .offset(offset)
-                .orderBy(cook.updatedAt.desc())
-                .limit(numOfRows)
-                .fetch();
+        return cookQueryRepository.getSearchCook(numOfRows, builder, offset);
     }
 
     public List<CookResDto> getCookByCategory(String category, Long pageNo, Long numOfRows) {
@@ -273,26 +253,7 @@ public class CookService {
     public CookIndividualResDto getCookById(Long cookId) {
         log.info("요리 단건 조회 시작 | cookId: " + cookId);
 
-        List<Tuple> tuple = factory.select(
-                        cook.id,
-                        cook.name,
-                        cook.allergy,
-                        cook.category,
-                        cook.recipe,
-                        cook.thumbnail,
-                        ingredient.id,
-                        ingredient.ingreName,
-                        ingredient.price,
-                        ingredient.unit,
-                        combination.unitQuantity
-                )
-                .from(cook)
-                .where(cook.id.eq(cookId).and(cook.active.eq("Y")))
-                .join(combination)
-                .on(combination.cookId.eq(cook.id))
-                .join(ingredient)
-                .on(ingredient.id.eq(combination.ingreId))
-                .fetch();
+        List<Tuple> tuple = cookQueryRepository.getCookInfo(cookId);
 
         if (tuple.isEmpty()) {
             log.error("일치하는 요리가 존재하지 않습니다.");
@@ -315,7 +276,7 @@ public class CookService {
                         .ingredientId(t.get(ingredient.id))
                         .ingredientName(t.get(ingredient.ingreName))
                         .price(t.get(ingredient.price))
-                        .unit(Integer.parseInt(t.get(ingredient.unit)))
+                        .unit(t.get(ingredient.unit))
                         .unitQuantity(t.get(combination.unitQuantity))
                         .build())
                 .collect(Collectors.toList());
@@ -339,7 +300,7 @@ public class CookService {
             return CookWithIngredientResDto.builder()
                     .ingredientId(ingre.getId())
                     .ingredientName(ingre.getIngreName())
-                    .unit(String.valueOf(ingre.getUnit()))
+                    .unit(ingre.getUnit() != null ? ingre.getUnit() : 0)
                     .quantity(comb.getUnitQuantity())
                     .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                     .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
@@ -358,7 +319,7 @@ public class CookService {
         return IngredientInfoResDto.builder()
                 .ingredientId(ingre.getId())
                 .ingredientName(ingre.getIngreName())
-                .unit(String.valueOf(ingre.getUnit()))
+                .unit(ingre.getUnit() != null ? ingre.getUnit() : 0)
                 .price(ingre.getPrice() != null ? ingre.getPrice() : 0)
                 .origin(ingre.getOrigin() != null ? ingre.getOrigin() : "정보 없음")
                 .build();

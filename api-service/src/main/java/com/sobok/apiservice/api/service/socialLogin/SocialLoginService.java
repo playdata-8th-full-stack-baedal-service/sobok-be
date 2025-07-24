@@ -45,7 +45,7 @@ public class SocialLoginService {
             OauthResDto oauthResDto;
             try {
                 oauthResDto = authFeignClient.authIdById(foundUser.getId());
-            } catch (FeignException.NotFound e) {
+            } catch (CustomException e) {
                 log.info("oauth는 생성하였지만 회원가입을 마치지 못한 유저입니다.");
                 return OauthResDto.builder()
                         .oauthId(foundUser.getId())

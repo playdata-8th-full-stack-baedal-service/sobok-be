@@ -15,5 +15,5 @@ public class IngreEditReqDto {
     private String ingreName;
     private Integer price;
     private String origin;
-    private String unit;
+    private Integer unit;
 }

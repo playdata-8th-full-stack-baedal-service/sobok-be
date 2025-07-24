@@ -13,7 +13,7 @@ public class IngredientResDto {
 
     private Long ingredientId;
     private String ingredientName;
-    private String unit;
+    private Integer unit;
     private int quantity;
     private int price;
     private String origin;
