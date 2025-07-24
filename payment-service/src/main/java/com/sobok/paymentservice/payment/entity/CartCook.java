@@ -21,7 +21,6 @@ public class CartCook {
     private Long userId;
 
     @Setter
-    @Column(nullable = true)
     private Long paymentId;
 
     @Column(nullable = false)

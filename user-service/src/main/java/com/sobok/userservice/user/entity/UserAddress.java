@@ -25,7 +25,6 @@ public class UserAddress {
     @Column(nullable = false)
     private String roadFull;
 
-    @Column(nullable = true)
     private String addrDetail;
 
     @Column(nullable = false)
@@ -34,7 +33,7 @@ public class UserAddress {
     @Column(nullable = false)
     private Double longitude;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     @Builder.Default
     private String active = "Y";
 
