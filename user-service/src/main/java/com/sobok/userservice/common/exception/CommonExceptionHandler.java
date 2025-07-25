@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -38,6 +39,19 @@ public class CommonExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
         return new ResponseEntity<>(ApiResponse.fail(status, "sql 제약조건 위반 에러 발생!"), status);
+    }
+
+    // validation 검증 예외 처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getDefaultMessage())
+                .findFirst()
+                .orElse("잘못된 요청입니다.");
+
+        log.warn("유효성 검사 실패: {}", errorMessage);
+        return new ResponseEntity<>(ApiResponse.fail(status, errorMessage), status);
     }
 
 }
