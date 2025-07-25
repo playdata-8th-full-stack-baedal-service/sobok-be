@@ -35,12 +35,6 @@ public class AssignDeliveryAction implements DeliveryActionHandler {
 
         boolean isLocked = false;
         try {
-            // 최대 5초 동안 락 획득을 시도하고, 락을 획득하면 10초 동안 점유. 자동 해제
-            isLocked = lock.tryLock(5, 10, TimeUnit.SECONDS);
-            if (!isLocked) {
-                throw new CustomException("다른 라이더가 처리 중입니다.", HttpStatus.CONFLICT);
-            }
-
             // 캐시 히트 체크 (키가 있으면 이미 수락된 상태) -> 이미 수락된 배달이면 종료
             //Redis 캐시 키
             String cacheKey = "delivery-accepted:" + paymentId;
@@ -49,7 +43,13 @@ public class AssignDeliveryAction implements DeliveryActionHandler {
             log.info("value: {}", value);
 
             if (redisTemplate.hasKey(cacheKey)) {
-                throw new CustomException("이미 다른 라이더가 배달을 승인했습니다.", HttpStatus.CONFLICT);
+                throw new CustomException("다른 라이더가 처리 중입니다.", HttpStatus.CONFLICT);
+            }
+
+            // 최대 5초 동안 락 획득을 시도하고, 락을 획득하면 10초 동안 점유. 자동 해제
+            isLocked = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new CustomException("다른 라이더가 승인 중입니다.", HttpStatus.CONFLICT);
             }
 
             // 승인 처리
@@ -65,7 +65,7 @@ public class AssignDeliveryAction implements DeliveryActionHandler {
             paymentRepository.save(payment);
 
             // 캐시에 해당 배달이 수락됐음을 기록 (TTL 5분. 추후 히트 방지)
-            redisTemplate.opsForValue().set(cacheKey, "true", Duration.ofMinutes(5));
+            redisTemplate.opsForValue().set(cacheKey, "true", Duration.ofMinutes(2));
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

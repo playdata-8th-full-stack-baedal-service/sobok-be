@@ -2,6 +2,7 @@ package com.sobok.paymentservice.payment.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
+import com.sobok.paymentservice.common.enums.DeliveryState;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
@@ -531,14 +532,14 @@ public class PaymentService {
      */
     @Transactional
     public void processDeliveryAction(
-            TokenUserInfo userInfo, Long paymentId, String state, Consumer<AcceptOrderReqDto> deliveryAction
+            TokenUserInfo userInfo, Long paymentId, DeliveryState state, Consumer<AcceptOrderReqDto> deliveryAction
     ) {
         Payment payment = getAndValidatePayment(userInfo, paymentId, state);
         DeliveryActionHandler strategy = strategyFactory.getStrategy(state);
         strategy.execute(userInfo, paymentId, deliveryAction, payment);
     }
 
-    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId, String state) {
+    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId, DeliveryState state) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
                 new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -546,9 +547,9 @@ public class PaymentService {
             throw new CustomException("라이더만 수행 가능한 작업입니다.", HttpStatus.FORBIDDEN);
         }
 
-        Map<String, OrderState> validStates = Map.of(
-                "assign", OrderState.READY_FOR_DELIVERY,
-                "complete", OrderState.DELIVERING
+        Map<DeliveryState, OrderState> validStates = Map.of(
+                DeliveryState.ASSIGN, OrderState.READY_FOR_DELIVERY,
+                DeliveryState.COMPLETE, OrderState.DELIVERING
         );
 
         if (payment.getOrderState() != validStates.get(state)) {
