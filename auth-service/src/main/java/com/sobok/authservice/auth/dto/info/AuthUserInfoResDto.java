@@ -13,6 +13,7 @@ public class AuthUserInfoResDto extends AuthBaseInfoResDto {
     String phone;
     String photo;
     List<AuthUserAddressDto> addresses;
+    boolean socialUser;
 
     public AuthUserInfoResDto(Long authId, String loginId, String nickname, String email, String phone, String photo, List<AuthUserAddressDto> addresses) {
         super(authId, loginId);
