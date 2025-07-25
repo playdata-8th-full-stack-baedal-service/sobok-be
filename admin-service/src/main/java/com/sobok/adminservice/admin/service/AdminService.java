@@ -38,10 +38,6 @@ public class AdminService {
      * 관리자 전용 가게 전체 조회
      */
     public List<ShopResDto> getAllShops(TokenUserInfo userInfo) {
-        if (!userInfo.getRole().equals("ADMIN")) {
-            throw new CustomException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
-
         ApiResponse<List<ShopResDto>> response = adminShopClient.getAllShops();
         return response.getData();
     }
@@ -50,10 +46,6 @@ public class AdminService {
      * 관리자 전용 라이더 전체 조회
      */
     public List<RiderResDto> getAllRiders(TokenUserInfo userInfo) {
-        if (!userInfo.getRole().equals("ADMIN")) {
-            throw new CustomException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
-
         ApiResponse<List<RiderResDto>> response = adminRiderClient.getAllRiders();
         return response.getData();
     }
@@ -62,10 +54,6 @@ public class AdminService {
      * 관리자 전용 사용자 주문 전체 조회
      */
     public Page<AdminPaymentResponseDto> getAllPayments(TokenUserInfo userInfo, int page, int size) {
-        if (!userInfo.getRole().equals("ADMIN")) {
-            throw new CustomException("접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
-        }
-
         // payment-service 로부터 PagedResponse<AdminPaymentResDto> 응답 받음
         ApiResponse<PagedResponse<AdminPaymentResDto>> response = adminPaymentClient.getAllPayments(page, size);
         log.info(response.getData().getContent().toString());
@@ -187,10 +175,6 @@ public class AdminService {
      * rider 회원가입 승인 요청
      */
     public void activateRiderAccount(TokenUserInfo tokenUserInfo, Long authId) {
-        if (!"ADMIN".equals(tokenUserInfo.getRole())) {
-            throw new CustomException("관리자만 접근할 수 있습니다.", HttpStatus.FORBIDDEN);
-        }
-
         adminFeignClient.activeRider(authId);
     }
 
