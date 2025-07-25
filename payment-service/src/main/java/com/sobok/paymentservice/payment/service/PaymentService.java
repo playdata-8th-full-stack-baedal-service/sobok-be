@@ -341,7 +341,8 @@ public class PaymentService {
         AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
 
         // 주문한 요리 식재료, 추가 식재료 정보 얻기
-        PaymentResDto paymentResDto = cartService.getCart(userInfo, paymentId.toString());
+        List<CartCook> byPaymentId = cartCookRepository.findByPaymentId(paymentId);
+        PaymentResDto paymentResDto = cartService.getPaymentResDto(userInfo.getUserId(), byPaymentId);
         List<PaymentItemResDto> items = paymentResDto.getItems().stream()
                 .filter(item -> item.getPaymentId().equals(paymentId))
                 .toList();

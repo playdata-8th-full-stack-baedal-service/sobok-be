@@ -49,7 +49,7 @@ public class PaymentController {
      */
     @GetMapping("/get-cart")
     public ResponseEntity<?> getCart(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        PaymentResDto resDto = cartService.getCart(userInfo, "cart");
+        PaymentResDto resDto = cartService.getCart(userInfo);
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 

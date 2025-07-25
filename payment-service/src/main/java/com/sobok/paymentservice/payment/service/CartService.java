@@ -187,23 +187,18 @@ public class CartService {
     }
 
     // 장바구니 조회용
-    public PaymentResDto getCart(TokenUserInfo userInfo, String status) {
-        Long authId = userInfo.getId();
-        List<CartCook> cartCookList;
-
-        if ("cart".equals(status)) {
-            // 유저 검증
-            Boolean matched = userServiceClient.verifyUser(authId, userInfo.getUserId());
-            if (!Boolean.TRUE.equals(matched)) {
-                throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
-            }
-            cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
-        } else {
-            cartCookList = cartCookRepository.findByPaymentId(Long.parseLong(status));
+    public PaymentResDto getCart(TokenUserInfo userInfo) {
+        // 유저 검증
+        Boolean matched = userServiceClient.verifyUser(userInfo.getId(), userInfo.getUserId());
+        if (!Boolean.TRUE.equals(matched)) {
+            throw new CustomException("접근 불가", HttpStatus.FORBIDDEN);
         }
+        List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
 
-        log.info("주문된 카트 목록 cartCookList : {}", cartCookList);
+        return getPaymentResDto(userInfo.getUserId(), cartCookList);
+    }
 
+    public PaymentResDto getPaymentResDto(Long userId, List<CartCook> cartCookList) {
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
@@ -214,9 +209,6 @@ public class CartService {
                 .distinct()
                 .toList();
 
-        // 요리 상세 정보 조회 (기본 재료 Id만 포함됨)
-        Map<Long, CookDetailResDto> cookMap = cookFeignClient.getCookDetail(cookIds).stream()
-                .collect(Collectors.toMap(CookDetailResDto::getCookId, Function.identity()));
 
         // 사용자 cartCookList에서 cartCookId만 뽑기
         List<Long> cartCookIds = cartCookList.stream()
@@ -228,14 +220,20 @@ public class CartService {
 
         // 기본 재료 ID, 추가 재료 ID 모두 모으기
         Set<Long> allIngreIds = new HashSet<>();
-        // 요리의 기본 재료 ID 수집
-        cookMap.values().forEach(cook -> allIngreIds.addAll(cook.getIngredientIds()));
+
         // 장바구니에서 추가된 재료 ID 수집
         allIngreIds.addAll(
                 cartIngredients.stream()
                         .map(CartIngredient::getIngreId)
                         .collect(Collectors.toSet())
         );
+
+        // 요리 상세 정보 조회 (기본 재료 Id만 포함됨)
+        Map<Long, CookDetailResDto> cookMap = cookFeignClient.getCookDetail(cookIds).stream()
+                .collect(Collectors.toMap(CookDetailResDto::getCookId, Function.identity()));
+
+        // 요리의 기본 재료 ID 수집
+        cookMap.values().forEach(cook -> allIngreIds.addAll(cook.getIngredientIds()));
 
         // 재료 상세 정보 한번에 조회
         Map<Long, IngredientResDto> ingreMap = cookFeignClient.getIngredients(new ArrayList<>(allIngreIds)).stream()
@@ -245,20 +243,49 @@ public class CartService {
         Map<Long, List<CartIngredient>> cartCookIngreMap = cartIngredients.stream()
                 .collect(Collectors.groupingBy(CartIngredient::getCartCookId));
 
+        log.info("cartCookIngreMap: {}", cartCookIngreMap);
+
+        Map<String, Integer> cartIngreKeyMap = cartIngredients.stream()
+                .collect(Collectors.toMap(
+                        ingre -> ingre.getCartCookId() + "_" + ingre.getIngreId() + "_" + ingre.getDefaultIngre(),
+                        CartIngredient::getUnitQuantity
+                ));
+        log.info("cartIngreKeyMap : {}", cartIngreKeyMap);
+
         // PaymentItemResDto 생성 시 기본 재료, 추가 재료 ID -> 재료 맵에서 DTO 생성 후 결합
         List<PaymentItemResDto> items = cartCookList.stream().map(cartCook -> {
             CookDetailResDto cook = cookMap.get(cartCook.getCookId());
 
+            // 기본 재료 매핑 (defaultIngre = "Y")
             // 기본 재료 매핑
             List<IngredientResDto> baseIngredients = cook.getIngredientIds().stream()
                     .map(ingreMap::get)
                     .filter(Objects::nonNull)
+                    .map(ingre -> {
+                        String key = cartCook.getId() + "_" + ingre.getIngredientId() + "_Y";
+                        Integer qty = cartIngreKeyMap.get(key);
+                        return qty != null
+                                ? ingre.toBuilder().unitQuantity(qty).build()
+                                : ingre;
+                    })
                     .collect(Collectors.toList());
 
             // 추가 재료 매핑
             List<IngredientResDto> additionalIngredients = cartCookIngreMap.getOrDefault(cartCook.getId(), Collections.emptyList()).stream()
                     .filter(ingre -> "N".equals(ingre.getDefaultIngre()))
-                    .map(ingre -> ingreMap.get(ingre.getIngreId()))
+                    .map(ingre -> {
+                        IngredientResDto ingredient = ingreMap.get(ingre.getIngreId());
+                        if (ingredient != null) {
+                            String key = cartCook.getId() + "_" + ingre.getIngreId() + "_N";
+                            log.info("key: {}", key);
+                            Integer cartIngredient = cartIngreKeyMap.get(key);
+                            log.info("키로 찾아온 cartIngredient: {}", cartIngredient);
+                            if (cartIngredient != null) {
+                                ingredient.setUnitQuantity(cartIngredient);
+                            }
+                        }
+                        return ingredient;
+                    })
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
@@ -275,7 +302,7 @@ public class CartService {
                     .build();
         }).toList();
 
-        return new PaymentResDto(userInfo.getUserId(), items);
+        return new PaymentResDto(userId, items);
     }
 
     public void startPay(TokenUserInfo userInfo, CartStartPayDto reqDto) {
