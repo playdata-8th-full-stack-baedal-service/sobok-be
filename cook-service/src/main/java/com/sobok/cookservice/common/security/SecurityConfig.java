@@ -39,6 +39,9 @@ public class SecurityConfig {
                                 , "/cook/get-cook/**","/cook/internal/simple-info","/cook/popular",
                                 "/v3/**", "/swagger-ui/**"
                         ).permitAll()
+
+                        .requestMatchers("/cook/cook-register", "/ingredient/register",
+                                "/ingredient/all-search", "/ingredient/edit").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리
