@@ -27,26 +27,22 @@ import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import com.sobok.paymentservice.payment.service.validator.access.RoleAccessValidator;
+import com.sobok.paymentservice.payment.service.validator.deliveryAction.DeliveryActionHandler;
+import com.sobok.paymentservice.payment.service.validator.deliveryAction.DeliveryActionStrategyFactory;
 import com.sobok.paymentservice.payment.service.validator.orderstate.RoleValidator;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -72,11 +68,7 @@ public class PaymentService {
     private final JPAQueryFactory factory;
     private final Map<String, RoleValidator> validatorMap;
     private final List<RoleAccessValidator> roleAccessValidatorList;
-
-
-    private final RedissonClient redissonClient;
-
-    private final RedisTemplate<String, String> redisTemplate;
+    private final DeliveryActionStrategyFactory strategyFactory;
 
 
     /**
@@ -541,56 +533,9 @@ public class PaymentService {
     public void processDeliveryAction(
             TokenUserInfo userInfo, Long paymentId, String state, Consumer<AcceptOrderReqDto> deliveryAction
     ) {
-        //분산 락의 키
-        String lockKey = "delivery-lock:" + paymentId;
-        RLock lock = redissonClient.getLock(lockKey);
-
-        boolean isLocked = false;
-        try {
-            // 최대 5초 동안 락 획득을 시도하고, 락을 획득하면 10초 동안 점유. 자동 해제
-            isLocked = lock.tryLock(5, 10, TimeUnit.SECONDS);
-            if (!isLocked) {
-                throw new CustomException("다른 라이더가 작업 중입니다. 잠시 후 다시 시도해주세요.", HttpStatus.CONFLICT);
-            }
-
-            // 캐시 히트 체크 (키가 있으면 이미 수락된 상태) -> 이미 수락된 배달이면 종료
-            //Redis 캐시 키
-            String cacheKey = "delivery-accepted:" + paymentId;
-            Boolean isAccepted = redisTemplate.hasKey(cacheKey);
-
-            String value = redisTemplate.opsForValue().get("delivery-accepted:" + paymentId);
-            log.info("value: {}", value);
-
-            if (isAccepted) {
-                throw new CustomException("이미 다른 라이더가 배달을 승인했습니다.", HttpStatus.CONFLICT);
-            }
-
-            // DB에서 payment 조회 및 상태 검증
-            Payment payment = getAndValidatePayment(userInfo, paymentId, state);
-
-            // 승인 처리
-            AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
-                    .paymentId(payment.getId())
-                    .riderId(userInfo.getRiderId())
-                    .build();
-
-            deliveryAction.accept(reqDto);
-
-            // 상태 변경 및 저장
-            payment.nextState();
-            paymentRepository.save(payment);
-
-            // 캐시에 해당 배달이 수락됐음을 기록 (TTL 5분. 추후 히트 방지)
-            redisTemplate.opsForValue().set(cacheKey, "true", Duration.ofMinutes(5));
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new CustomException("락 획득 실패", HttpStatus.INTERNAL_SERVER_ERROR);
-        } finally {
-            if (isLocked && lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-        }
+        Payment payment = getAndValidatePayment(userInfo, paymentId, state);
+        DeliveryActionHandler strategy = strategyFactory.getStrategy(state);
+        strategy.execute(userInfo, paymentId, deliveryAction, payment);
     }
 
     private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId, String state) {
