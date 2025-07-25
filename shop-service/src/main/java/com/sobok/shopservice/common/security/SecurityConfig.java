@@ -36,6 +36,8 @@ public class SecurityConfig {
                                 "/shop/check-shopName", "/shop/check-shopAddress", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+
+                        .requestMatchers("/shop/all-order","/shop/filtering-order").hasAnyRole("HUB","ADMIN")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리
