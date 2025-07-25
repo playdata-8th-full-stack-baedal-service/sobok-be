@@ -72,4 +72,5 @@ public class DeliveryController {
         List<DeliveryOrderResDto> deliveryOrders = deliveryService.getDeliveryOrders(userInfo, pageNo, numOfRows);
         return ResponseEntity.ok(ApiResponse.ok(deliveryOrders, "배달 전체 목록을 조회하였습니다."));
     }
+
 }
