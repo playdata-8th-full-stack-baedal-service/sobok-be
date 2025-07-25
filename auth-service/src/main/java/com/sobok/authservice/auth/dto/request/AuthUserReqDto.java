@@ -34,6 +34,8 @@ public class AuthUserReqDto {
     )
     private String email;
     private String photo;
+
+    @NotBlank(message = "주소는 필수 입니다.")
     private String roadFull;
     private String addrDetail;
     private String inputCode;
