@@ -2,6 +2,7 @@ package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
+import com.sobok.paymentservice.common.enums.DeliveryState;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
@@ -119,7 +120,7 @@ public class PaymentController {
      */
     @PatchMapping("/accept-delivery")
     public ResponseEntity<?> acceptDelivery(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id) {
-        paymentService.processDeliveryAction(userInfo, id, "assign", deliveryFeignClient::assignRider);
+        paymentService.processDeliveryAction(userInfo, id, DeliveryState.ASSIGN, deliveryFeignClient::assignRider);
         return ResponseEntity.ok().body(ApiResponse.ok(id, "배달이 승인되었습니다."));
     }
 
@@ -128,7 +129,7 @@ public class PaymentController {
      */
     @PatchMapping("/complete-delivery")
     public ResponseEntity<?> completeDelivery(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id) {
-        paymentService.processDeliveryAction(userInfo, id, "complete", deliveryFeignClient::completeDelivery);
+        paymentService.processDeliveryAction(userInfo, id, DeliveryState.COMPLETE, deliveryFeignClient::completeDelivery);
         return ResponseEntity.ok().body(ApiResponse.ok(id, "배달이 완료되었습니다."));
     }
 

@@ -2,6 +2,7 @@ package com.sobok.paymentservice.payment.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
+import com.sobok.paymentservice.common.enums.DeliveryState;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
 import com.sobok.paymentservice.payment.client.CookFeignClient;
@@ -27,12 +28,13 @@ import com.sobok.paymentservice.payment.entity.QPayment;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.PaymentRepository;
 import com.sobok.paymentservice.payment.service.validator.access.RoleAccessValidator;
+import com.sobok.paymentservice.payment.service.validator.deliveryAction.DeliveryActionHandler;
+import com.sobok.paymentservice.payment.service.validator.deliveryAction.DeliveryActionStrategyFactory;
 import com.sobok.paymentservice.payment.service.validator.orderstate.RoleValidator;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -67,6 +69,7 @@ public class PaymentService {
     private final JPAQueryFactory factory;
     private final Map<String, RoleValidator> validatorMap;
     private final List<RoleAccessValidator> roleAccessValidatorList;
+    private final DeliveryActionStrategyFactory strategyFactory;
 
 
     /**
@@ -529,30 +532,20 @@ public class PaymentService {
      */
     @Transactional
     public void processDeliveryAction(
-            TokenUserInfo userInfo, Long paymentId, String state, Consumer<AcceptOrderReqDto> deliveryAction
+            TokenUserInfo userInfo, Long paymentId, DeliveryState state, Consumer<AcceptOrderReqDto> deliveryAction
     ) {
         Payment payment = getAndValidatePayment(userInfo, paymentId, state);
-
-        AcceptOrderReqDto reqDto = AcceptOrderReqDto.builder()
-                .paymentId(payment.getId())
-                .riderId(userInfo.getRiderId())
-                .build();
-
-        //assignRider 또는 completeDelivery
-        deliveryAction.accept(reqDto);
-
-        // 상태 변경 및 저장
-        payment.nextState();
-        paymentRepository.save(payment);
+        DeliveryActionHandler strategy = strategyFactory.getStrategy(state);
+        strategy.execute(userInfo, paymentId, deliveryAction, payment);
     }
 
-    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId, String state) {
+    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId, DeliveryState state) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
                 new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
-        Map<String, OrderState> validStates = Map.of(
-                "assign", OrderState.READY_FOR_DELIVERY,
-                "complete", OrderState.DELIVERING
+        Map<DeliveryState, OrderState> validStates = Map.of(
+                DeliveryState.ASSIGN, OrderState.READY_FOR_DELIVERY,
+                DeliveryState.COMPLETE, OrderState.DELIVERING
         );
 
         if (payment.getOrderState() != validStates.get(state)) {
