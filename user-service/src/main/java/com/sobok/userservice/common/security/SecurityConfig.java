@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/user/check-nickname","/user/check-email", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-resources/**"
                         ).permitAll()
+                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리

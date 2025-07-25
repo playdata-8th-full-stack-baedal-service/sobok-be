@@ -31,36 +31,51 @@ public class UserController {
     private final UserService userService;
     private final UserAddressService userAddressService;
 
-
+    /**
+     * 주소 저장
+     */
     @PostMapping("/addAddress")
     public ResponseEntity<?> addAddress(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody @Valid UserAddressReqDto reqDto) {
         userAddressService.addAddress(userInfo.getId(), reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "성공적으로 주소가 저장되었습니다."));
     }
 
+    /**
+     * 주소 수정
+     */
     @PatchMapping("/editAddress")
     public ResponseEntity<?> editAddress(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserAddressEditReqDto reqDto) {
         userAddressService.editAddress(userInfo.getId(), reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "성공적으로 주소가 변경되었습니다."));
     }
 
+    /**
+     * 주소 조회
+     */
     @GetMapping("/getAddress")
     public ResponseEntity<?> getAddress(@AuthenticationPrincipal TokenUserInfo userInfo) {
         List<UserAddressDto> address = userAddressService.getAddress(userInfo.getId());
         return ResponseEntity.ok().body(ApiResponse.ok(address, "사용자의 주소를 성공적으로 조회하였습니다."));
     }
 
+    /**
+     * 주소 삭제
+     */
     @DeleteMapping("/deleteAddress/{id}")
     public ResponseEntity<?> deleteAddress(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable Long id) {
         Long deletedId = userAddressService.deleteAddress(userInfo, id);
         return ResponseEntity.ok().body(ApiResponse.ok(deletedId, "사용자의 주소를 성공적으로 삭제하였습니다."));
     }
 
+    /**
+     * 이메일 수정
+     */
     @PostMapping("/editEmail")
     public ResponseEntity<?> editEmail(@AuthenticationPrincipal TokenUserInfo userInfo, @Valid @RequestBody UserEmailDto reqDto) {
         userService.editEmail(userInfo, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 변경하였습니다."));
     }
+
     /**
      * 사용자 전화번호 변경
      */
@@ -100,12 +115,18 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(bookmark, "즐겨찾기 요리가 조회되었습니다."));
     }
 
+    /**
+     * 즐겨찾기 상태 조회
+     */
     @GetMapping("/getBookmark/{id}")
     public ResponseEntity<?> getBookmarkById(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable(name = "id") Long cookId) {
         boolean response = userService.getBookmarkById(userInfo.getUserId(), cookId);
         return ResponseEntity.ok().body(ApiResponse.ok(response, "사용자의 즐겨찾기 상태가 조회되었습니다.."));
     }
 
+    /**
+     * 사용자 정보 조회(주문)
+     */
     @GetMapping("/preOrderUser")
     public ResponseEntity<?> preOrderUser(@AuthenticationPrincipal TokenUserInfo userInfo) {
         PreOrderUserResDto preOrderUser = userService.getPreOrderUser(userInfo);
@@ -156,6 +177,9 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(res, "좋아요 해제 성공"));
     }
 
+    /**
+     * 사용자 좋아요 상태 조회
+     */
     @GetMapping("/check-like")
     public ResponseEntity<?> checkPostLike(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long postId) {
         boolean result = userService.checkPostLike(userInfo, postId);
