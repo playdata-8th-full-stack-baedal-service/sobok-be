@@ -33,23 +33,11 @@ public class AdminController {
      * rider 회원가입 승인 요청
      */
     @PutMapping("/rider-active")
-    // 데이터 응답이 null 이라 Void로 설정
     public ResponseEntity<ApiResponse<Void>> activeRider(
             @RequestParam Long authId,
             @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
-
-        //관리자 권한 확인
-        if (!tokenUserInfo.getRole().equals("ADMIN")) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponse.fail(HttpStatus.FORBIDDEN, "권한이 없습니다."));
-        }
-
-        // auth-service에 Feign 호출
-        adminFeignClient.activeRider(authId);
-        // 성공 응답
+        adminService.activateRiderAccount(tokenUserInfo, authId);
         return ResponseEntity.ok(ApiResponse.ok(null, "라이더 계정이 활성화되었습니다."));
-
     }
 
     /**

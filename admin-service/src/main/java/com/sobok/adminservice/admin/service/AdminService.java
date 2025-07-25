@@ -182,5 +182,17 @@ public class AdminService {
     public List<PendingRiderResDto> getPendingRiders(TokenUserInfo userInfo) {
         return adminRiderClient.getPendingRiders();
     }
+
+    /**
+     * rider 회원가입 승인 요청
+     */
+    public void activateRiderAccount(TokenUserInfo tokenUserInfo, Long authId) {
+        if (!"ADMIN".equals(tokenUserInfo.getRole())) {
+            throw new CustomException("관리자만 접근할 수 있습니다.", HttpStatus.FORBIDDEN);
+        }
+
+        adminFeignClient.activeRider(authId);
+    }
+
 }
 
