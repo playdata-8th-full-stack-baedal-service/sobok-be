@@ -35,7 +35,10 @@ public class SecurityConfig {
                                 "/actuator/**","/delivery/signup", "/auth/check-permission",
                                 "/delivery/check-permission", "/v3/**", "/swagger-ui/**"
                         ).permitAll()
+
+                        .requestMatchers("/delivery/**").hasRole("RIDER")
                         .anyRequest().authenticated()
+
                 )
                 // 인증/인가 실패에 대한 처리
                 .exceptionHandling(ex -> ex

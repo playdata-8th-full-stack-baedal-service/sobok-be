@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/**", "/swagger-ui/**", "/v3/**"
                         ).permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리

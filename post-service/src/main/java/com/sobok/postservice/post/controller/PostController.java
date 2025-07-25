@@ -34,7 +34,6 @@ public class PostController {
     /**
      * 게시글 수정
      */
-    @PreAuthorize("hasRole('USER')")
     @PutMapping("/update")
     public ResponseEntity<ApiResponse<PostUpdateResDto>> updatePost(
             @AuthenticationPrincipal TokenUserInfo userInfo,

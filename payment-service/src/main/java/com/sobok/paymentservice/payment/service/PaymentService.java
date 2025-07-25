@@ -550,10 +550,6 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
                 new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
-        if (!"RIDER".equals(userInfo.getRole())) {
-            throw new CustomException("라이더만 수행 가능한 작업입니다.", HttpStatus.FORBIDDEN);
-        }
-
         Map<String, OrderState> validStates = Map.of(
                 "assign", OrderState.READY_FOR_DELIVERY,
                 "complete", OrderState.DELIVERING
