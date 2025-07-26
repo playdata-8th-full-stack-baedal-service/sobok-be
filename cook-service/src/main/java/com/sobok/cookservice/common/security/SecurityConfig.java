@@ -42,6 +42,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/cook/cook-register", "/ingredient/register",
                                 "/ingredient/all-search", "/ingredient/edit").hasRole("ADMIN")
+
+                        .requestMatchers("/cook/**","/ingredient/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리
