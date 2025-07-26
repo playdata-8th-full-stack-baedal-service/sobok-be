@@ -38,7 +38,7 @@ public class ShopAssignService {
         LocationResDto userAddrDto = userFeignClient.getUserAddress(userAddressId);
 
         // 최대 거리는 나중에 바꾸자
-        Shop nearestShop = findNearestShop(userAddrDto.getLatitude(), userAddrDto.getLongitude(), 100.0).orElseThrow(
+        Shop nearestShop = findNearestShop(userAddrDto.getLatitude(), userAddrDto.getLongitude(), 10.0).orElseThrow(
                 () -> new CustomException("조건을 만족하는 가게가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 

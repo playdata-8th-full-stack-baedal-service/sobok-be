@@ -4,8 +4,11 @@ package com.sobok.shopservice.shop.controller;
 import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
 
+import com.sobok.shopservice.shop.dto.stock.AvailableShopInfoDto;
+import com.sobok.shopservice.shop.dto.stock.IngredientIdListDto;
 import com.sobok.shopservice.shop.dto.response.ShopPaymentResDto;
 import com.sobok.shopservice.shop.service.ShopService;
+import com.sobok.shopservice.shop.service.StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,6 +25,7 @@ import java.util.List;
 public class ShopController {
 
     private final ShopService shopService;
+    private final StockService stockService;
 
     /**
      * 가게 이름 중복 확인
@@ -48,7 +52,7 @@ public class ShopController {
     public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
                                           @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<ShopPaymentResDto> allOrders = shopService.getAllOrders(userInfo, pageNo, numOfRows);
-        if(allOrders.isEmpty()) {
+        if (allOrders.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
         }
         return ResponseEntity.ok(ApiResponse.ok(allOrders, "들어온 모든 주문 목록을 조회하였습니다."));
@@ -59,12 +63,21 @@ public class ShopController {
      */
     @GetMapping("/filtering-order")
     public ResponseEntity<?> getFilterOrders(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String orderState,
-                                          @RequestParam Long pageNo, @RequestParam Long numOfRows) {
+                                             @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<ShopPaymentResDto> allOrders = shopService.getFilteringOrders(userInfo, orderState, pageNo, numOfRows);
-        if(allOrders.isEmpty()) {
+        if (allOrders.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
         }
         return ResponseEntity.ok(ApiResponse.ok(allOrders, "주문 목록을 상태별로 조회하였습니다."));
+    }
+
+    @PostMapping("/available")
+    public ResponseEntity<?> getAvailableShopList(
+            @RequestParam Long addressId,
+            @RequestBody IngredientIdListDto reqDto
+    ) {
+        List<AvailableShopInfoDto> result = stockService.getAvailableShopList(addressId, reqDto);
+        return ResponseEntity.ok().body(ApiResponse.ok(result, "가능한 가게 정보를 성공적으로 조회하였습니다."));
     }
 
 }
