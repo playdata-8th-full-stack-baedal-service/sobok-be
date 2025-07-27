@@ -34,6 +34,6 @@ public class Stock extends BaseTimeEntity {
     private Integer quantity;
 
     public void updateQuantity(Integer quantity) {
-        this.quantity = quantity;
+        this.quantity = this.quantity + quantity;
     }
 }

@@ -8,7 +8,7 @@ import com.sobok.shopservice.shop.dto.stock.AvailableShopInfoDto;
 import com.sobok.shopservice.shop.dto.stock.IngredientIdListDto;
 import com.sobok.shopservice.shop.dto.response.ShopPaymentResDto;
 import com.sobok.shopservice.shop.service.ShopService;
-import com.sobok.shopservice.shop.service.StockService;
+import com.sobok.shopservice.shop.service.ShopAvailabilityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ import java.util.List;
 public class ShopController {
 
     private final ShopService shopService;
-    private final StockService stockService;
+    private final ShopAvailabilityService shopAvailabilityService;
 
     /**
      * 가게 이름 중복 확인
@@ -76,7 +76,7 @@ public class ShopController {
             @RequestParam Long addressId,
             @RequestBody IngredientIdListDto reqDto
     ) {
-        List<AvailableShopInfoDto> result = stockService.getAvailableShopList(addressId, reqDto);
+        List<AvailableShopInfoDto> result = shopAvailabilityService.getAvailableShopList(addressId, reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(result, "가능한 가게 정보를 성공적으로 조회하였습니다."));
     }
 

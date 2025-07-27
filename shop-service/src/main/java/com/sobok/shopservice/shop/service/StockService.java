@@ -1,111 +1,78 @@
 package com.sobok.shopservice.shop.service;
 
-import com.sobok.shopservice.common.dto.TokenUserInfo;
 import com.sobok.shopservice.common.exception.CustomException;
-import com.sobok.shopservice.shop.client.UserFeignClient;
-import com.sobok.shopservice.shop.dto.payment.LocationResDto;
-import com.sobok.shopservice.shop.dto.response.DeliveryAvailShopResDto;
-import com.sobok.shopservice.shop.dto.stock.AvailableShopInfoDto;
-import com.sobok.shopservice.shop.dto.stock.CartIngredientStock;
-import com.sobok.shopservice.shop.dto.stock.IngredientIdListDto;
-import com.sobok.shopservice.shop.repository.ShopRepository;
+import com.sobok.shopservice.shop.dto.stock.StockReqDto;
+import com.sobok.shopservice.shop.dto.stock.StockResDto;
+import com.sobok.shopservice.shop.entity.Stock;
 import com.sobok.shopservice.shop.repository.StockQueryRepository;
 import com.sobok.shopservice.shop.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
+@Transactional
 public class StockService {
-    private final ShopService shopService;
+    private final StockQueryRepository queryRepository;
     private final StockRepository stockRepository;
-    private final UserFeignClient userFeignClient;
-    private final ShopAssignService shopAssignService;
-    private final StockQueryRepository stockQueryRepository;
-    private final ShopRepository shopRepository;
 
-    public List<AvailableShopInfoDto> getAvailableShopList(Long addressId, IngredientIdListDto reqDto) {
-        // --- 재료가 없다면 빈 리스트 반환 ---
-        if (reqDto.getCartIngredientStockList() == null || reqDto.getCartIngredientStockList().isEmpty()) {
-            return new ArrayList<>();
+    /**
+     * 재고 등록
+     */
+    public StockResDto registerStock(StockReqDto reqDto) {
+        // 해당 가게에 이미 식재료가 존재하는지 확인
+        if (queryRepository.checkStock(reqDto) != null) {
+            throw new CustomException("이미 존재하는 식재료가 있습니다.", HttpStatus.BAD_REQUEST);
         }
 
-        // --- 사용자 주소 검증 ---
-        List<DeliveryAvailShopResDto> nearShopList = new ArrayList<>();
-        try {
-            LocationResDto userAddress = userFeignClient.getUserAddress(addressId);
-            nearShopList = shopAssignService.findNearShop(userAddress.getLatitude(), userAddress.getLongitude(), 10.0);
-        } catch (Exception e) {
-            throw new CustomException("가게 탐색 과정 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        // 재고량 검증
+        if (reqDto.getQuantity() <= 0) {
+            throw new CustomException("잘못된 재고량 입력입니다.", HttpStatus.BAD_REQUEST);
         }
 
-        // --- 가까운 가게가 없다면 예외 반환 ---
-        if (nearShopList == null || nearShopList.isEmpty()) {
-           throw new CustomException("선택한 주소지에 가까운 가게를 찾지 못했습니다.", HttpStatus.NOT_FOUND);
+        // 재고 등록
+        Stock result = stockRepository.save(reqDto.toEntity());
+
+        // 응답 생성
+        return StockResDto.toDto(result);
+    }
+
+    /**
+     * 재고 변경
+     */
+    public StockResDto deductStock(StockReqDto reqDto) {
+        // 식재료 검증
+        Stock stock = queryRepository.checkStock(reqDto);
+        if (stock == null) {
+            throw new CustomException("존재하는 식재료가 없습니다.", HttpStatus.BAD_REQUEST);
         }
 
-        // --- 조회를 위한 Map 생성 ---
-        Map<Long, Integer> userIngreIdList = CartIngredientStock.convertIngreIdList(reqDto);
-        List<Long> nearShopIdList = DeliveryAvailShopResDto.convertShopIdList(nearShopList);
-        Map<Long, Map<Long, Integer>> currentStockList = stockQueryRepository.getStockByIngreIdList(nearShopIdList, userIngreIdList.keySet());
-
-        // --- 식재료 검사 ---
-        Map<Long, Map<Long, Integer>> availableShopIds = new HashMap<>();
-        for (Long shopId : currentStockList.keySet()) {
-            // --- 현재 가게 재고 상태 객체 가져와서 있는지 확인 ---
-            Map<Long, Integer> shopState = currentStockList.getOrDefault(shopId, new HashMap<>());
-            if (shopState.size() == userIngreIdList.size()) {
-                // --- 재료 수량 점검 ---
-                boolean flag = true;
-                for (Long ingreId : userIngreIdList.keySet()) {
-                    Integer shopStock = shopState.getOrDefault(ingreId, -1);
-                    Integer userStock = userIngreIdList.get(ingreId);
-
-                    // --- 사용자 재고가 가게 재고보다 작아야 함 ---
-                    if (shopStock < userStock) {
-                        flag = false;
-                        break;
-                    }
-                }
-
-                // --- 재고가 모두 충분하다면 가능한 가게에 넣기 ---
-                if (flag) {
-                    availableShopIds.put(shopId, shopState);
-                }
-            }
+        // 변경 사항 없다면 재고량 검사 진행하지 않음
+        if (reqDto.getQuantity() == 0) {
+            return StockResDto.toDto(stock);
         }
 
-        // --- 응답 객체 생성 ---
-        List<AvailableShopInfoDto> resDto = new ArrayList<>();
-        for (Long shopId : nearShopIdList) {
-            Map<Long, Integer> shopState = availableShopIds.getOrDefault(shopId, null);
-            if (shopState == null) continue;
-
-            List<CartIngredientStock> ingredientStocks = new ArrayList<>();
-            for (Long ingreId : userIngreIdList.keySet()) {
-                ingredientStocks.add(new CartIngredientStock(shopId, ingreId, shopState.get(ingreId)));
-            }
-
-            String shopName = shopRepository.findById(shopId).orElseThrow(
-                    () -> new CustomException("해당하는 가게가 존재하지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR)
-            ).getShopName();
-
-
-            AvailableShopInfoDto shopInfoDto = new AvailableShopInfoDto(shopId, shopName, ingredientStocks);
-            resDto.add(shopInfoDto);
+        // 재고량 검증
+        stock.updateQuantity(reqDto.getQuantity());
+        if (stock.getQuantity() < 0) {
+            throw new CustomException("잘못된 재고량 입력 입니다.", HttpStatus.BAD_REQUEST);
         }
 
+        // 응답 생성
+        return StockResDto.toDto(stockRepository.save(stock));
+    }
 
-        return resDto;
 
+    /**
+     * 재고 조회
+     */
+    public List<StockResDto> getStock(Long shopId) {
+        return queryRepository.getStockByShopId(shopId);
     }
 }
