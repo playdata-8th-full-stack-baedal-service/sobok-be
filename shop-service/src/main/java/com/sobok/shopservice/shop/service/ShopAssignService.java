@@ -16,12 +16,15 @@ import com.sobok.shopservice.shop.entity.Stock;
 import com.sobok.shopservice.shop.repository.ShopQueryRepository;
 import com.sobok.shopservice.shop.repository.StockRepository;
 import feign.FeignException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.List;
 import java.util.Map;
@@ -37,10 +40,8 @@ import static com.sobok.shopservice.shop.entity.QShop.*;
 public class ShopAssignService {
     private final UserFeignClient userFeignClient;
     private final StockService stockService;
-    private final StockRepository stockRepository;
     private final DeliveryFeignClient deliveryFeignClient;
     private final ShopQueryRepository shopQueryRepository;
-    private final RedissonClient redissonClient;
 
 
     public void assignNearestShop(ShopAssignDto reqDto) {
@@ -66,17 +67,8 @@ public class ShopAssignService {
         }
     }
 
-    private DeliveryAvailShopResDto getDeliveryAvailableShop(ShopAssignDto reqDto, List<DeliveryAvailShopResDto> nearShopList) {
-        String lockKey = "delivery-lock:" + reqDto.getPaymentId();
-        RLock lock = redissonClient.getLock(lockKey);
-
-        boolean isLocked = false;
+    public DeliveryAvailShopResDto getDeliveryAvailableShop(ShopAssignDto reqDto, List<DeliveryAvailShopResDto> nearShopList) {
         try {
-            isLocked = lock.tryLock(5, 10, TimeUnit.SECONDS);
-            if (!isLocked) {
-                throw new CustomException("시스템 예외 다시 시도해주세요 (시간 초과)", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
             DeliveryAvailShopResDto nearestShop = null;
             for (int i = 0; i < nearShopList.size(); i++) {
                 DeliveryAvailShopResDto shopInfo = nearShopList.get(i);
@@ -108,29 +100,14 @@ public class ShopAssignService {
             if (nearestShop == null) {
                 throw new CustomException("선택한 주소지에 가까운 가게를 찾지 못했습니다.", HttpStatus.NOT_FOUND);
             } else {
-                List<Stock> stocks = stockRepository.findByShopIdAndIngredientIdIn(
-                        nearestShop.getShopId(),
-                        reqDto.getCartIngreIdList().keySet()
-                );
-
-                stocks.forEach(stock ->
-                        stock.updateQuantity(-reqDto.getCartIngreIdList().get(stock.getIngredientId()))
-                );
-
-                stockRepository.saveAll(stocks);
+                stockService.updateStock(reqDto, nearestShop);
             }
             return nearestShop;
-        } catch (InterruptedException e) {
-            throw new CustomException("시스템 예외 다시 시도해주세요 (redisson 오류)", HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
             log.error("가게 자동 배정 중 오류 발생", e);
             throw new CustomException("가게 자동 배정 과정 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-        } finally {
-            if (isLocked && lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
         }
     }
 

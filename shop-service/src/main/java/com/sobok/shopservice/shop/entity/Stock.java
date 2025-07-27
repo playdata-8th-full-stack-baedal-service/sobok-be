@@ -1,11 +1,13 @@
 package com.sobok.shopservice.shop.entity;
 
 import com.sobok.shopservice.common.entity.BaseTimeEntity;
+import com.sobok.shopservice.common.exception.CustomException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Entity
 @Getter
@@ -24,6 +26,9 @@ public class Stock extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @Column(nullable = false)
     private Long ingredientId;
 
@@ -34,6 +39,10 @@ public class Stock extends BaseTimeEntity {
     private Integer quantity;
 
     public void updateQuantity(Integer quantity) {
+        if(this.quantity + quantity < 0) {
+          throw new CustomException("잘못된 재고량 입니다.", HttpStatus.BAD_REQUEST);
+        }
+
         this.quantity = this.quantity + quantity;
     }
 }

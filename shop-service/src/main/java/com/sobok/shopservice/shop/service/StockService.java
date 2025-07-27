@@ -1,6 +1,8 @@
 package com.sobok.shopservice.shop.service;
 
 import com.sobok.shopservice.common.exception.CustomException;
+import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
+import com.sobok.shopservice.shop.dto.response.DeliveryAvailShopResDto;
 import com.sobok.shopservice.shop.dto.stock.StockReqDto;
 import com.sobok.shopservice.shop.dto.stock.StockResDto;
 import com.sobok.shopservice.shop.entity.Stock;
@@ -9,6 +11,7 @@ import com.sobok.shopservice.shop.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,5 +77,28 @@ public class StockService {
      */
     public List<StockResDto> getStock(Long shopId) {
         return queryRepository.getStockByShopId(shopId);
+    }
+
+    @Transactional
+    public void updateStock(ShopAssignDto reqDto, DeliveryAvailShopResDto nearestShop) throws InterruptedException {
+        for (int i = 0; i < 5; i++) {
+            try {
+
+                List<Stock> stocks = stockRepository.findByShopIdAndIngredientIdIn(
+                        nearestShop.getShopId(),
+                        reqDto.getCartIngreIdList().keySet()
+                );
+
+                stocks.forEach(stock ->
+                        stock.updateQuantity(-reqDto.getCartIngreIdList().get(stock.getIngredientId()))
+                );
+
+                stockRepository.saveAll(stocks);
+
+            } catch (ObjectOptimisticLockingFailureException e) {
+                Thread.sleep(50 * i);
+                log.warn("낙관적 락 충돌 발생. 재시도 {}회", i + 1);
+            }
+        }
     }
 }
