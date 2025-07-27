@@ -83,7 +83,6 @@ public class StockService {
     public void updateStock(ShopAssignDto reqDto, DeliveryAvailShopResDto nearestShop) throws InterruptedException {
         for (int i = 0; i < 5; i++) {
             try {
-
                 List<Stock> stocks = stockRepository.findByShopIdAndIngredientIdIn(
                         nearestShop.getShopId(),
                         reqDto.getCartIngreIdList().keySet()
@@ -95,6 +94,7 @@ public class StockService {
 
                 stockRepository.saveAll(stocks);
 
+                return;
             } catch (ObjectOptimisticLockingFailureException e) {
                 Thread.sleep(50 * i);
                 log.warn("낙관적 락 충돌 발생. 재시도 {}회", i + 1);
