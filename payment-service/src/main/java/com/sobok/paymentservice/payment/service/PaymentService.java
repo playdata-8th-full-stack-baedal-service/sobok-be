@@ -87,7 +87,7 @@ public class PaymentService {
         // 결제 사전 정보 저장
         paymentRepository.save(payment);
 
-        // 요리 결제 정보 등록
+        // 요리 결제 정보 등록 TODO (N + 1)
         for (Long cartCookId : reqDto.getCartCookIdList()) {
             // 장바구니에 들어있는 CartCook 꺼내오기
             CartCook cartCook = cartCookRepository.findUnpaidCartById(cartCookId).orElseThrow(
@@ -124,8 +124,45 @@ public class PaymentService {
         // Payment 객체 저장
         paymentRepository.save(payment);
 
+        // cartIngreDient 가져오기
+        List<CartCook> cartCookList = cartCookRepository.findByPaymentId(payment.getId());
+        List<PaymentItemResDto> paymentResDto = cartService.getPaymentResDto(null, cartCookList).getItems();
+        List<StockReqDto> ingreList = new ArrayList<>();
+        for (PaymentItemResDto cook : paymentResDto) {
+            cook.getBaseIngredients()
+                    .stream()
+                    .map(
+                            ingredient ->
+                                    new StockReqDto(
+                                            -1L,
+                                            ingredient.getIngredientId(),
+                                            ingredient.getUnit() * ingredient.getUnitQuantity()
+                                    )
+                    ).forEach(ingreList::add);
+            cook.getAdditionalIngredients()
+                    .stream()
+                    .map(
+                            ingredient ->
+                                    new StockReqDto(
+                                            -1L,
+                                            ingredient.getIngredientId(),
+                                            ingredient.getUnit() * ingredient.getUnitQuantity()
+                                    )
+                    ).forEach(ingreList::add);
+        }
+
+        Map<Long, Integer> ingreMap = new HashMap<>();
+        for (StockReqDto dto: ingreList) {
+            if (ingreMap.containsKey(dto.getIngredientId())) {
+                Integer quantity = ingreMap.get(dto.getIngredientId()) + dto.getQuantity();
+                ingreMap.put(dto.getIngredientId(), quantity);
+            } else {
+                ingreMap.put(dto.getIngredientId(), dto.getQuantity());
+            }
+        }
+
         // 가게 자동 배정 시작
-        shopFeignClient.assignNearestShop(new ShopAssignDto(payment.getUserAddressId(), payment.getId()));
+        shopFeignClient.assignNearestShop(new ShopAssignDto(payment.getUserAddressId(), payment.getId(), ingreMap));
 
         // payment 상태 바꾸기
         payment.nextState();
