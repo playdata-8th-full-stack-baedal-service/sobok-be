@@ -31,7 +31,6 @@ public class IngredientController {
     /**
      * 관리자 재료 등록
      */
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/register")
     public ResponseEntity<?> ingreRegister(@Valid @RequestBody IngreReqDto reqDto) {
         ingredientService.ingreCreate(reqDto);
@@ -54,7 +53,6 @@ public class IngredientController {
     /**
      * 식재료 전체 조회 (관리자)
      */
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/all-search")
     public ResponseEntity<?> allSearch() {
         List<IngreResDto> ingredients = ingredientService.ingreSearch("");
@@ -67,7 +65,6 @@ public class IngredientController {
     /**
      * 식재료 정보 수정 (관리자)
      */
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PatchMapping("/edit")
     public ResponseEntity<?> ingreEdit(@Valid @RequestBody IngreEditReqDto newReqDto) {
         ingredientService.ingreEdit(newReqDto);

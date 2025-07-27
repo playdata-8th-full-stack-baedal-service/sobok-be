@@ -39,6 +39,13 @@ public class SecurityConfig {
                                 "/auth/check-permission", "/auth/check-shopName", "/auth/check-shopAddress",
                                 "/auth/social-user-signup", "/v3/**", "/swagger-ui/**"
                         ).permitAll()
+
+                        .requestMatchers("/auth/logout", "/auth/get-info", "/auth/edit-password").hasAnyRole("USER", "RIDER", "ADMIN", "HUB")
+
+                        .requestMatchers("/auth/delete").hasRole("USER")
+
+                        .requestMatchers("/auth/shop-signup").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리

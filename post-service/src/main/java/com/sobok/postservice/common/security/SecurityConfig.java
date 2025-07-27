@@ -35,6 +35,9 @@ public class SecurityConfig {
                                 "/actuator/**","/post/post-list","/post/cook-posts/**","/post/detail/{postId}", "/swagger-ui/**", "/v3/**"
                                 ,"/post/check-registered"
                         ).permitAll()
+
+                        .requestMatchers("/post/register","/post/update","/post/register",
+                        "/post/delete/{postId}","/post/user-post","/post/post-like").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리

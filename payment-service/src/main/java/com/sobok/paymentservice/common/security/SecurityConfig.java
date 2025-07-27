@@ -34,6 +34,15 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/**", "/v3/**"
                         ).permitAll()
+
+                        .requestMatchers("/payment/detail/{id}").hasAnyRole("HUB","USER")
+                        .requestMatchers("/payment/change-orderState").hasAnyRole("HUB","RIDER")
+
+                        .requestMatchers(
+                                "/payment/accept-delivery", "/payment/complete-delivery"
+                        ).hasRole("RIDER")
+
+                        .requestMatchers("/payment/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리
