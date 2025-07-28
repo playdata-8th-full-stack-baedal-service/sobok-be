@@ -20,6 +20,7 @@ import com.sobok.paymentservice.payment.entity.QCartCook;
 import com.sobok.paymentservice.payment.repository.CartCookQueryRepository;
 import com.sobok.paymentservice.payment.repository.CartCookRepository;
 import com.sobok.paymentservice.payment.repository.CartIngreRepository;
+import com.sobok.paymentservice.payment.service.cart.CartCookVerifier;
 import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -48,12 +49,6 @@ public class CartService {
     private final CartCookRepository cartCookRepository;
     private final CartIngreRepository cartIngreRepository;
     private final UserServiceClient userServiceClient;
-
-    private final CartCookQueryRepository cartCookQueryRepository;
-
-    private final ObjectMapper objectMapper;
-
-    private final RedisTemplate<String, String> redisObjectTemplate;
     private final JPAQueryFactory queryFactory;
 
     /**
@@ -120,68 +115,6 @@ public class CartService {
                     .build();
             cartIngreRepository.save(cartIngre);
         }
-
-        return cartCook.getId();
-    }
-
-    /**
-     * 장바구니 수정
-     * 1. 수량 검증
-     * 2. 상품 조회
-     * 3. 수량 변경
-     *
-     * @return
-     */
-    public Long editCartCookCount(TokenUserInfo userInfo, Long cartCookId, Integer count, CartStartPayDto reqDto) {
-        log.info("장바구니 수정 서비스 로직 시작! cook id : {}, count : {}", cartCookId, count);
-
-        // 수량 검증
-        if (count <= 0) {
-            log.error("잘못된 수량 요청값이 들어왔습니다.");
-            throw new CustomException("잘못된 수량 입력입니다.", HttpStatus.BAD_REQUEST);
-        }
-
-        // 장바구니 상품 꺼내오기
-        CartCook cartCook = cartCookRepository.findUnpaidCartById(cartCookId).orElseThrow(
-                () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
-        );
-
-        // 수량 변경
-        cartCook.changeCount(count);
-
-        // 저장
-        cartCookRepository.save(cartCook);
-
-
-        startPay(userInfo, reqDto);
-
-
-        return cartCook.getId();
-    }
-
-
-    /**
-     * 1. 장바구니에 담겨 있는지 확인
-     * 2. Ingredient 다 지우기
-     * 3. cart_cook 지우기
-     *
-     * @return
-     */
-    public Long deleteCart(TokenUserInfo userInfo, Long cookId, CartStartPayDto reqDto) {
-        log.info("장바구니 삭제 서비스 로직 실행! id : {}", cookId);
-
-        // 장바구니에 담겨 있는 지 확인
-        CartCook cartCook = cartCookRepository.findUnpaidCartById(cookId).orElseThrow(
-                () -> new CustomException("해당하는 장바구니의 요리가 없습니다.", HttpStatus.NOT_FOUND)
-        );
-
-        // 식재료 모두 삭제
-        cartIngreRepository.deleteByCartCookId(cookId);
-
-        // 요리 삭제
-        cartCookRepository.delete(cartCook);
-
-        startPay(userInfo, reqDto);
 
         return cartCook.getId();
     }
@@ -305,16 +238,6 @@ public class CartService {
         return new PaymentResDto(userId, items);
     }
 
-    public void startPay(TokenUserInfo userInfo, CartStartPayDto reqDto) {
-        try {
-            String json = objectMapper.writeValueAsString(reqDto);
-            redisObjectTemplate.opsForValue().set("START:PAYMENT:" + userInfo.getUserId(), json, Duration.ofMinutes(10));
-        } catch (JsonProcessingException e) {
-            log.error("DTO를 Redis로 파싱하는 과정에서 오류가 발생하였습니다.");
-            throw new CustomException("Redis 파싱 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     /**
      * 한달 주문량 기준 요리 페이지 조회
      */
@@ -339,29 +262,5 @@ public class CartService {
                 .limit(size)
                 .fetch();
     }
-
-//    public CartMonthlyHotDto getMonthlyHotList(int pageNo, int numOfRows) {
-//        // 현재 시각 기준으로 한달 전 주문 조회
-//        long monthToMillis = LocalDateTime.now().minusMonths(1)
-//                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-//
-//        // 페이징에 필요한 주문된 요리 최소 갯수
-//        int pagingMinimum = pageNo * numOfRows;
-//
-//        // 주문량 순 요리 조회
-//        List<CartMonthlyHotDto.MonthlyHot> monthlyHotList = cartCookQueryRepository.getMonthlyHotCartCook(monthToMillis).stream()
-//                .map(t -> new CartMonthlyHotDto.MonthlyHot(t.get(cartCook.cookId), t.get(cartCook.count.sum().intValue())))
-//                .toList();
-//
-//        // 페이징이 가능한지 확인
-//        boolean isAvailable = monthlyHotList.size() >= pagingMinimum;
-//
-//        // 개수가 모자라다면 전체, 아니라면 개수에 맞게
-//        List<CartMonthlyHotDto.MonthlyHot> result = isAvailable ?
-//                monthlyHotList.subList(pagingMinimum - numOfRows, pagingMinimum) :
-//                monthlyHotList;
-//
-//        return new CartMonthlyHotDto(result, isAvailable,  monthlyHotList.size());
-//    }
 
 }

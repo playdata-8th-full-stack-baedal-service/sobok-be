@@ -9,17 +9,28 @@ import com.sobok.shopservice.shop.dto.payment.DeliveryRegisterDto;
 import com.sobok.shopservice.shop.dto.payment.LocationResDto;
 import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.response.DeliveryAvailShopResDto;
+import com.sobok.shopservice.shop.dto.stock.StockResDto;
 import com.sobok.shopservice.shop.entity.QShop;
 import com.sobok.shopservice.shop.entity.Shop;
+import com.sobok.shopservice.shop.entity.Stock;
 import com.sobok.shopservice.shop.repository.ShopQueryRepository;
+import com.sobok.shopservice.shop.repository.StockRepository;
 import feign.FeignException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.sobok.shopservice.shop.entity.QShop.*;
 
@@ -28,8 +39,10 @@ import static com.sobok.shopservice.shop.entity.QShop.*;
 @RequiredArgsConstructor
 public class ShopAssignService {
     private final UserFeignClient userFeignClient;
+    private final StockService stockService;
     private final DeliveryFeignClient deliveryFeignClient;
     private final ShopQueryRepository shopQueryRepository;
+
 
     public void assignNearestShop(ShopAssignDto reqDto) {
         log.info("가게 자동 배정 시작 | Request : {}", reqDto);
@@ -38,19 +51,63 @@ public class ShopAssignService {
         LocationResDto userAddrDto = userFeignClient.getUserAddress(userAddressId);
 
         // 최대 거리는 나중에 바꾸자
-        Shop nearestShop = findNearestShop(userAddrDto.getLatitude(), userAddrDto.getLongitude(), 100.0).orElseThrow(
-                () -> new CustomException("조건을 만족하는 가게가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
-        );
+        List<DeliveryAvailShopResDto> nearShopList = findNearShop(userAddrDto.getLatitude(), userAddrDto.getLongitude(), 10.0);
+
+        DeliveryAvailShopResDto nearestShop = getDeliveryAvailableShop(reqDto, nearShopList);
 
         try {
             // Delivery에 객체 생성하면서 shop id, payment id 전달
-            DeliveryRegisterDto deliveryReqDto = new DeliveryRegisterDto(nearestShop.getId(), reqDto.getPaymentId());
+            DeliveryRegisterDto deliveryReqDto = new DeliveryRegisterDto(nearestShop.getShopId(), reqDto.getPaymentId());
 
             // 배달 객체 저장
             deliveryFeignClient.registerDelivery(deliveryReqDto);
         } catch (FeignException e) {
             log.error("배달 객체 저장 실패 | paymentId : {}", reqDto.getPaymentId(), e);
             throw new CustomException("배달 정보를 저장하는데 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public DeliveryAvailShopResDto getDeliveryAvailableShop(ShopAssignDto reqDto, List<DeliveryAvailShopResDto> nearShopList) {
+        try {
+            DeliveryAvailShopResDto nearestShop = null;
+            for (int i = 0; i < nearShopList.size(); i++) {
+                DeliveryAvailShopResDto shopInfo = nearShopList.get(i);
+                Map<Long, Integer> stock = stockService.getStock(shopInfo.getShopId())
+                        .stream()
+                        .collect(
+                                Collectors.toMap(
+                                        StockResDto::getIngredientId,
+                                        StockResDto::getQuantity
+                                )
+                        );
+
+                boolean flag = true;
+                Map<Long, Integer> request = reqDto.getCartIngreIdList();
+                for (Long ingreId : request.keySet()) {
+                    if (stock.containsKey(ingreId) && request.get(ingreId) <= stock.get(ingreId)) {
+                    } else {
+                        flag = false;
+                        break;
+                    }
+                }
+
+                if (flag) {
+                    nearestShop = shopInfo;
+                    break;
+                }
+            }
+
+            if (nearestShop == null) {
+                throw new CustomException("선택한 주소지에 가까운 가게를 찾지 못했습니다.", HttpStatus.NOT_FOUND);
+            } else {
+                stockService.updateStock(reqDto, nearestShop);
+            }
+            return nearestShop;
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("가게 자동 배정 중 오류 발생", e);
+            throw new CustomException("가게 자동 배정 과정 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

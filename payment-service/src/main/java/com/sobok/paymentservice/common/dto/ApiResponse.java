@@ -3,6 +3,7 @@ package com.sobok.paymentservice.common.dto;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @Builder
 @Getter
@@ -39,6 +40,10 @@ public class ApiResponse<T> {
                 .status(200)
                 .message(message)
                 .build();
+    }
+
+    public static <T> ResponseEntity<ApiResponse<T>> response(T data, String message) {
+        return ResponseEntity.ok().body(ApiResponse.ok(data, message));
     }
 
     // ------------------------------------------ 실패 ---------------------------------------------------------

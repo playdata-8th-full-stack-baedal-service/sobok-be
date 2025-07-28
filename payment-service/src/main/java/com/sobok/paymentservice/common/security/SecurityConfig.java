@@ -35,6 +35,9 @@ public class SecurityConfig {
                                 "/actuator/**", "/v3/**"
                         ).permitAll()
 
+                        .requestMatchers("/payment/detail/{id}").hasAnyRole("HUB","USER")
+                        .requestMatchers("/payment/change-orderState").hasAnyRole("HUB","RIDER")
+
                         .requestMatchers(
                                 "/payment/accept-delivery", "/payment/complete-delivery"
                         ).hasRole("RIDER")
