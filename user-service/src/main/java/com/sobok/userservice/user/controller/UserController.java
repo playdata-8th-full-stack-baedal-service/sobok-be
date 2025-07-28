@@ -124,10 +124,7 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.ok(response, "사용자의 즐겨찾기 상태가 조회되었습니다.."));
     }
 
-    /**
-     * 사용자 정보 조회(주문)
-     */
-    @GetMapping("/preOrderUser")
+    @GetMapping("/order-info")
     public ResponseEntity<?> preOrderUser(@AuthenticationPrincipal TokenUserInfo userInfo) {
         PreOrderUserResDto preOrderUser = userService.getPreOrderUser(userInfo);
         return ResponseEntity.ok().body(ApiResponse.ok(preOrderUser, "주문을 위한 사용자의 정보가 조회되었습니다."));

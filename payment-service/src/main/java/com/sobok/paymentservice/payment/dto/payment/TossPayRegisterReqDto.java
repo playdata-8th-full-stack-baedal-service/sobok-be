@@ -9,4 +9,5 @@ public class TossPayRegisterReqDto {
     private String orderId;
     private String paymentKey;
     private String method;
+    private Integer totalPrice;
 }
