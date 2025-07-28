@@ -16,5 +16,5 @@ public class RiderResDto {
     private String name;
     private String phone;
     private String permissionNumber;
-
+    private String active;
 }
