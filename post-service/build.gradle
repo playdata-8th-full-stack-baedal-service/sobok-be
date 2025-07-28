@@ -68,6 +68,9 @@ dependencies {
 
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    // Tika (S3 이미지 유효성 검증)
+    implementation 'org.apache.tika:tika-core:2.9.0'
 }
 
 dependencyManagement {

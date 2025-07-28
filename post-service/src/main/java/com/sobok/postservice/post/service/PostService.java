@@ -3,6 +3,7 @@ package com.sobok.postservice.post.service;
 import com.sobok.postservice.common.dto.ApiResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
+import com.sobok.postservice.post.client.ApiFeignClient;
 import com.sobok.postservice.post.client.CookFeignClient;
 import com.sobok.postservice.post.client.PaymentFeignClient;
 import com.sobok.postservice.post.client.UserFeignClient;
@@ -12,6 +13,7 @@ import com.sobok.postservice.post.entity.Post;
 import com.sobok.postservice.post.entity.PostImage;
 import com.sobok.postservice.post.repository.PostImageRepository;
 import com.sobok.postservice.post.repository.PostRepository;
+import com.sobok.postservice.post.service.S3.S3UtilityService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,8 @@ public class PostService {
     private final PaymentFeignClient paymentClient;
     private final CookFeignClient cookClient;
     private final UserFeignClient userClient;
+    private final ApiFeignClient apiClient;
+    private final S3UtilityService s3UtilityService;
 
     /**
      * 게시글 등록
@@ -66,17 +70,11 @@ public class PostService {
                 .build();
         postRepository.save(post);
 
+        // s3에 등록
         if (dto.getImages() != null && !dto.getImages().isEmpty()) {
-            List<PostImage> images = dto.getImages().stream()
-                    .map(img -> PostImage.builder()
-                            .postId(post.getId())
-                            .imagePath(img.getImageUrl())
-                            .index(img.getIndex())
-                            .build())
-                    .toList();
+            List<PostImage> images = buildPostImages(post.getId(), dto.getImages());
             postImageRepository.saveAll(images);
         } else {
-            // Post에 사진이 없다면 음식 사진 가져오기
             String url = cookClient.getCookThumbnail(dto.getCookId());
             postImageRepository.save(
                     PostImage.builder()
@@ -86,7 +84,6 @@ public class PostService {
                             .build()
             );
         }
-
         PostRegisterResDto build = PostRegisterResDto.builder()
                 .postId(post.getId())
                 .cookName(cookName)
@@ -123,16 +120,15 @@ public class PostService {
             post.setContent(dto.getContent());
         }
 
+        // 기존 이미지 S3에서 삭제
+        List<PostImage> oldImages = postImageRepository.findAllByPostId(post.getId());
+        deleteS3Images(oldImages);
+
+        // 기존 이미지 삭제
         postImageRepository.deleteByPostId(post.getId());
 
-        List<PostImage> newImages = dto.getImages() != null ? dto.getImages().stream()
-                .map(img -> PostImage.builder()
-                        .postId(post.getId())
-                        .imagePath(img.getImageUrl())
-                        .index(img.getIndex())
-                        .build())
-                .toList() : Collections.emptyList();
-
+        // 새 이미지 등록
+        List<PostImage> newImages = buildPostImages(post.getId(), dto.getImages());
         postImageRepository.saveAll(newImages);
 
         return PostUpdateResDto.builder()
@@ -157,6 +153,11 @@ public class PostService {
             throw new CustomException("해당 게시글에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
         }
 
+        // 이미지 S3에서 삭제
+        List<PostImage> images = postImageRepository.findAllByPostId(postId);
+        deleteS3Images(images); // 삭제 메서드 호출
+
+        // DB 삭제
         postImageRepository.deleteByPostId(postId);
         postRepository.delete(post);
     }
@@ -446,6 +447,39 @@ public class PostService {
                 : "해당 요리에 게시글을 등록할 수 있습니다.";
 
         return ApiResponse.ok(new PostRegisterCheckResDto(exists), message);
+    }
+
+
+    /**
+     * S3 등록 로직 (공통)
+     */
+    private List<PostImage> buildPostImages(Long postId, List<PostImageDto> imageDtos) {
+        if (imageDtos == null || imageDtos.isEmpty()) return Collections.emptyList(); // 이미지가 존재할 때만 수행
+
+        return imageDtos.stream()
+                .map(img -> {
+                    String originalUrl = img.getImageUrl(); // 각 이미지 url 추출
+                    String finalUrl = originalUrl.contains("/temp/") // url에 temp 경로 포함되어 있는지 확인
+                            ? apiClient.registerImg(originalUrl) // 임시 경로일경우(/temp/) -> 영구 경로 전환
+                            : originalUrl; // 임시 경로가 아닐경우 그대로 사용
+
+                    return PostImage.builder()
+                            .postId(postId)
+                            .imagePath(finalUrl)
+                            .index(img.getIndex())
+                            .build();
+                })
+                .toList();
+    }
+
+    /**
+     * S3 삭제 로직
+     */
+    private void deleteS3Images(List<PostImage> images) {
+        images.forEach(img -> {
+            String key = s3UtilityService.detachImageUrl(img.getImagePath());
+            apiClient.deleteS3Image(key);
+        });
     }
 
 }
