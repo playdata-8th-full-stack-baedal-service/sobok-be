@@ -6,6 +6,7 @@ import com.sobok.paymentservice.common.enums.DeliveryState;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResponseDto;
 import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
 import com.sobok.paymentservice.payment.dto.response.PaymentDetailResDto;
@@ -14,6 +15,7 @@ import com.sobok.paymentservice.payment.service.CartService;
 import com.sobok.paymentservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -72,7 +74,7 @@ public class PaymentController {
     public ResponseEntity<?> getPayment(@AuthenticationPrincipal TokenUserInfo userInfo,
                                         @RequestParam Long pageNo, @RequestParam Long numOfRows) {
         List<GetPaymentResDto> getPaymentResDtos = paymentService.getPayment(userInfo, pageNo, numOfRows);
-        if(getPaymentResDtos.isEmpty()) {
+        if (getPaymentResDtos.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
         }
         return ResponseEntity.ok().body(ApiResponse.ok(getPaymentResDtos, "사용자의 주문 내역이 조회되었습니다."));
@@ -112,6 +114,17 @@ public class PaymentController {
     public ResponseEntity<?> completeDelivery(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id) {
         paymentService.processDeliveryAction(userInfo, id, DeliveryState.COMPLETE, deliveryFeignClient::completeDelivery);
         return ResponseEntity.ok().body(ApiResponse.ok(id, "배달이 완료되었습니다."));
+    }
+
+    /**
+     * 관리자 전용 사용자 주문 전체 조회
+     */
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
+                                          @RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size) {
+        Page<AdminPaymentResponseDto> result = paymentService.getAllPayments(userInfo, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(result, "전체 주문 조회 성공"));
     }
 
 }

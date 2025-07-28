@@ -1,18 +1,16 @@
 package com.sobok.paymentservice.payment.service;
 
 import com.querydsl.core.BooleanBuilder;
+import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.DeliveryState;
 import com.sobok.paymentservice.common.enums.OrderState;
 import com.sobok.paymentservice.common.exception.CustomException;
-import com.sobok.paymentservice.payment.client.CookFeignClient;
-import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
+import com.sobok.paymentservice.payment.client.*;
 import com.sobok.paymentservice.payment.dto.delivery.AcceptOrderReqDto;
 import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResDto;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.sobok.paymentservice.payment.client.ShopFeignClient;
-import com.sobok.paymentservice.payment.client.UserServiceClient;
 import com.sobok.paymentservice.payment.dto.payment.*;
 import com.sobok.paymentservice.payment.dto.response.*;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
@@ -35,10 +33,7 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +65,7 @@ public class PaymentService {
     private final Map<String, RoleValidator> validatorMap;
     private final List<RoleAccessValidator> roleAccessValidatorList;
     private final DeliveryActionStrategyFactory strategyFactory;
-
+    private final AuthFeignClient authFeignClient;
 
     /**
      * 결제 사전 정보 등록
@@ -155,7 +150,7 @@ public class PaymentService {
         }
 
         Map<Long, Integer> ingreMap = new HashMap<>();
-        for (StockReqDto dto: ingreList) {
+        for (StockReqDto dto : ingreList) {
             if (ingreMap.containsKey(dto.getIngredientId())) {
                 Integer quantity = ingreMap.get(dto.getIngredientId()) + dto.getQuantity();
                 ingreMap.put(dto.getIngredientId(), quantity);
@@ -594,5 +589,120 @@ public class PaymentService {
         return payment;
     }
 
+    /**
+     * 관리자 전용 사용자 주문 전체 조회
+     */
+    public Page<AdminPaymentResponseDto> getAllPayments(TokenUserInfo userInfo, int page, int size) {
+        // payment-service 로부터 PagedResponse<AdminPaymentResDto> 응답 받음
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")); // 최신순 정렬
+        PagedResponse<AdminPaymentResDto> payments = getAllPaymentsForAdmin(pageable);
+        log.info(payments.getContent().toString());
+
+        // 각 결제에 필요한 정보 조합
+        List<AdminPaymentResponseDto> result = payments.getContent().stream().map(payment -> {
+            // 유저 정보
+            UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
+
+            // 라이더 정보
+            log.info(payment.getId().toString());
+            RiderPaymentInfoResDto rider = payment.getRiderId() == null
+                    ? new RiderPaymentInfoResDto()
+                    : deliveryFeignClient.getRiderName(payment.getRiderId());
+
+            // 가게 정보
+            Long shopId = deliveryFeignClient.getShopIdByPaymentId(payment.getId());
+            AdminShopResDto shopInfo = shopFeignClient.getShopInfo(shopId);
+
+            // 요리 + 기본식재료 + 추가식재료
+            List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(payment.getId());
+
+            // 사용자 정보
+            Long userId = userServiceClient.getUserIdByUserAddressId(payment.getUserAddressId());
+            Long authId = userServiceClient.getAuthIdByUserId(userId);
+            String loginId = authFeignClient.getLoginId(authId);
+
+            return AdminPaymentResponseDto.builder()
+                    .orderId(payment.getOrderId())
+                    .totalPrice(payment.getTotalPrice())
+                    .payMethod(payment.getPayMethod())
+                    .orderState(payment.getOrderState())
+                    .createdAt(payment.getCreatedAt())
+                    .nickname(userInfoResDto.getNickname())
+                    .phone(userInfoResDto.getPhone())
+                    .roadFull(userInfoResDto.getRoadFull())
+                    .address(userInfoResDto.getAddress())
+                    .riderName(rider.getRiderName())
+                    .riderPhone(rider.getRiderPhone())
+                    .shopName(shopInfo.getShopName())
+                    .shopPhone(shopInfo.getShopPhone())
+                    .ownerName(shopInfo.getOwnerName())
+                    .shopAddress(shopInfo.getShopAddress())
+                    .cooks(cooks)
+                    .loginId(loginId)
+                    .build();
+        }).toList();
+
+        // Page 객체로 감싸서 보냄
+        return new PageImpl<>(result, PageRequest.of(page, size), payments.getTotalElements());
+    }
+
+    /**
+     * 결제 ID에 해당하는 장바구니 요리이름 재료 정보를 조회,
+     * 요리 이름과 기본/추가 식재료 목록을 포함한 상세 DTO 리스트를 반환
+     *
+     * @param paymentId 결제 ID
+     * @return List<CookDetailWithIngredientsResDto> 요리 이름, 기본 재료, 추가 재료 포함된 DTO 목록
+     */
+    public List<CookDetailWithIngredientsResDto> getCookDetailsByPaymentId(Long paymentId) {
+        // 결제 ID에 해당하는 모든 장바구니 요리 목록 조회
+        List<CartCookResDto> cartCooks = getCartCooksByPaymentId(paymentId);
+
+        // 요리 ID 목록만 추출
+        List<Long> cookIds = cartCooks.stream()
+                .map(CartCookResDto::getCookId)
+                .distinct()
+                .toList();
+
+        // 요리 ID -> 요리 이름 Map으로 변환 (cookId 기준)
+        Map<Long, String> cookNameMap = cookFeignClient.getCookNames(cookIds).stream()
+                .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
+
+        List<CookDetailWithIngredientsResDto> result = new ArrayList<>();
+
+        // 각 장바구니 요리별로 재료 조회 및 가공
+        for (CartCookResDto cartCook : cartCooks) {
+            // 해당 장바구니 요리에 포함된 재료 목록 조회
+            List<CartIngredientResDto> ingredients = getIngredientsByCartCookId(cartCook.getId());
+
+            // 기본 재료 ID만 필터링
+            List<Long> baseIds = ingredients.stream()
+                    .filter(i -> "Y".equals(i.getDefaultIngre()))
+                    .map(CartIngredientResDto::getIngreId)
+                    .toList();
+            // 추가 재료 ID만 필터링
+            List<Long> addIds = ingredients.stream()
+                    .filter(i -> "N".equals(i.getDefaultIngre()))
+                    .map(CartIngredientResDto::getIngreId)
+                    .toList();
+            //기본 재료 ID 이름 변환
+            List<String> baseNames = cookFeignClient.getIngredientNames(baseIds).stream()
+                    .map(IngredientNameResDto::getIngreName)
+                    .toList();
+            // 추가 재료 ID 이름 변환
+            List<String> addNames = cookFeignClient.getIngredientNames(addIds).stream()
+                    .map(IngredientNameResDto::getIngreName)
+                    .toList();
+            // 요리 이름 조회
+            String cookName = cookNameMap.get(cartCook.getCookId());
+
+            result.add(CookDetailWithIngredientsResDto.builder()
+                    .cookName(cookName)
+                    .baseIngredients(baseNames)
+                    .additionalIngredients(addNames)
+                    .build());
+        }
+
+        return result;
+    }
 
 }

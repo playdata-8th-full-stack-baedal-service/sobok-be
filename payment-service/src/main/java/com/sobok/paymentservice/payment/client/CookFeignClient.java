@@ -2,6 +2,8 @@ package com.sobok.paymentservice.payment.client;
 
 import com.sobok.paymentservice.common.config.FeignConfig;
 import com.sobok.paymentservice.payment.dto.cart.MonthlyHot;
+import com.sobok.paymentservice.payment.dto.payment.CookNameResDto;
+import com.sobok.paymentservice.payment.dto.payment.IngredientNameResDto;
 import com.sobok.paymentservice.payment.dto.response.CookDetailResDto;
 import com.sobok.paymentservice.payment.dto.response.CookInfoResDto;
 import com.sobok.paymentservice.payment.dto.response.IngredientResDto;
@@ -50,5 +52,17 @@ public interface CookFeignClient {
 
     @PutMapping("/api/monthly-hot")
     void updateMonthlyHotCooks(@RequestBody List<MonthlyHot> monthlyHotList);
+
+    /**
+     * 요리 이름 조회(주문 조회용)
+     */
+    @PostMapping("/api/admin/cook-names")
+    List<CookNameResDto> getCookNames(@RequestBody List<Long> cookIds);
+
+    /**
+     * 식재료 이름(주문조회용)
+     */
+    @PostMapping("/api/admin/ingredient-names")
+    List<IngredientNameResDto> getIngredientNames(@RequestBody List<Long> ingreIds);
 }
 

@@ -1,27 +1,24 @@
 package com.sobok.paymentservice.payment.dto.payment;
 
-
 import com.sobok.paymentservice.common.enums.OrderState;
 import lombok.*;
 
 import java.util.List;
 
 @Getter
-@Builder
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 /**
- * 주문 전체 조회(결제)
+ * 주문 조회 응답용(필요한것만 AdminPaymentResDto 에서 필요한 부분만  걸름)
  */
-public class AdminPaymentResDto {
-    // 결제 정보
+public class AdminPaymentResponseDto {
     private String orderId;
     private Long totalPrice;
     private String payMethod;
     private OrderState orderState;
     private Long createdAt;
-    private Long userAddressId;
 
     // 유저 정보
     private String loginId;
@@ -32,12 +29,9 @@ public class AdminPaymentResDto {
 
     // 라이더 정보
     private String riderName;
-    private Long riderId;
-    private Long id;
     private String riderPhone;
 
     // 가게 정보
-    private Long shopId;
     private String shopName;
     private String shopAddress;
     private String ownerName;
