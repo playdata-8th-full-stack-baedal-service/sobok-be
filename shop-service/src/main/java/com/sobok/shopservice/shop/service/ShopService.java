@@ -112,7 +112,7 @@ public class ShopService {
     }
 
     public Long getShopId(Long id) {
-        Shop shop = shopRepository.getShopByAuthId(id).orElseThrow(
+        Shop shop = shopRepository.findByAuthId(id).orElseThrow(
                 () -> new EntityNotFoundException("해당하는 가게 정보를 찾을 수 없습니다.")
         );
 

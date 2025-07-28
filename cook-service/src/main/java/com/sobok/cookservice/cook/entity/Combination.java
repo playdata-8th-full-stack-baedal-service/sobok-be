@@ -9,7 +9,9 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @ToString
-@Table(name = "combination")
+@Table(name = "combination", indexes = {
+        @Index(name = "idx_combination_cookId", columnList = "cookId")
+})
 public class Combination {
 
     @Id

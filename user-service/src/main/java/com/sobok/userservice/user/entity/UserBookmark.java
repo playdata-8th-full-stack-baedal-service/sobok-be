@@ -9,7 +9,9 @@ import lombok.*;
 @Entity
 @Builder
 @ToString
-@Table(name = "user_bookmark")
+@Table(name = "user_bookmark", indexes = {
+        @Index(name = "idx_bookmark_userId", columnList = "userId")
+})
 public class UserBookmark {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

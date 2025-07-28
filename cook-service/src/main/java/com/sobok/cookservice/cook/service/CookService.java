@@ -148,7 +148,7 @@ public class CookService {
                 .collect(Collectors.toMap(Cook::getId, Function.identity()));
 
         // 조합을 cookId 기준으로 그룹화
-        List<Combination> allCombinations = combinationRepository.findByCookIdIn(cookIds);
+        List<Combination> allCombinations = combinationRepository.  findByCookIdIn(cookIds);
         Map<Long, List<Combination>> combinationMap = allCombinations.stream()
                 .collect(Collectors.groupingBy(Combination::getCookId));
 
