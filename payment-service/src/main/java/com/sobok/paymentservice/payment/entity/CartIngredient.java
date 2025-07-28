@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 @Entity
 @ToString
 @Table(name = "cart_ingre", indexes = {
-    @Index(name = "idx_cart_ingredient_cartCookId", columnList = "cartCookId"),
     @Index(name = "idx_cart_ingredient_cookId_defaultIngre", columnList = "cartCookId, defaultIngre")
 })
 public class CartIngredient {
