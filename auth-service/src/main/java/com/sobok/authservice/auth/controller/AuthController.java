@@ -89,16 +89,9 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok(accessToken, "토큰이 성공적으로 발급되었습니다."));
     }
 
-//    /**
-//     * 사용자 비활성화
-//     */
-//    @DeleteMapping("/delete")
-//    public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody AuthPasswordReqDto reqDto) throws EntityNotFoundException {
-//        statusService.delete(userInfo, reqDto);
-//        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
-//    }
-
-    // 비밀번호 검증
+    /**
+     * 비밀번호 검증
+     */
     @PostMapping("/verify-password")
     public ResponseEntity<?> verifyPassword(@AuthenticationPrincipal TokenUserInfo userInfo,
                                             @RequestBody AuthPasswordReqDto reqDto) {
@@ -106,13 +99,15 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(null, "비밀번호가 확인되었습니다."));
     }
 
-    // 비활성화
+    /**
+     * 사용자 비활성화(탈퇴)
+     */
     @DeleteMapping("/delete")
     public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo) {
         statusService.delete(userInfo);
         return ResponseEntity.ok(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
     }
-    
+
     /**
      * 사용자 복구
      */
