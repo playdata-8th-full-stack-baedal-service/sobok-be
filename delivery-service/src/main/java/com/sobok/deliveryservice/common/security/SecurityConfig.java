@@ -36,7 +36,8 @@ public class SecurityConfig {
                                 "/delivery/check-permission", "/v3/**", "/swagger-ui/**"
                         ).permitAll()
 
-                        .requestMatchers("/delivery/**").hasRole("RIDER")
+                        .requestMatchers("/delivery/available-order", "/delivery/delivering-order", "/delivery/delivery-list").hasRole("RIDER")
+                        .requestMatchers("/delivery/all", "/delivery/pending-rider").hasRole("ADMIN")
                         .anyRequest().authenticated()
 
                 )

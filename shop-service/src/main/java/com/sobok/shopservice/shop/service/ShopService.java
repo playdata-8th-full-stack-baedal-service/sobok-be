@@ -1,6 +1,7 @@
 package com.sobok.shopservice.shop.service;
 
 
+import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
 import com.sobok.shopservice.common.enums.OrderState;
 import com.sobok.shopservice.common.exception.CustomException;
@@ -120,20 +121,7 @@ public class ShopService {
     }
 
 
-    /**
-     * 관리자용 가게 전체 조회
-     */
-    public List<ShopResDto> getAllShops() {
-        return shopRepository.findAll().stream()
-                .map(shop -> ShopResDto.builder()
-                        .id(shop.getId())          // 목록 번호
-                        .shopName(shop.getShopName())
-                        .roadFull(shop.getRoadFull())
-                        .ownerName(shop.getOwnerName())
-                        .phone(shop.getPhone())
-                        .build())
-                .toList();
-    }
+
 
     /**
      * 주문 전체 조회용 가게 정보 전달
@@ -181,7 +169,7 @@ public class ShopService {
     public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState, Long pageNo, Long numOfRows) {
         List<Long> paymentIdList = deliveryClient.getPaymentId(shopId);
         log.info("들어온 결제 번호 목록: {}", paymentIdList);
-        if(paymentIdList == null || paymentIdList.isEmpty()) {
+        if (paymentIdList == null || paymentIdList.isEmpty()) {
             return List.of();
         }
         List<ShopPaymentResDto> allOrders = paymentFeignClient.getPayment(paymentIdList);
@@ -241,6 +229,21 @@ public class ShopService {
                         .shopId(shops.getId())
                         .shopName(shops.getShopName())
                         .roadFull(shops.getRoadFull())
+                        .build())
+                .toList();
+    }
+
+    /**
+     * 관리자 전용 가게 전체 조회
+     */
+    public List<ShopResDto> getAllShops() {
+        return shopRepository.findAll().stream()
+                .map(shop -> ShopResDto.builder()
+                        .id(shop.getId())          // 목록 번호
+                        .shopName(shop.getShopName())
+                        .roadFull(shop.getRoadFull())
+                        .ownerName(shop.getOwnerName())
+                        .phone(shop.getPhone())
                         .build())
                 .toList();
     }

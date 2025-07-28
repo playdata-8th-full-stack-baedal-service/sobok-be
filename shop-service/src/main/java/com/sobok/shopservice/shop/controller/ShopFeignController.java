@@ -71,15 +71,6 @@ public class ShopFeignController {
     }
 
     /**
-     * 관리자용 가게 전체 조회
-     */
-    @GetMapping("/shop-all")
-    public ResponseEntity<?> getAllShops() {
-        List<ShopResDto> result = shopService.getAllShops();
-        return ResponseEntity.ok(ApiResponse.ok(result, "가게 전체 조회 성공"));
-    }
-
-    /**
      * 주문 전체 조회용 가게 정보
      */
     @GetMapping("/shop-info-all")

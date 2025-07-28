@@ -76,15 +76,6 @@ public class DeliveryFeignController {
     }
 
     /**
-     * 라이더 정보 조회
-     */
-    @GetMapping("/get-rider-all")
-    public ResponseEntity<?> getAllRiders() {
-        List<RiderInfoResDto> riders = riderService.getAllRiders();
-        return ResponseEntity.ok(ApiResponse.ok(riders, "전체 라이더 조회 성공"));
-    }
-
-    /**
      * 결제관련 라이더 정보 조회
      */
     @GetMapping("/admin/rider-info")
@@ -118,10 +109,6 @@ public class DeliveryFeignController {
     }
 
 
-    @GetMapping("/get-pending-rider")
-    public List<RiderResDto> getPendingRiders() {
-        return riderService.getPendingRiders();
-    }
 
     /**
      * 라이더 주문 수락

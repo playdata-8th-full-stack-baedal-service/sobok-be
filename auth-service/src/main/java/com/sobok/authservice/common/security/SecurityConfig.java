@@ -44,7 +44,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/auth/verify-password", "/auth/delete").hasRole("USER")
 
-                        .requestMatchers("/auth/shop-signup").hasRole("ADMIN")
+                        .requestMatchers("/auth/shop-signup", "/auth/rider-active").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

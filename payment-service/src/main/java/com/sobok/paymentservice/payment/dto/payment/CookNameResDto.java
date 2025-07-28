@@ -1,4 +1,4 @@
-package com.sobok.adminservice.admin.dto.order;
+package com.sobok.paymentservice.payment.dto.payment;
 
 
 import lombok.*;

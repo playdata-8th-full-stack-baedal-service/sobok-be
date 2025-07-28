@@ -43,6 +43,7 @@ public class SecurityConfig {
                         ).hasRole("RIDER")
 
                         .requestMatchers("/payment/**").hasRole("USER")
+                        .requestMatchers("/payment/all").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리

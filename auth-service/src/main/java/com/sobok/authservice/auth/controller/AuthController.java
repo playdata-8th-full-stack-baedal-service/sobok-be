@@ -198,4 +198,15 @@ public class AuthController {
         return ResponseEntity.ok().body(ApiResponse.ok("회원가입 성공"));
 
     }
+
+    /**
+     * rider 회원가입 승인 요청
+     */
+    @PutMapping("/rider-active")
+    public ResponseEntity<ApiResponse<Void>> activeRider(
+            @RequestParam Long authId,
+            @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
+        statusService.activeRider(authId);
+        return ResponseEntity.ok(ApiResponse.ok(null, "라이더 계정이 활성화되었습니다."));
+    }
 }

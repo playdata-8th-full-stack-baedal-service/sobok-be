@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.client;
 import com.sobok.paymentservice.common.config.FeignConfig;
 import com.sobok.paymentservice.payment.dto.delivery.AcceptOrderReqDto;
 import com.sobok.paymentservice.payment.dto.delivery.DeliveryResDto;
+import com.sobok.paymentservice.payment.dto.payment.RiderPaymentInfoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,4 +20,15 @@ public interface DeliveryFeignClient {
     @PostMapping("/api/complete-delivery")
     void completeDelivery(@RequestBody AcceptOrderReqDto deliveryResDto);
 
+    /**
+     * 라이더 정보 조회
+     */
+    @GetMapping("/api/admin/rider-info")
+    RiderPaymentInfoResDto getRiderName(@RequestParam Long paymentId);
+
+    /**
+     * paymentId 기준으로 delivery 테이블의 shopId 추출용
+     */
+    @GetMapping("/api/shop-id/payment")
+    Long getShopIdByPaymentId(@RequestParam Long paymentId);
 }
