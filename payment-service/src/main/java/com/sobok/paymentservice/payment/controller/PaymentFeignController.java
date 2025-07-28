@@ -56,31 +56,6 @@ public class PaymentFeignController {
     }
 
     /**
-     * 결제 정보에 맞는 요리 이름 조회용
-     */
-    @GetMapping("/admin/cook-ids")
-    public ResponseEntity<List<Long>> getCookIdsByPaymentId(@RequestParam Long paymentId) {
-        return ResponseEntity.ok(paymentService.getCookIdsByPaymentId(paymentId));
-    }
-
-    /**
-     * 결제 ID에 해당하는 모든 장바구니 요리 목록을 조회
-     */
-    @GetMapping("/admin/cart-cooks")
-    public List<CartCookResDto> getCartCooks(@RequestParam Long paymentId) {
-        return paymentService.getCartCooksByPaymentId(paymentId);
-    }
-
-    /**
-     * 특정 장바구니 요리에 포함된 재료 목록을 조회
-     */
-    @GetMapping("/admin/cart-ingredients")
-    public List<CartIngredientResDto> getCartIngredients(@RequestParam Long cartCookId) {
-        return paymentService.getIngredientsByCartCookId(cartCookId);
-    }
-
-
-    /**
      * 결제 상태 정보
      */
     @GetMapping("/payment/completed")
