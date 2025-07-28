@@ -36,14 +36,14 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/**", "/ingredient/keyword-search"
                                 , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
-                                , "/cook/get-cook/**","/cook/internal/simple-info","/cook/popular",
+                                , "/cook/get-cook/**", "/cook/internal/simple-info", "/cook/popular",
                                 "/v3/**", "/swagger-ui/**"
                         ).permitAll()
 
                         .requestMatchers("/cook/cook-register", "/ingredient/register",
                                 "/ingredient/all-search", "/ingredient/edit").hasRole("ADMIN")
 
-                        .requestMatchers("/cook/**","/ingredient/**").hasRole("USER")
+                        .requestMatchers("/cook/**", "/ingredient/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리
