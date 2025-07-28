@@ -8,7 +8,11 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "cart_cook")
+@Table(name = "cart_cook", indexes = {
+        @Index(name = "idx_CartCook_paymentId", columnList = "paymentId"),
+        @Index(name = "idx_CartCook_userId", columnList = "userId"),
+        @Index(name = "idx_CartCook_cookId", columnList = "cookId")
+})
 @Builder
 @ToString
 public class CartCook {

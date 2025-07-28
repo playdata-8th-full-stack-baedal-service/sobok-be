@@ -12,7 +12,10 @@ import java.math.BigDecimal;
 @Builder
 @Entity
 @ToString
-@Table(name = "cart_ingre")
+@Table(name = "cart_ingre", indexes = {
+    @Index(name = "idx_cart_ingredient_cartCookId", columnList = "cartCookId"),
+    @Index(name = "idx_cart_ingredient_cookId_defaultIngre", columnList = "cartCookId, defaultIngre")
+})
 public class CartIngredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

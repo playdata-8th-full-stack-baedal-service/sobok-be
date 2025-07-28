@@ -12,7 +12,9 @@ import org.springframework.util.StringUtils;
 @Entity
 @Builder
 @ToString
-@Table(name = "ingredient")
+@Table(name = "ingredient", indexes = {
+        @Index(name = "idx_ingre_name", columnList = "ingreName")
+})
 public class Ingredient {
 
     @Id

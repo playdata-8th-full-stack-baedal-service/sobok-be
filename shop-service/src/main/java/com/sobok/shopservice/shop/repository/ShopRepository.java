@@ -16,6 +16,4 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     boolean existsByRoadFull(String roadFull);
 
     Optional<Shop> findByAuthId(Long authId);
-
-    Optional<Shop> getShopByAuthId(Long authId);
 }

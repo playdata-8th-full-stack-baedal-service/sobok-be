@@ -13,7 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Builder
-@Table(name = "user_address")
+@Table(name = "user_address", indexes = {
+        @Index(name = "idx_address_userId", columnList = "userId")
+})
 public class UserAddress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
