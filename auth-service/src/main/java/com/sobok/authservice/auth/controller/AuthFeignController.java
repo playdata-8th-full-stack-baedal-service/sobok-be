@@ -21,14 +21,6 @@ public class AuthFeignController {
     private final InfoService infoService;
     private final StatusService statusService;
 
-    /**
-     * 라이더 활성화
-     */
-    @PutMapping("/active-rider")
-    public ResponseEntity<Void> activeRider(@RequestParam Long authId) {
-        statusService.activeRider(authId);
-        return ResponseEntity.ok().build();
-    }
 
     /**
      * admin-service 전용 라이더 활성화 상태, 로그인 아이디 가져오는 로직
