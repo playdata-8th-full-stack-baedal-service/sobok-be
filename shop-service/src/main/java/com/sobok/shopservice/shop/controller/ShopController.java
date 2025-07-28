@@ -4,6 +4,7 @@ package com.sobok.shopservice.shop.controller;
 import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
 
+import com.sobok.shopservice.shop.dto.response.ShopResDto;
 import com.sobok.shopservice.shop.dto.stock.AvailableShopInfoDto;
 import com.sobok.shopservice.shop.dto.stock.IngredientIdListDto;
 import com.sobok.shopservice.shop.dto.response.ShopPaymentResDto;
@@ -80,4 +81,13 @@ public class ShopController {
         return ResponseEntity.ok().body(ApiResponse.ok(result, "가능한 가게 정보를 성공적으로 조회하였습니다."));
     }
 
+    /**
+     * 관리자 전용 가게 전체 조회
+     */
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllShops(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        List<ShopResDto> result = shopService.getAllShops();
+        return ResponseEntity.ok(ApiResponse.ok(result, "가게 전체 조회 성공"));
+
+    }
 }
