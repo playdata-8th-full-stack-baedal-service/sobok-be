@@ -32,38 +32,32 @@ public class StatusService {
     /**
      * <pre>
      *     # 사용자 비활성화
-     *     1. 사용자 검증 및 비밀번호 확인
-     *     2. 사용자의 role이 USER 라면 redis에 복구 대상임을 저장
-     *     3. 사용자의 active 상태를 N으로 변경
+     *     1. 사용자의 role이 USER 라면 redis에 복구 대상임을 저장
+     *     2. 사용자의 active 상태를 N으로 변경
      * </pre>
      */
-    public void delete(TokenUserInfo userInfo, AuthPasswordReqDto reqDto) throws EntityNotFoundException, CustomException {
-        // 사용자 정보 획득
-        Auth auth = authRepository.findById(userInfo.getId()).orElseThrow(
-                () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
-        );
-
-        // 비밀번호가 일치하지 않는다면 예외 처리
-        if (!passwordEncoder.matches(reqDto.getPassword(), auth.getPassword())) {
-            log.error("비밀번호가 일치하지 않습니다. id : {}", auth.getId());
-            throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
-        }
+    public void delete(TokenUserInfo userInfo) {
+        Auth auth = authRepository.findById(userInfo.getId())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
 
         // 사용자의 role이 USER 라면 redis에 저장
         if (auth.getRole() == Role.USER) {
             // 회원 아이디 값으로 redis에 복구 대상임을 알 수 있는 정보 저장, value는 auth의 id 값
-            redisStringTemplate.opsForValue().set(RECOVERY_KEY + auth.getId().toString(), auth.getId().toString(), Duration.ofDays(RECOVERY_DAY));
+            redisStringTemplate.opsForValue().set(
+                    RECOVERY_KEY + auth.getId(),
+                    auth.getId().toString(),
+                    Duration.ofDays(RECOVERY_DAY)
+            );
         }
-
         // 활성화 상태 N으로 바꾸기
         auth.changeActive(false);
 
         // DB 저장
         authRepository.save(auth);
 
+        // 로그아웃 처리
         log.info("{}번 사용자를 비활성화했습니다.", userInfo.getId());
 
-        // 로그아웃 처리
         authService.logout(userInfo);
     }
 
