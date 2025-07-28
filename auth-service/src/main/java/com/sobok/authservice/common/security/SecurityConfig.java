@@ -42,7 +42,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/auth/logout", "/auth/get-info", "/auth/edit-password").hasAnyRole("USER", "RIDER", "ADMIN", "HUB")
 
-                        .requestMatchers("/auth/delete").hasRole("USER")
+                        .requestMatchers("/auth/verify-password", "/auth/delete").hasRole("USER")
 
                         .requestMatchers("/auth/shop-signup").hasRole("ADMIN")
 
