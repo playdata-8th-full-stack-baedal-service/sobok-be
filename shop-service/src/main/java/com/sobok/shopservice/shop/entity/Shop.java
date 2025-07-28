@@ -9,13 +9,7 @@ import lombok.*;
 @Entity
 @Builder
 @ToString
-@Table(
-        name = "shop",
-        indexes = {
-                @Index(name = "idx_lat", columnList = "latitude"),
-                @Index(name = "idx_lng", columnList = "longitude")
-        }
-)
+@Table(name = "shop")
 public class Shop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

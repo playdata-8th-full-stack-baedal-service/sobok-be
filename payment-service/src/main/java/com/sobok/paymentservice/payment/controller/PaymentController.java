@@ -54,25 +54,6 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.ok(resDto, "장바구니 조회 성공"));
     }
 
-    @PatchMapping("/cart-count-edit")
-    public ResponseEntity<?> editCount(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam Long id, @RequestParam Integer count, @RequestBody CartStartPayDto reqDto) {
-        // cartCookId
-        Long cartCookId = cartService.editCartCookCount(userInfo, id, count, reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니 수량이 성공적으로 변경되었습니다."));
-    }
-
-    @DeleteMapping("/delete-cart/{id}")
-    public ResponseEntity<?> deleteCartCook(@AuthenticationPrincipal TokenUserInfo userInfo, @PathVariable Long id, @RequestBody CartStartPayDto reqDto) {
-        Long cartCookId = cartService.deleteCart(userInfo, id, reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(cartCookId, "장바구니의 상품이 성공적으로 삭제되었습니다."));
-    }
-
-    @PostMapping("/start-pay")
-    public ResponseEntity<?> startPay(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody CartStartPayDto reqDto) {
-        cartService.startPay(userInfo, reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getUserId(), "성공적으로 장바구니의 정보가 저장되었습니다."));
-    }
-
     @DeleteMapping("/fail-payment")
     public ResponseEntity<?> cancelPayment(@RequestParam String orderId) {
         String result = paymentService.resetPayment(orderId);
