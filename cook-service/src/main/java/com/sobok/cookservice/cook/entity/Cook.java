@@ -11,7 +11,10 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @ToString
-@Table(name = "cook")
+@Table(name = "cook", indexes = {
+        @Index(name = "idx_cook_category_active", columnList = "active, category"),
+        @Index(name = "idx_cook_updatedAt", columnList = "updatedAt")
+})
 public class Cook extends BaseTimeEntity {
 
     @Id

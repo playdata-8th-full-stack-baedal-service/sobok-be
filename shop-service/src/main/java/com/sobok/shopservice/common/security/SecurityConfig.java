@@ -38,6 +38,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers("/shop/all-order","/shop/filtering-order").hasAnyRole("HUB","ADMIN")
+                        .requestMatchers("/shop/all").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 // 인증/인가 실패에 대한 처리

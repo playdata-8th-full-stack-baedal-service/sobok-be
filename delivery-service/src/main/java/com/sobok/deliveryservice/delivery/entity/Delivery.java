@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "delivery")
+@Table(name = "delivery", indexes = {
+        @Index(name = "idx_delivery_paymentId", columnList = "paymentId")
+})
 public class Delivery {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

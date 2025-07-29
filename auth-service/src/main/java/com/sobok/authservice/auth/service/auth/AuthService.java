@@ -194,4 +194,25 @@ public class AuthService {
 
         return generateAuthLoginResDto(auth, roleId);
     }
+
+
+    /**
+     * <pre>
+     *     1. 사용자 검증 및 비밀번호 확인
+     * </pre>
+     */
+    public void verifyPassword(TokenUserInfo userInfo, AuthPasswordReqDto reqDto) {
+        // 사용자 정보 획득
+        Auth auth = authRepository.findById(userInfo.getId())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
+
+        // 비밀번호가 일치하지 않는다면 예외 처리
+        if (!passwordEncoder.matches(reqDto.getPassword(), auth.getPassword())) {
+            log.error("비밀번호가 일치하지 않습니다. id : {}", auth.getId());
+            throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        log.info("비밀번호 확인 성공. 사용자 ID: {}", auth.getId());
+    }
+
 }

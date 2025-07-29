@@ -16,7 +16,9 @@ import java.time.LocalDateTime;
 @Entity
 @Builder
 @ToString
-@Table(name = "auth")
+@Table(name = "auth", indexes = {
+        @Index(name = "idx_auth_active", columnList = "active")
+})
 public class Auth extends BaseTimeEntity {
 
     @Id

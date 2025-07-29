@@ -10,7 +10,10 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @ToString
-@Table(name = "post")
+@Table(name = "post", indexes = {
+        @Index(name = "idx_post_userId", columnList = "userId"),
+        @Index(name = "idx_post_cookId", columnList = "cookId")
+})
 public class Post extends BaseTimeEntity {
 
     @Id

@@ -9,7 +9,10 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "payment")
+@Table(name = "payment", indexes = {
+    @Index(name = "idx_payment_orderId_state", columnList = "orderId, orderState"),
+    @Index(name = "idx_payment_createdAt_desc", columnList = "createdAt DESC")
+})
 @Builder
 @AllArgsConstructor
 @ToString
