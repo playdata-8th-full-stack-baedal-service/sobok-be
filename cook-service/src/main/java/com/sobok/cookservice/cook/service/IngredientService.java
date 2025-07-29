@@ -125,4 +125,9 @@ public class IngredientService {
                 .toList();
     }
 
+    // 식재료 검증용 true false
+    public boolean existIngredient(Long ingreId) {
+        return ingredientRepository.existsById(ingreId);
+    }
+
 }

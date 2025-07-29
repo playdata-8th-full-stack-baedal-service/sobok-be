@@ -58,6 +58,7 @@ public class CookFeignController {
         List<UserBookmarkResDto> result = cookService.findCookById(cookIds);
         return ResponseEntity.ok(result);
     }
+
     /**
      * 주문 전체 조회용(요리이름)
      */
@@ -77,7 +78,7 @@ public class CookFeignController {
 
     //주문 내역 조회용
     @GetMapping("/cooks-info")
-    ResponseEntity<List<CookInfoResDto>> getCookDetails(@RequestParam("id") List<Long> cookIds){
+    ResponseEntity<List<CookInfoResDto>> getCookDetails(@RequestParam("id") List<Long> cookIds) {
         return ResponseEntity.ok().body(cookService.getCooksInfolList(cookIds));
     }
 
@@ -124,5 +125,10 @@ public class CookFeignController {
     @PutMapping("/monthly-hot")
     void updateMonthlyHotCooks(@RequestBody List<MonthlyHot> monthlyHotList) {
         monthlyHotCookUpdater.updateMonthlyHotCooks(monthlyHotList);
+    }
+
+    @GetMapping("/exist-ingre")
+    public ResponseEntity<Boolean> verifyUser(@RequestParam Long ingreId) {
+        return ResponseEntity.ok().body(ingredientService.existIngredient(ingreId));
     }
 }
