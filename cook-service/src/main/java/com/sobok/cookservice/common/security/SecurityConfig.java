@@ -36,8 +36,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/**", "/ingredient/keyword-search"
                                 , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
-                                , "/cook/get-cook/**", "/cook/internal/simple-info", "/cook/popular",
-                                "/v3/**", "/swagger-ui/**"
+                                , "/cook/get-cook/**","/cook/internal/simple-info","/cook/popular",
+                                "/v3/**", "/swagger-ui/**", "/cooks"
                         ).permitAll()
 
                         .requestMatchers("/cook/cook-register", "/ingredient/register",

@@ -176,7 +176,7 @@ public class AuthController {
     /**
      * 회원 정보 조회
      */
-    @PostMapping("/get-info")
+    @GetMapping("/get-info")
     public ResponseEntity<?> getInfo(@AuthenticationPrincipal TokenUserInfo userInfo) {
         // 1. 비밀번호 확인 (사라짐)
         String loginId = accountService.verifyByPassword(userInfo.getId());
