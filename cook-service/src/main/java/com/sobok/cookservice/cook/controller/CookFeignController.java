@@ -26,20 +26,20 @@ public class CookFeignController {
 
 
     @GetMapping("/get-cook-default-ingre")
-    Map<Long, Integer> getDefaultIngreInfoList(@RequestParam Long cookId) {
-        return combinationService.getDefaultIngreInfoList(cookId);
+    ResponseEntity<Map<Long, Integer>> getDefaultIngreInfoList(@RequestParam Long cookId) {
+        return ResponseEntity.ok().body(combinationService.getDefaultIngreInfoList(cookId));
     }
 
     // 장바구니 조회용
     @GetMapping("/cook/{cookId}")
-    public List<CookDetailResDto> getCookDetail(@PathVariable List<Long> cookId) {
-        return cookService.getCookDetail(cookId);
+    public ResponseEntity<List<CookDetailResDto>> getCookDetail(@PathVariable List<Long> cookId) {
+        return ResponseEntity.ok().body(cookService.getCookDetail(cookId));
     }
 
-    // 추가 식재료 조회
+    // 식재료 조회
     @GetMapping("/ingredients/{id}")
-    public List<CookIngredientResDto> getIngredient(@PathVariable List<Long> id) {
-        return ingredientService.getIngredientDtoById(id);
+    public ResponseEntity<List<CookIngredientResDto>> getIngredient(@PathVariable List<Long> id) {
+        return ResponseEntity.ok().body(ingredientService.getIngredientDtoById(id));
     }
 
     /**
@@ -70,39 +70,39 @@ public class CookFeignController {
      * 식재료 이름 조회(주문 조회)
      */
     @PostMapping("/admin/ingredient-names")
-    public List<IngredientNameResDto> getIngredientNames(@RequestBody List<Long> ingreIds) {
-        return ingredientService.getIngredientNamesByIds(ingreIds);
+    public ResponseEntity<List<IngredientNameResDto>> getIngredientNames(@RequestBody List<Long> ingreIds) {
+        return ResponseEntity.ok().body(ingredientService.getIngredientNamesByIds(ingreIds));
     }
 
 
     //주문 내역 조회용
     @GetMapping("/cooks-info")
-    List<CookInfoResDto> getCookDetails(@RequestParam("id") List<Long> cookIds){
-        return cookService.getCooksInfolList(cookIds);
+    ResponseEntity<List<CookInfoResDto>> getCookDetails(@RequestParam("id") List<Long> cookIds){
+        return ResponseEntity.ok().body(cookService.getCooksInfolList(cookIds));
     }
 
     /**
      * 게시글 등록(요리 이름 조회)
      */
     @GetMapping("/cook-name")
-    public String getCookNameById(@RequestParam Long cookId) {
-        return cookService.getCookNameById(cookId);
+    public ResponseEntity<String> getCookNameById(@RequestParam Long cookId) {
+        return ResponseEntity.ok().body(cookService.getCookNameById(cookId));
     }
 
     /**
      * 특정 요리 ID에 대한 기본 식재료 목록을 조회 (게시글 상세 조회용)
      */
     @GetMapping("/cook/base-ingredients")
-    public List<CookWithIngredientResDto> getBaseIngredients(@RequestParam Long cookId) {
-        return cookService.getBaseIngredients(cookId);
+    public ResponseEntity<List<CookWithIngredientResDto>> getBaseIngredients(@RequestParam Long cookId) {
+        return ResponseEntity.ok().body(cookService.getBaseIngredients(cookId));
     }
 
     /**
      * 특정 식재료 ID에 대한 상세 정보를 조회 ( 게시글 상세 조회용)
      */
     @GetMapping("/cook/ingredient-info")
-    public IngredientInfoResDto getIngredientInfo(@RequestParam Long ingreId) {
-        return cookService.getIngredientInfo(ingreId);
+    public ResponseEntity<IngredientInfoResDto> getIngredientInfo(@RequestParam Long ingreId) {
+        return ResponseEntity.ok().body(cookService.getIngredientInfo(ingreId));
     }
 
     /**

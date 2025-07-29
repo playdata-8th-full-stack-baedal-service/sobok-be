@@ -84,7 +84,7 @@ public class IngredientService {
     }
 
     /**
-     * 추가 식재료 조회 Feign
+     * 식재료 조회 Feign
      */
     public List<CookIngredientResDto> getIngredientDtoById(List<Long> ids) {
         Map<Long, Ingredient> ingredientMap = ingredientRepository.findAllById(ids).stream()

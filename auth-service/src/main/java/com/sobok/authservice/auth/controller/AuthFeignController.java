@@ -49,7 +49,7 @@ public class AuthFeignController {
     @GetMapping("/auth/login-id")
     public ResponseEntity<String> getLoginId(@RequestParam Long authId) {
         String loginId = infoService.getLoginIdByAuthId(authId);
-        return ResponseEntity.ok(loginId);
+        return ResponseEntity.ok().body(loginId);
     }
 
     @GetMapping("/get-rider-inactive")
