@@ -257,7 +257,7 @@ public class DeliveryService {
     }
 
     /**
-     * 라이더 주문 선택
+     * 라이더 배달 승인
      */
     @Transactional
     public void acceptDelivery(AcceptOrderReqDto acceptOrderReqDto) {
@@ -278,7 +278,7 @@ public class DeliveryService {
     }
 
     /**
-     * 라이더 주문 선택
+     * 라이더 배달 완료
      */
     @Transactional
     public void deliveryComplete(AcceptOrderReqDto acceptOrderReqDto) {

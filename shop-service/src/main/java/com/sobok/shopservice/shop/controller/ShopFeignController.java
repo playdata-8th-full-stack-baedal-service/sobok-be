@@ -75,7 +75,7 @@ public class ShopFeignController {
      */
     @GetMapping("/shop-info-all")
     public ResponseEntity<AdminShopResDto> getShopInfo(@RequestParam Long shopId) {
-        return ResponseEntity.ok(shopService.getShopInfo(shopId));
+        return ResponseEntity.ok().body(shopService.getShopInfo(shopId));
     }
 
     /**

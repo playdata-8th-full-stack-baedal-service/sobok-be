@@ -79,8 +79,8 @@ public class DeliveryFeignController {
      * 결제관련 라이더 정보 조회
      */
     @GetMapping("/admin/rider-info")
-    public RiderPaymentInfoResDto getRiderPaymentInfo(@RequestParam Long paymentId) {
-        return deliveryService.getRiderInfoByPaymentId(paymentId);
+    public ResponseEntity<RiderPaymentInfoResDto> getRiderPaymentInfo(@RequestParam Long paymentId) {
+        return ResponseEntity.ok().body(deliveryService.getRiderInfoByPaymentId(paymentId));
     }
 
     /**
@@ -89,15 +89,15 @@ public class DeliveryFeignController {
     @GetMapping("/shop-id/payment")
     public ResponseEntity<Long> getShopIdByPaymentId(@RequestParam Long paymentId) {
         Long shopId = deliveryService.getShopIdByPaymentId(paymentId);
-        return ResponseEntity.ok(shopId);
+        return ResponseEntity.ok().body(shopId);
     }
 
     /**
      * 주문 상세 조회에서 사용되는 paymentId로 배달 정보 조회
      */
     @GetMapping("/getDelivery")
-    public DeliveryResDto getDelivery(@RequestParam Long paymentId) {
-        return deliveryService.getDelivery(paymentId);
+    public ResponseEntity<DeliveryResDto> getDelivery(@RequestParam Long paymentId) {
+        return ResponseEntity.ok().body(deliveryService.getDelivery(paymentId));
     }
 
     /**
@@ -124,6 +124,5 @@ public class DeliveryFeignController {
     @PostMapping("/complete-delivery")
     public void deliveryComplete(@RequestBody AcceptOrderReqDto acceptOrderReqDto) {
         deliveryService.deliveryComplete(acceptOrderReqDto);
-
     }
 }

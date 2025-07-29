@@ -367,7 +367,11 @@ public class PaymentService {
         }
 
         // shopId를 얻기 위해 delivery-service에 요청
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
+        ResponseEntity<DeliveryResDto> response = deliveryFeignClient.getDelivery(paymentId);
+        if (response.getBody() == null) {
+            throw new CustomException("배달 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        DeliveryResDto delivery = response.getBody();
 
         RoleAccessValidator validator = roleAccessValidatorList.stream()
                 .filter(v -> Objects.equals(v.getRole(), userInfo.getRole()))
@@ -377,7 +381,7 @@ public class PaymentService {
         validator.validate(userInfo, cartCookList, delivery);
 
         // shopId로 shop 정보 얻기
-        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
+        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId()).getBody();
 
         // 주문한 요리 식재료, 추가 식재료 정보 얻기
         List<CartCook> byPaymentId = cartCookRepository.findByPaymentId(paymentId);
@@ -388,7 +392,7 @@ public class PaymentService {
         log.info("items: {}", items);
 
         // 배송지
-        UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
+        UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId()).getBody();
         log.info("사용자 주소 정보를 얻기 위한 userInfoResDto: {}", userInfoResDto);
 
         // payment: 주문 번호, 일자, 배송 상태, 결제 수단 및 총금액, 주소(id), 라이더 요청사항
@@ -484,7 +488,11 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(
                 () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
         );
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
+        ResponseEntity<DeliveryResDto> response = deliveryFeignClient.getDelivery(paymentId);
+        if (response.getBody() == null) {
+            throw new CustomException("배달 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        DeliveryResDto delivery = response.getBody();
 
         // 역할에 맞는 validator 찾기
         RoleValidator validator = validatorMap.get(userInfo.getRole());
@@ -516,10 +524,12 @@ public class PaymentService {
                 .orElseThrow(() -> new CustomException("결제가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
         Long userAddressId = payment.getUserAddressId();
-        Long ownerUserId = userServiceClient.getUserIdByAddress(userAddressId);
+        Long ownerUserId = userServiceClient.getUserIdByUserAddressId(userAddressId).getBody();
 
-        return ownerUserId.equals(userId)
-                && payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
+        if (!Objects.requireNonNull(ownerUserId).equals(userId)) {
+            throw new CustomException("결제에 대한 접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+        return payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
     }
 
     /**
@@ -605,24 +615,24 @@ public class PaymentService {
         // 각 결제에 필요한 정보 조합
         List<AdminPaymentResponseDto> result = payments.getContent().stream().map(payment -> {
             // 유저 정보
-            UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
+            UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId()).getBody();
 
             // 라이더 정보
             log.info(payment.getId().toString());
             RiderPaymentInfoResDto rider = payment.getRiderId() == null
                     ? new RiderPaymentInfoResDto()
-                    : deliveryFeignClient.getRiderName(payment.getRiderId());
+                    : deliveryFeignClient.getRiderName(payment.getRiderId()).getBody();
 
             // 가게 정보
-            Long shopId = deliveryFeignClient.getShopIdByPaymentId(payment.getId());
-            AdminShopResDto shopInfo = shopFeignClient.getShopInfo(shopId);
+            Long shopId = deliveryFeignClient.getShopIdByPaymentId(payment.getId()).getBody();
+            AdminShopResDto shopInfo = shopFeignClient.getShopInfo(shopId).getBody();
 
             // 요리 + 기본식재료 + 추가식재료
             List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(payment.getId());
 
             // 사용자 정보
-            Long userId = userServiceClient.getUserIdByUserAddressId(payment.getUserAddressId());
-            Long authId = userServiceClient.getAuthIdByUserId(userId);
+            Long userId = userServiceClient.getUserIdByUserAddressId(payment.getUserAddressId()).getBody();
+            Long authId = userServiceClient.getAuthIdByUserId(userId).getBody();
             String loginId = authFeignClient.getLoginId(authId).getBody();
 
             return AdminPaymentResponseDto.builder()

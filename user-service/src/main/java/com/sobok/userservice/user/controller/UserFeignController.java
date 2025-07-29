@@ -84,8 +84,8 @@ public class UserFeignController {
      * 관리자 전용 전체 주문 조회용(사용자 정보)
      */
     @GetMapping("/admin/user-info")
-    public UserInfoResDto getUserInfoByAddressId(@RequestParam Long userAddressId) {
-        return userService.getUserInfoByAddressId(userAddressId);
+    public ResponseEntity<UserInfoResDto> getUserInfoByAddressId(@RequestParam Long userAddressId) {
+        return ResponseEntity.ok().body(userService.getUserInfoByAddressId(userAddressId));
     }
 
     /**
@@ -93,7 +93,7 @@ public class UserFeignController {
      */
     @GetMapping("/user-id")
     public ResponseEntity<Long> getUserIdByUserAddressId(@RequestParam Long userAddressId) {
-        return ResponseEntity.ok(userService.getUserLoginId(userAddressId));
+        return ResponseEntity.ok().body(userService.getUserLoginId(userAddressId));
     }
 
     /**
@@ -101,7 +101,7 @@ public class UserFeignController {
      */
     @GetMapping("/auth-id")
     public ResponseEntity<Long> getAuthIdByUserId(@RequestParam Long userId) {
-        return ResponseEntity.ok(userService.getAuthIdByUserId(userId));
+        return ResponseEntity.ok().body(userService.getAuthIdByUserId(userId));
     }
 
     @GetMapping("/get-user-address")
@@ -117,14 +117,6 @@ public class UserFeignController {
         log.info("reqDto: {}", reqDto);
         userService.kakaoUserSignUp(reqDto);
         return ResponseEntity.ok().build();
-    }
-
-    /**
-     * 게시글 등록용(유저 정보 반환)
-     */
-    @GetMapping("/admin/user-id")
-    public Long getUserIdByAddress(@RequestParam Long userAddressId) {
-        return userService.getUserIdByAddress(userAddressId);
     }
 
     /**
