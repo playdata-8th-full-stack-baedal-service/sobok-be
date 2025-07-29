@@ -131,7 +131,7 @@ public class AuthController {
      */
     @PostMapping("/shop-signup")
     public ResponseEntity<?> createShop(@Valid @RequestBody AuthShopReqDto authShopReqDto, @AuthenticationPrincipal TokenUserInfo userInfo) {
-        AuthShopResDto shopResDto = registerService.shopCreate(authShopReqDto, userInfo);
+        AuthShopResDto shopResDto = registerService.shopCreate(authShopReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(shopResDto, "가게 회원가입 성공"));
     }
 
