@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StockReqDto {
-    @NotNull
     private Long shopId;
 
     @NotNull

@@ -31,7 +31,7 @@ public class StockController {
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestBody @Valid StockReqDto reqDto
     ) {
-        validator.shopCheck(userInfo, reqDto.getShopId());
+        reqDto.setShopId(userInfo.getShopId());
         StockResDto result = stockService.registerStock(reqDto);
         return ApiResponse.response(result, "식재료 재고 등록이 정상적으로 처리되었습니다.");
     }
@@ -46,7 +46,7 @@ public class StockController {
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestBody @Valid StockReqDto reqDto
     ) {
-        validator.shopCheck(userInfo, reqDto.getShopId());
+        reqDto.setShopId(userInfo.getShopId());
         StockResDto result = stockService.deductStock(reqDto);
         return ApiResponse.response(result, "식재료 재고 사용이 정상적으로 처리되었습니다.");
     }
@@ -60,6 +60,18 @@ public class StockController {
             @PathVariable("id") Long shopId
     ) {
         validator.shopCheck(userInfo, shopId);
+        List<StockResDto> result = stockService.getStock(shopId);
+        return ApiResponse.response(result, "가게의 모든 식재료 재고 정보를 성공적으로 조회하였습니다.");
+    }
+
+    /**
+     * 식재료 재고 조회 (가게용)
+     */
+    @GetMapping()
+    public ResponseEntity<?> getStock(
+            @AuthenticationPrincipal TokenUserInfo userInfo
+    ) {
+        Long shopId = userInfo.getShopId();
         List<StockResDto> result = stockService.getStock(shopId);
         return ApiResponse.response(result, "가게의 모든 식재료 재고 정보를 성공적으로 조회하였습니다.");
     }
