@@ -100,14 +100,14 @@ public class DeliveryService {
         riderService.existsByIdOrThrow(userInfo.getRiderId());
 
         //근처 가게 정보 목록 조회
-        List<DeliveryAvailShopResDto> nearShop = shopFeignClient.getNearShop(latitude, longitude);
+        ResponseEntity<List<DeliveryAvailShopResDto>> nearShop = shopFeignClient.getNearShop(latitude, longitude);
         log.info("nearShop: {}", nearShop);
 
-        if (nearShop.isEmpty()) {
+        if (nearShop.getBody() == null || nearShop.getBody().isEmpty()) {
             return Collections.emptyList();
         }
 
-        Map<Long, DeliveryAvailShopResDto> shopMap = nearShop.stream()
+        Map<Long, DeliveryAvailShopResDto> shopMap = nearShop.getBody().stream()
                 .collect(Collectors.toMap(DeliveryAvailShopResDto::getShopId, Function.identity()));
         List<Long> shopIdList = new ArrayList<>(shopMap.keySet());
 
@@ -137,7 +137,12 @@ public class DeliveryService {
                 .map(ShopPaymentResDto::getUserAddressId)
                 .collect(Collectors.toSet());
 
-        Map<Long, UserAddressDto> addressMap = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIdSet)).stream()
+        List<UserAddressDto> body = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIdSet)).getBody();
+        if (body == null || body.isEmpty()) {
+            throw new CustomException("회원 주소 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        Map<Long, UserAddressDto> addressMap = body.stream()
                 .collect(Collectors.toMap(UserAddressDto::getId, Function.identity()));
 
         return riderAvailPayment.getBody().stream()
@@ -213,13 +218,21 @@ public class DeliveryService {
         Set<Long> addressIds = paymentList.getBody().stream()
                 .map(ShopPaymentResDto::getUserAddressId)
                 .collect(Collectors.toSet());
-        Map<Long, UserAddressDto> addressMap = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIds)).stream()
+        List<UserAddressDto> body = userFeignClient.getUserAddressInfo(new ArrayList<>(addressIds)).getBody();
+
+        if (body == null || body.isEmpty()) {
+            throw new CustomException("회원 주소 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        Map<Long, UserAddressDto> addressMap = body.stream()
                 .collect(Collectors.toMap(UserAddressDto::getId, Function.identity()));
 
         // 5. shopId → 가게 정보 조회
         Set<Long> shopIds = deliveryList.stream().map(Delivery::getShopId).collect(Collectors.toSet());
-        List<DeliveryAvailShopResDto> shopList = shopFeignClient.getShopInfoByIds(new ArrayList<>(shopIds));
-        Map<Long, DeliveryAvailShopResDto> shopMap = shopList.stream()
+        ResponseEntity<List<DeliveryAvailShopResDto>> shopList = shopFeignClient.getShopInfoByIds(new ArrayList<>(shopIds));
+
+
+        Map<Long, DeliveryAvailShopResDto> shopMap = shopList.getBody().stream()
                 .collect(Collectors.toMap(DeliveryAvailShopResDto::getShopId, Function.identity()));
 
         return deliveryList.stream()

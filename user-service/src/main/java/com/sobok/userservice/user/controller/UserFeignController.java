@@ -131,8 +131,8 @@ public class UserFeignController {
      * userAddressId로 주소 정보를 찾음
      */
     @GetMapping("/findUserAddress")
-    public List<UserAddressDto> getRiderAuthInfo(@RequestParam List<Long> id) {
-        return userAddressService.getAddressList(id);
+    public ResponseEntity<List<UserAddressDto>> getRiderAuthInfo(@RequestParam List<Long> id) {
+        return ResponseEntity.ok().body(userAddressService.getAddressList(id));
     }
 
     /**

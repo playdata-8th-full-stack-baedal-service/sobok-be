@@ -4,6 +4,7 @@ import com.sobok.deliveryservice.common.config.FeignConfig;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryAvailShopResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -14,8 +15,8 @@ import java.util.List;
 public interface ShopFeignClient {
 
     @GetMapping("/api/find-near-shop")
-    List<DeliveryAvailShopResDto> getNearShop(@RequestParam Double latitude, @RequestParam Double longitude);
+    ResponseEntity<List<DeliveryAvailShopResDto>> getNearShop(@RequestParam Double latitude, @RequestParam Double longitude);
 
     @GetMapping("/api/find-shopInfo")
-    List<DeliveryAvailShopResDto> getShopInfoByIds(@RequestParam List<Long> ids);
+    ResponseEntity<List<DeliveryAvailShopResDto>> getShopInfoByIds(@RequestParam List<Long> ids);
 }
