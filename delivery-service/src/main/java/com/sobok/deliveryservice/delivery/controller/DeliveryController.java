@@ -89,6 +89,9 @@ public class DeliveryController {
     @GetMapping("/pending-rider")
     public ResponseEntity<?> getPendingRiders(@AuthenticationPrincipal TokenUserInfo userInfo) {
         List<RiderResDto> pendingRiders = riderService.getPendingRiders();
+        if (pendingRiders.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
+        }
         return ResponseEntity.ok(ApiResponse.ok(pendingRiders, "비활성화된 라이더 정보 조회 성공."));
     }
 

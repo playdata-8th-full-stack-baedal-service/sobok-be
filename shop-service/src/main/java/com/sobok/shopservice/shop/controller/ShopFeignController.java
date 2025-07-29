@@ -75,15 +75,15 @@ public class ShopFeignController {
      */
     @GetMapping("/shop-info-all")
     public ResponseEntity<AdminShopResDto> getShopInfo(@RequestParam Long shopId) {
-        return ResponseEntity.ok(shopService.getShopInfo(shopId));
+        return ResponseEntity.ok().body(shopService.getShopInfo(shopId));
     }
 
     /**
      * 라이더 근처에 위치한 가게 조회
      */
     @GetMapping("/find-near-shop")
-    public List<DeliveryAvailShopResDto> getNearShop(@RequestParam Double latitude, @RequestParam Double longitude) {
-        return shopAssignService.findNearShop(latitude, longitude, 10);
+    public ResponseEntity<List<DeliveryAvailShopResDto>> getNearShop(@RequestParam Double latitude, @RequestParam Double longitude) {
+        return ResponseEntity.ok().body(shopAssignService.findNearShop(latitude, longitude, 10));
     }
 
     /**
@@ -98,8 +98,8 @@ public class ShopFeignController {
      * shopId로 가게 정보 조회 (리스트)
      */
     @GetMapping("/find-shopInfo")
-    public List<DeliveryAvailShopResDto> getShopInfoByIds(@RequestParam List<Long> ids) {
-        return shopService.getShopInfoList(ids);
+    public ResponseEntity<List<DeliveryAvailShopResDto>> getShopInfoByIds(@RequestParam List<Long> ids) {
+        return ResponseEntity.ok().body(shopService.getShopInfoList(ids));
     }
 
 }

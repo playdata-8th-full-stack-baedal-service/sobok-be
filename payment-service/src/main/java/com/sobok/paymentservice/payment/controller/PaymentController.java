@@ -124,6 +124,9 @@ public class PaymentController {
                                           @RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "10") int size) {
         Page<AdminPaymentResponseDto> result = paymentService.getAllPayments(userInfo, page, size);
+        if (result.isEmpty()) {
+            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
+        }
         return ResponseEntity.ok(ApiResponse.ok(result, "전체 주문 조회 성공"));
     }
 

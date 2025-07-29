@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -294,7 +295,10 @@ public class PaymentService {
         List<Long> paymentIdList = cartCookList.stream().map(CartCook::getPaymentId).distinct().toList();
 
         //cook-service로 요청보내서 요리 이름, 요리 이미지 주소 얻어오기
-        List<CookInfoResDto> cookDetails = cookFeignClient.getCooksInfo(cookIdList);
+        ResponseEntity<List<CookInfoResDto>> cookDetails = cookFeignClient.getCooksInfo(cookIdList);
+        if (cookDetails.getBody() == null || cookDetails.getBody().isEmpty()) {
+            throw new CustomException("요리 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
         log.info("주문한 요리 정보 cookDetails : {}", cookDetails);
 
         //결제 정보 가져오기
@@ -305,7 +309,7 @@ public class PaymentService {
 
         // 근데 여러개의 cart_cook이 하나의 paymentId를 가질 수 있음
         //CartCook에서 cookId를 가지고 바로 요리정보 찾아오기 위해 맵으로 매핑
-        Map<Long, CookInfoResDto> cookMap = cookDetails.stream()
+        Map<Long, CookInfoResDto> cookMap = cookDetails.getBody().stream()
                 .collect(Collectors.toMap(CookInfoResDto::getCookId, Function.identity()));
         //paymentId 기준으로 CartCook 묶기 (주문 단위로 그룹핑)
         Map<Long, List<CartCook>> cartCookByPayment = orderedCartCooks.stream()
@@ -363,7 +367,11 @@ public class PaymentService {
         }
 
         // shopId를 얻기 위해 delivery-service에 요청
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
+        ResponseEntity<DeliveryResDto> response = deliveryFeignClient.getDelivery(paymentId);
+        if (response.getBody() == null) {
+            throw new CustomException("배달 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        DeliveryResDto delivery = response.getBody();
 
         RoleAccessValidator validator = roleAccessValidatorList.stream()
                 .filter(v -> Objects.equals(v.getRole(), userInfo.getRole()))
@@ -373,7 +381,7 @@ public class PaymentService {
         validator.validate(userInfo, cartCookList, delivery);
 
         // shopId로 shop 정보 얻기
-        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId());
+        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(delivery.getShopId()).getBody();
 
         // 주문한 요리 식재료, 추가 식재료 정보 얻기
         List<CartCook> byPaymentId = cartCookRepository.findByPaymentId(paymentId);
@@ -384,7 +392,7 @@ public class PaymentService {
         log.info("items: {}", items);
 
         // 배송지
-        UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
+        UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId()).getBody();
         log.info("사용자 주소 정보를 얻기 위한 userInfoResDto: {}", userInfoResDto);
 
         // payment: 주문 번호, 일자, 배송 상태, 결제 수단 및 총금액, 주소(id), 라이더 요청사항
@@ -480,7 +488,11 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(
                 () -> new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
         );
-        DeliveryResDto delivery = deliveryFeignClient.getDelivery(paymentId);
+        ResponseEntity<DeliveryResDto> response = deliveryFeignClient.getDelivery(paymentId);
+        if (response.getBody() == null) {
+            throw new CustomException("배달 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        DeliveryResDto delivery = response.getBody();
 
         // 역할에 맞는 validator 찾기
         RoleValidator validator = validatorMap.get(userInfo.getRole());
@@ -512,10 +524,12 @@ public class PaymentService {
                 .orElseThrow(() -> new CustomException("결제가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
         Long userAddressId = payment.getUserAddressId();
-        Long ownerUserId = userServiceClient.getUserIdByAddress(userAddressId);
+        Long ownerUserId = userServiceClient.getUserIdByUserAddressId(userAddressId).getBody();
 
-        return ownerUserId.equals(userId)
-                && payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
+        if (!Objects.requireNonNull(ownerUserId).equals(userId)) {
+            throw new CustomException("결제에 대한 접근 권한이 없습니다.", HttpStatus.FORBIDDEN);
+        }
+        return payment.getOrderState() == OrderState.DELIVERY_COMPLETE;
     }
 
     /**
@@ -532,7 +546,7 @@ public class PaymentService {
      * 요리 ID로 기본 식재료 목록 조회
      */
     public List<IngredientTwoResDto> getDefaultIngredients(Long cookId) {
-        return cookFeignClient.getBaseIngredients(cookId);
+        return cookFeignClient.getBaseIngredients(cookId).getBody();
     }
 
     /**
@@ -542,7 +556,7 @@ public class PaymentService {
         List<CartIngredient> ingredients = CartIngreRepository.findByCartCookIdAndDefaultIngre(cartCookId, "N");
 
         return ingredients.stream().map(cartIngre -> {
-            IngredientTwoResDto info = cookFeignClient.getIngredientInfo(cartIngre.getIngreId());
+            IngredientTwoResDto info = cookFeignClient.getIngredientInfo(cartIngre.getIngreId()).getBody();
             if (info == null) {
                 throw new CustomException("식재료 정보를 가져오지 못했습니다. id=" + cartIngre.getIngreId(), HttpStatus.NOT_FOUND);
             }
@@ -556,7 +570,7 @@ public class PaymentService {
      * 요리 ID로 요리 이름을 조회
      */
     public String getCookName(Long cookId) {
-        return cookFeignClient.getCookNameById(cookId);
+        return cookFeignClient.getCookNameById(cookId).getBody();
     }
 
     /**
@@ -601,25 +615,25 @@ public class PaymentService {
         // 각 결제에 필요한 정보 조합
         List<AdminPaymentResponseDto> result = payments.getContent().stream().map(payment -> {
             // 유저 정보
-            UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId());
+            UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId()).getBody();
 
             // 라이더 정보
             log.info(payment.getId().toString());
             RiderPaymentInfoResDto rider = payment.getRiderId() == null
                     ? new RiderPaymentInfoResDto()
-                    : deliveryFeignClient.getRiderName(payment.getRiderId());
+                    : deliveryFeignClient.getRiderName(payment.getRiderId()).getBody();
 
             // 가게 정보
-            Long shopId = deliveryFeignClient.getShopIdByPaymentId(payment.getId());
-            AdminShopResDto shopInfo = shopFeignClient.getShopInfo(shopId);
+            Long shopId = deliveryFeignClient.getShopIdByPaymentId(payment.getId()).getBody();
+            AdminShopResDto shopInfo = shopFeignClient.getShopInfo(shopId).getBody();
 
             // 요리 + 기본식재료 + 추가식재료
             List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(payment.getId());
 
             // 사용자 정보
-            Long userId = userServiceClient.getUserIdByUserAddressId(payment.getUserAddressId());
-            Long authId = userServiceClient.getAuthIdByUserId(userId);
-            String loginId = authFeignClient.getLoginId(authId);
+            Long userId = userServiceClient.getUserIdByUserAddressId(payment.getUserAddressId()).getBody();
+            Long authId = userServiceClient.getAuthIdByUserId(userId).getBody();
+            String loginId = authFeignClient.getLoginId(authId).getBody();
 
             return AdminPaymentResponseDto.builder()
                     .orderId(payment.getOrderId())
@@ -664,7 +678,11 @@ public class PaymentService {
                 .toList();
 
         // 요리 ID -> 요리 이름 Map으로 변환 (cookId 기준)
-        Map<Long, String> cookNameMap = cookFeignClient.getCookNames(cookIds).stream()
+        ResponseEntity<List<CookNameResDto>> cookNames = cookFeignClient.getCookNames(cookIds);
+        if (cookNames.getBody() == null || cookNames.getBody().isEmpty()) {
+            throw new CustomException("요리 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        Map<Long, String> cookNameMap = cookNames.getBody().stream()
                 .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
 
         List<CookDetailWithIngredientsResDto> result = new ArrayList<>();
@@ -685,11 +703,20 @@ public class PaymentService {
                     .map(CartIngredientResDto::getIngreId)
                     .toList();
             //기본 재료 ID 이름 변환
-            List<String> baseNames = cookFeignClient.getIngredientNames(baseIds).stream()
+            ResponseEntity<List<IngredientNameResDto>> baseIngredientNames = cookFeignClient.getIngredientNames(baseIds);
+            if (baseIngredientNames.getBody() == null || baseIngredientNames.getBody().isEmpty()) {
+                throw new CustomException("기본 식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+            }
+            List<String> baseNames = baseIngredientNames.getBody().stream()
                     .map(IngredientNameResDto::getIngreName)
                     .toList();
             // 추가 재료 ID 이름 변환
-            List<String> addNames = cookFeignClient.getIngredientNames(addIds).stream()
+            ResponseEntity<List<IngredientNameResDto>> addOIngredientNames = cookFeignClient.getIngredientNames(addIds);
+            if (addOIngredientNames.getBody() == null || addOIngredientNames.getBody().isEmpty()) {
+                throw new CustomException("추가 식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+            }
+
+            List<String> addNames = addOIngredientNames.getBody().stream()
                     .map(IngredientNameResDto::getIngreName)
                     .toList();
             // 요리 이름 조회

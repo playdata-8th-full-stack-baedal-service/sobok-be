@@ -1,6 +1,7 @@
 package com.sobok.shopservice.shop.service;
 
 import com.sobok.shopservice.common.exception.CustomException;
+import com.sobok.shopservice.shop.client.CookFeignClient;
 import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.response.DeliveryAvailShopResDto;
 import com.sobok.shopservice.shop.dto.stock.StockReqDto;
@@ -24,6 +25,7 @@ import java.util.List;
 public class StockService {
     private final StockQueryRepository queryRepository;
     private final StockRepository stockRepository;
+    private final CookFeignClient cookFeignClient;
 
     /**
      * 재고 등록
@@ -32,6 +34,10 @@ public class StockService {
         // 해당 가게에 이미 식재료가 존재하는지 확인
         if (queryRepository.checkStock(reqDto) != null) {
             throw new CustomException("이미 존재하는 식재료가 있습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        if(!cookFeignClient.existIngredient(reqDto.getIngredientId())){
+            throw new CustomException("해당 식재료는 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
         // 재고량 검증
