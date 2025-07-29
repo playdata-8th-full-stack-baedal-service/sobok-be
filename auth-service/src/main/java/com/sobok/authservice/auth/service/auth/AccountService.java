@@ -184,6 +184,8 @@ public class AccountService {
 
             log.info("비밀번호 변경 완료: authId = {}", authResetPwReqDto.getAuthId());
 
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             throw new CustomException("회원 정보 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
