@@ -105,8 +105,8 @@ public class UserFeignController {
     }
 
     @GetMapping("/get-user-address")
-    UserLocationResDto getUserAddress(@RequestParam Long userAddressId) {
-        return userAddressService.getUserAddress(userAddressId);
+    public ResponseEntity<UserLocationResDto> getUserAddress(@RequestParam Long userAddressId) {
+        return ResponseEntity.ok().body(userAddressService.getUserAddress(userAddressId));
     }
 
     /**

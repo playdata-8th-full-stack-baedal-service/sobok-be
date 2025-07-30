@@ -44,7 +44,7 @@ public class ShopAssignService {
         log.info("가게 자동 배정 시작 | Request : {}", reqDto);
 
         Long userAddressId = reqDto.getUserAddressId();
-        LocationResDto userAddrDto = userFeignClient.getUserAddress(userAddressId);
+        LocationResDto userAddrDto = userFeignClient.getUserAddress(userAddressId).getBody();
 
         // 최대 거리는 나중에 바꾸자
         List<DeliveryAvailShopResDto> nearShopList = findNearShop(userAddrDto.getLatitude(), userAddrDto.getLongitude(), 10.0);

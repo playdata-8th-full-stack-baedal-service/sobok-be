@@ -67,8 +67,8 @@ public class PaymentFeignController {
      * 가게에 들어온 전체 주문 조회용 paymentId로 주문 정보 받기
      */
     @GetMapping("/getPayment")
-    public List<ShopPaymentResDto> getPayment(@RequestParam List<Long> id) {
-        return paymentService.getPaymentList(id);
+    public ResponseEntity<List<ShopPaymentResDto>> getPayment(@RequestParam List<Long> id) {
+        return ResponseEntity.ok().body(paymentService.getPaymentList(id));
     }
 
     /**

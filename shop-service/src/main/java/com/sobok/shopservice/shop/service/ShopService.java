@@ -17,6 +17,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
@@ -169,7 +170,10 @@ public class ShopService {
         if (paymentIdList == null || paymentIdList.isEmpty()) {
             return List.of();
         }
-        List<ShopPaymentResDto> allOrders = paymentFeignClient.getPayment(paymentIdList);
+        ResponseEntity<List<ShopPaymentResDto>> payment = paymentFeignClient.getPayment(paymentIdList);
+        if(payment.getBody() == null || payment.getBody().isEmpty()) {
+            throw new CustomException("주문 정보 조회에 실패했습니다.", HttpStatus.BAD_REQUEST);
+        }
 
         OrderState filterState = null;
         if (orderState != null && !orderState.isBlank()) {
@@ -185,7 +189,7 @@ public class ShopService {
         Long offset = (pageNo - 1) * numOfRows;
 
         OrderState finalFilterState = filterState;
-        List<ShopPaymentResDto> result = allOrders.stream()
+        List<ShopPaymentResDto> result = payment.getBody().stream()
                 .filter(order -> finalFilterState == null || order.getOrderState() == finalFilterState)
                 .sorted(Comparator.comparing(ShopPaymentResDto::getUpdatedAt).reversed())
                 .skip(offset)
@@ -209,7 +213,7 @@ public class ShopService {
      */
     public CookPostGroupResDto getPostsByCookId(Long cookId) {
         try {
-            return postFeignClient.getCookPosts(cookId);
+            return postFeignClient.getCookPosts(cookId).getBody();
         } catch (Exception e) {
             throw new CustomException("Post 서비스 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
         }
