@@ -69,7 +69,7 @@ public class PostController {
     }
 
     /**
-     * 요리별 요리별 좋아요순, 최신순 정렬 조회
+     * 요리별 좋아요순, 최신순 정렬 조회
      */
     @GetMapping("/cook-posts/{cookId}")
     public ResponseEntity<CookPostGroupResDto> getCookPosts(

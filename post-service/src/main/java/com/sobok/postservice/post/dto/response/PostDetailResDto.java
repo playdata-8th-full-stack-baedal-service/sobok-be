@@ -16,6 +16,7 @@ public class PostDetailResDto {
 
     private Long postId;
     private String title;
+    private Long cookId;
     private String cookName;
     private String nickname;
     private Long userId;

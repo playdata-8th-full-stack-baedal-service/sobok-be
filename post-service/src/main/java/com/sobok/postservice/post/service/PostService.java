@@ -273,7 +273,7 @@ public class PostService {
         List<Post> posts = postRepository.findByCookId(cookId);
 
         if (posts.isEmpty()) {
-            throw new CustomException("해당 요리에 대한 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+            return new CookPostGroupResDto(cookId, Collections.emptyList());
         }
 
         // 좋아요 수 postIds 기준으로만 조회
@@ -444,6 +444,7 @@ public class PostService {
         return PostDetailResDto.builder()
                 .postId(postId)
                 .title(post.getTitle())
+                .cookId(post.getCookId())
                 .cookName(cookName)
                 .nickname(userInfo.getNickname())
                 .userId(post.getUserId())
