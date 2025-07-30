@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -59,7 +60,7 @@ public class PostService {
         }
 
         log.info(dto.getCookId().toString());
-        String cookName = cookClient.getCookNameById(dto.getCookId());
+        String cookName = cookClient.getCookNameById(dto.getCookId()).getBody();
 
         Post post = Post.builder()
                 .userId(userId)
@@ -75,7 +76,7 @@ public class PostService {
             List<PostImage> images = buildPostImages(post.getId(), dto.getImages());
             postImageRepository.saveAll(images);
         } else {
-            String url = cookClient.getCookThumbnail(dto.getCookId());
+            String url = cookClient.getCookThumbnail(dto.getCookId()).getBody();
             postImageRepository.save(
                     PostImage.builder()
                             .postId(post.getId())
@@ -186,7 +187,7 @@ public class PostService {
 
             // cookId 목록 가져온 후 요리 이름 조회
             List<Long> cookIds = posts.stream().map(Post::getCookId).distinct().toList();
-            Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+            Map<Long, String> cookNameMap = getListResponseEntity(cookIds).stream()
                     .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
 
             // userId 목록 가져온 후 사용자 정보 조회
@@ -210,7 +211,8 @@ public class PostService {
 
             // cookId 목록 가져온 후 요리 이름 조회
             List<Long> cookIds = posts.stream().map(Post::getCookId).distinct().toList();
-            Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+            ;
+            Map<Long, String> cookNameMap = getListResponseEntity(cookIds).stream()
                     .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
 
             // userId 목록 가져온 후 사용자 정보 조회
@@ -227,6 +229,15 @@ public class PostService {
 
         }
 
+    }
+
+    // 리스트로 요리 이름 가져오는 공통 메서드 분리
+    private List<CookNameResDto> getListResponseEntity(List<Long> cookIds) {
+        ResponseEntity<List<CookNameResDto>> cookNamesByIds = cookClient.getCookNamesByIds(cookIds);
+        if (cookNamesByIds.getBody() == null || cookNamesByIds.getBody().isEmpty()) {
+            throw new CustomException("요리 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        return cookNamesByIds.getBody();
     }
 
     // 공통 메서드 분리
@@ -318,7 +329,7 @@ public class PostService {
         List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
 
         Map<Long, Long> likeCountMap = userClient.getLikeCountMap(postIds);
-        Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+        Map<Long, String> cookNameMap = getListResponseEntity(cookIds).stream()
                 .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
         Map<Long, UserInfoResDto> userInfoMap = userClient.getUserInfos(userIds);
 
@@ -361,7 +372,7 @@ public class PostService {
 
         // 외부 정보 조회
         Map<Long, Long> likeCountMap = userClient.getLikeCountMap(postIds);
-        Map<Long, String> cookNameMap = cookClient.getCookNamesByIds(cookIds).stream()
+        Map<Long, String> cookNameMap = getListResponseEntity(cookIds).stream()
                 .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
         Map<Long, UserInfoResDto> userInfoMap = userClient.getUserInfos(userIds);
 
