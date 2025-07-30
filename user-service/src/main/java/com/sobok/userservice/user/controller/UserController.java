@@ -80,7 +80,7 @@ public class UserController {
      * 사용자 전화번호 변경
      */
     @PatchMapping("/editPhone")
-    public ResponseEntity<?> editPhone(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody UserPhoneDto userPhoneDto) {
+    public ResponseEntity<?> editPhone(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody @Valid UserPhoneDto userPhoneDto) {
         userService.editPhone(userInfo, userPhoneDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 전화번호를 성공적으로 변경하였습니다."));
     }
