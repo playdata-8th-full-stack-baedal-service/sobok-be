@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.client;
 import com.sobok.paymentservice.common.config.FeignConfig;
 import com.sobok.paymentservice.payment.dto.user.UserInfoResDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -17,26 +18,20 @@ public interface UserServiceClient {
                        @RequestParam Long userId);
 
     /**
-     * 게시글 등록(유저 조회)
-     */
-    @GetMapping("/api/admin/user-id")
-    Long getUserIdByAddress(@RequestParam Long userAddressId);
-
-    /**
      * 유저 정보 조회
      */
     @GetMapping("/api/admin/user-info")
-    UserInfoResDto getUserInfo(@RequestParam("userAddressId") Long userAddressId);
+    ResponseEntity<UserInfoResDto> getUserInfo(@RequestParam("userAddressId") Long userAddressId);
 
     /**
      * 유저 정보 조회
      */
     @GetMapping("/api/user-id")
-    Long getUserIdByUserAddressId(@RequestParam Long userAddressId);
+    ResponseEntity<Long> getUserIdByUserAddressId(@RequestParam Long userAddressId);
 
     /**
      * 유저 정보 조회
      */
     @GetMapping("/api/auth-id")
-    Long getAuthIdByUserId(@RequestParam Long userId);
+    ResponseEntity<Long> getAuthIdByUserId(@RequestParam Long userId);
 }

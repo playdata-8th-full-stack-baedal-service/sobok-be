@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -72,7 +73,7 @@ public class CartService {
         // 기본 식재료 가져오기 (key : ingreId, value : unitQuantity)
         Map<Long, Integer> defaultIngreList = null;
         try {
-            defaultIngreList = cookFeignClient.getDefaultIngreInfoList(reqDto.getCookId());
+            defaultIngreList = cookFeignClient.getDefaultIngreInfoList(reqDto.getCookId()).getBody();
         } catch (FeignException e) {
             log.error("Cook Service로 Feign 과정 중 오류 발생");
             throw new CustomException("기본 식재료를 가져오는 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -162,14 +163,22 @@ public class CartService {
         );
 
         // 요리 상세 정보 조회 (기본 재료 Id만 포함됨)
-        Map<Long, CookDetailResDto> cookMap = cookFeignClient.getCookDetail(cookIds).stream()
+        ResponseEntity<List<CookDetailResDto>> cookDetail = cookFeignClient.getCookDetail(cookIds);
+        if (cookDetail.getBody() == null || cookDetail.getBody().isEmpty()) {
+            throw new CustomException("요리 상세 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        Map<Long, CookDetailResDto> cookMap = cookDetail.getBody().stream()
                 .collect(Collectors.toMap(CookDetailResDto::getCookId, Function.identity()));
 
         // 요리의 기본 재료 ID 수집
         cookMap.values().forEach(cook -> allIngreIds.addAll(cook.getIngredientIds()));
 
         // 재료 상세 정보 한번에 조회
-        Map<Long, IngredientResDto> ingreMap = cookFeignClient.getIngredients(new ArrayList<>(allIngreIds)).stream()
+        ResponseEntity<List<IngredientResDto>> ingredients = cookFeignClient.getIngredients(new ArrayList<>(allIngreIds));
+        if (ingredients.getBody() == null || ingredients.getBody().isEmpty()) {
+            throw new CustomException("식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+        Map<Long, IngredientResDto> ingreMap = ingredients.getBody().stream()
                 .collect(Collectors.toMap(IngredientResDto::getIngredientId, Function.identity()));
 
         // cartCookId별 재료 목록 매핑

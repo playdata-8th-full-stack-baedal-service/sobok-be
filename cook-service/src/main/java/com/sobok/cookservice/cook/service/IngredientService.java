@@ -84,7 +84,7 @@ public class IngredientService {
     }
 
     /**
-     * 추가 식재료 조회 Feign
+     * 식재료 조회 Feign
      */
     public List<CookIngredientResDto> getIngredientDtoById(List<Long> ids) {
         Map<Long, Ingredient> ingredientMap = ingredientRepository.findAllById(ids).stream()
@@ -123,6 +123,11 @@ public class IngredientService {
         return ingredients.stream()
                 .map(ingredient -> new IngredientNameResDto(ingredient.getId(), ingredient.getIngreName()))
                 .toList();
+    }
+
+    // 식재료 검증용 true false
+    public boolean existIngredient(Long ingreId) {
+        return ingredientRepository.existsById(ingreId);
     }
 
 }

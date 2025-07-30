@@ -66,7 +66,7 @@ public class UserService {
         Optional<User> byPhone = userRepository.findByPhone(phoneNumber);
         if (byPhone.isPresent()) {
             User user = byPhone.get();
-            log.info("전화번호로 얻어온 auth의 정보: {}", byPhone.toString());
+            log.info("전화번호로 얻어온 auth의 정보: {}", byPhone);
             return UserResDto.builder()
                     .id(user.getId())
                     .authId(user.getAuthId())
@@ -425,7 +425,7 @@ public class UserService {
     public Long getUserLoginId(Long userAddressId) {
         return userAddressRepository.findById(userAddressId)
                 .map(UserAddress::getUserId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 주소에 연결된 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException("해당 주소에 연결된 유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
     }
 
     /**
