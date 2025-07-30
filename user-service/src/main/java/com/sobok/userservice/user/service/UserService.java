@@ -175,6 +175,12 @@ public class UserService {
                 () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
         );
 
+        // 인증번호 확인
+        String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + user.getPhone());
+        if(verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
+            throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
         // 재설정
         user.setPhone(userPhoneDto.getPhone());
         userRepository.save(user);
