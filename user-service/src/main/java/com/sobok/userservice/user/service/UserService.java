@@ -632,4 +632,25 @@ public class UserService {
     public boolean checkPostLike(TokenUserInfo userInfo, Long postId) {
         return userLikeRepository.findByUserIdAndPostId(userInfo.getUserId(), postId).isPresent();
     }
+
+    /**
+     * 이메일 삭제
+     */
+    @Transactional
+    public void deleteEmail(TokenUserInfo userInfo) {
+        // 유저 조회
+        User user = userRepository.findById(userInfo.getId())
+                .orElseThrow(() -> new CustomException("존재하지 않는 사용자입니다.", HttpStatus.NOT_FOUND));
+
+        // 이메일이 비어있으면 예외
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new CustomException("이미 삭제된 이메일입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 이메일 삭제
+        user.setEmail(null);
+
+        userRepository.save(user);
+    }
+
 }
