@@ -1,0 +1,219 @@
+name: CI/CD Pipeline - Build and Push to ECR
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api-service: ${{ steps.changes.outputs.api-service }}
+      auth-service: ${{ steps.changes.outputs.auth-service }}
+      config-server: ${{ steps.changes.outputs.config-server }}
+      cook-service: ${{ steps.changes.outputs.cook-service }}
+      delivery-service: ${{ steps.changes.outputs.delivery-service }}
+      gateway-service: ${{ steps.changes.outputs.gateway-service }}
+      payment-service: ${{ steps.changes.outputs.payment-service }}
+      post-service: ${{ steps.changes.outputs.post-service }}
+      shop-service: ${{ steps.changes.outputs.shop-service }}
+      user-service: ${{ steps.changes.outputs.user-service }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed services
+        id: changes
+        run: |
+          # Get list of changed files with error handling
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "🔍 Pull Request detected - comparing with base branch"
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          else
+            echo "🔍 Push event detected - analyzing changes"
+            # Handle special cases for push events
+            if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
+              echo "⚠️  Initial commit or new branch detected - checking all files"
+              CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
+            else
+              echo "📝 Comparing with previous commit: ${{ github.event.before }}"
+              # Check if the before commit exists
+              if git cat-file -e ${{ github.event.before }} 2>/dev/null; then
+                CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+              else
+                echo "⚠️  Previous commit not found - treating as initial commit"
+                CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
+              fi
+            fi
+          fi
+          
+          # Validate that we have changed files data
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "⚠️  No changed files detected - this might be an empty commit"
+            echo "Changed files: (empty)"
+          else
+            echo "📋 Changed files:"
+            echo "$CHANGED_FILES" | while IFS= read -r file; do
+              echo "  - $file"
+            done
+          fi
+          
+          # Define services array
+          services=("api-service" "auth-service" "config-server" "cook-service" "delivery-service" 
+                   "gateway-service" "payment-service" "post-service" "shop-service" "user-service")
+          
+          echo ""
+          echo "🔎 Checking services for changes..."
+          echo ""
+          
+          # Check each service for changes
+          for service in "${services[@]}"; do
+            if echo "$CHANGED_FILES" | grep -q "^${service}/"; then
+              echo "${service}=true" >> $GITHUB_OUTPUT
+              echo "✅ ${service} - CHANGED (will be built)"
+          
+              # Show which files changed in this service
+              changed_service_files=$(echo "$CHANGED_FILES" | grep "^${service}/" | head -3)
+              echo "   📄 Changed files:"
+              echo "$changed_service_files" | while IFS= read -r file; do
+                [ -n "$file" ] && echo "      - $file"
+              done
+          
+              # Show if there are more files
+              total_changed=$(echo "$CHANGED_FILES" | grep -c "^${service}/" || echo "0")
+              if [ "$total_changed" -gt 3 ]; then
+                echo "      ... and $((total_changed - 3)) more files"
+              fi
+              echo ""
+            else
+              echo "${service}=false" >> $GITHUB_OUTPUT
+              echo "⏭️  ${service} - NO CHANGES (will be skipped)"
+            fi
+          done
+          
+          # Summary
+          echo ""
+          echo "📊 Summary:"
+          changed_count=0
+          for service in "${services[@]}"; do
+            if echo "$CHANGED_FILES" | grep -q "^${service}/"; then
+              changed_count=$((changed_count + 1))
+            fi
+          done
+          
+          echo "   🔨 Services to build: $changed_count/${#services[@]}"
+          echo "   📋 Total changed files: $(echo "$CHANGED_FILES" | wc -l)"
+          echo "   🌿 Branch: ${{ github.ref_name }}"
+          echo "   📝 Commit: ${{ github.sha }}"
+
+  build-and-push:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [
+          {name: "api-service", changed: "${{ needs.detect-changes.outputs.api-service }}"},
+          {name: "auth-service", changed: "${{ needs.detect-changes.outputs.auth-service }}"},
+          {name: "config-server", changed: "${{ needs.detect-changes.outputs.config-server }}"},
+          {name: "cook-service", changed: "${{ needs.detect-changes.outputs.cook-service }}"},
+          {name: "delivery-service", changed: "${{ needs.detect-changes.outputs.delivery-service }}"},
+          {name: "gateway-service", changed: "${{ needs.detect-changes.outputs.gateway-service }}"},
+          {name: "payment-service", changed: "${{ needs.detect-changes.outputs.payment-service }}"},
+          {name: "post-service", changed: "${{ needs.detect-changes.outputs.post-service }}"},
+          {name: "shop-service", changed: "${{ needs.detect-changes.outputs.shop-service }}"},
+          {name: "user-service", changed: "${{ needs.detect-changes.outputs.user-service }}"}
+        ]
+    
+    steps:
+      - name: Skip if no changes
+        if: matrix.service.changed == 'false'
+        run: |
+          echo "⏭️  Skipping ${{ matrix.service.name }} - no changes detected"
+          exit 0
+
+      - name: Checkout code
+        if: matrix.service.changed == 'true'
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        if: matrix.service.changed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: matrix.service.changed == 'true'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        if: matrix.service.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata
+        if: matrix.service.changed == 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ECR_REGISTRY }}/${{ matrix.service.name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{ github.ref_name == 'main' }}
+
+      - name: Build and push Docker image
+        if: matrix.service.changed == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service.name }}
+          file: ./${{ matrix.service.name }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Update deployment status
+        if: matrix.service.changed == 'true'
+        run: |
+          echo "🚀 Successfully built and pushed ${{ matrix.service.name }}:${{ github.sha }}"
+          echo "📦 Image: ${{ env.ECR_REGISTRY }}/${{ matrix.service.name }}:${{ github.sha }}"
+
+  notify-completion:
+    needs: [detect-changes, build-and-push]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status | Changed |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          
+          services=("api-service" "auth-service" "config-server" "cook-service" "delivery-service" 
+                   "gateway-service" "payment-service" "post-service" "shop-service" "user-service")
+          
+          for service in "${services[@]}"; do
+            changed="${{ needs.detect-changes.outputs[service] }}"
+            if [ "$changed" == "true" ]; then
+              echo "| $service | ✅ Built | ✅ |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $service | ⏭️ Skipped | ❌ |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Commit SHA**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "🌿 **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
