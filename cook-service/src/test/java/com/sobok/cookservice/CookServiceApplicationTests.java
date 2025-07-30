@@ -81,7 +81,7 @@ class CookServiceApplicationTests {
 
 
             List<CookCreateReqDto.IngredientDto> ingredients = new ArrayList<>();
-            for (int j = 0; j < randomInt(1, 3); j++) {
+            for (int j = 0; j < randomInt(2, 5); j++) {
                 CookCreateReqDto.IngredientDto ingredientDto = new CookCreateReqDto.IngredientDto(randomLong(1, 100), randomInt(1, 3));
                 ingredients.add(ingredientDto);
             }

@@ -18,9 +18,20 @@ class StockServiceTest {
     @DisplayName("stockDummy")
     void createStockDummy() {
         for (long i = 1L; i < 101L; i++) {
-            stockService.registerStock(new StockReqDto(1L, i, 100));
-            stockService.registerStock(new StockReqDto(2L, i, 300));
-            stockService.registerStock(new StockReqDto(3L, i, 500));
+            double random = Math.random();
+            if (random < 0.5) {
+                stockService.registerStock(new StockReqDto(1L, i, (int) (1000 + 500 * Math.random())));
+            }
+
+            random = Math.random();
+            if (random < 0.8) {
+                stockService.registerStock(new StockReqDto(2L, i, (int) (1000 + 500 * Math.random())));
+            }
+
+            random = Math.random();
+            if (random < 0.6) {
+                stockService.registerStock(new StockReqDto(3L, i, (int) (1000 + 500 * Math.random())));
+            }
         }
     }
 

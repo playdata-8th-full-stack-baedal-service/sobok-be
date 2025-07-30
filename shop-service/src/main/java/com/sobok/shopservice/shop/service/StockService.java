@@ -87,9 +87,10 @@ public class StockService {
     public void updateStock(ShopAssignDto reqDto, DeliveryAvailShopResDto nearestShop) {
         String key = "SHOP:ASSIGN:" + nearestShop.getShopId();
         RLock lock = redissonClient.getLock(key);
+        Boolean isLocked = false;
         try {
-            boolean isAvailable = lock.tryLock(5, 2, TimeUnit.SECONDS);
-            if(isAvailable) {
+            isLocked = lock.tryLock(5, 2, TimeUnit.SECONDS);
+            if(!isLocked) {
                 throw new CustomException("다른 가게가 승인 중입니다.", HttpStatus.CONFLICT);
             }
 
@@ -107,6 +108,10 @@ public class StockService {
             return;
         } catch (InterruptedException e) {
             throw new CustomException("분산락 충돌 발생.", HttpStatus.CONFLICT);
+        } finally {
+            if (isLocked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 }
