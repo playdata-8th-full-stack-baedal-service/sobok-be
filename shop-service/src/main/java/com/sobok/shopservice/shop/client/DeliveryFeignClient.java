@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "delivery-service", configuration = FeignConfig.class)
+@FeignClient(name = "delivery-service", url = "${DELIVERY_SERVICE_URL}", configuration = FeignConfig.class)
 public interface DeliveryFeignClient {
     @PostMapping("/api/register-delivery")
     void registerDelivery(@RequestBody DeliveryRegisterDto deliveryRegisterDto);

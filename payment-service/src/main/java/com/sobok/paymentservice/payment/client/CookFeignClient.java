@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "cook-service", configuration = FeignConfig.class)
+@FeignClient(name = "cook-service", url = "${COOK_SERVICE_URL}", configuration = FeignConfig.class)
 public interface CookFeignClient {
 
     @GetMapping("/api/get-cook-default-ingre")

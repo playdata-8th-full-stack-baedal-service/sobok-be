@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "payment-service", configuration = FeignConfig.class)
+@FeignClient(name = "payment-service", url = "${PAYMENT_SERVICE_URL}", configuration = FeignConfig.class)
 public interface PaymentFeignClient {
 
     @GetMapping("/api/getRiderAvailPayment")

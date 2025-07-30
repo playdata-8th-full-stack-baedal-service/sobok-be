@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
-@FeignClient(name = "post-service", configuration = FeignConfig.class)
+@FeignClient(name = "post-service", url = "${POST_SERVICE_URL}", configuration = FeignConfig.class)
 public interface PostFeignClient {
 
     /**

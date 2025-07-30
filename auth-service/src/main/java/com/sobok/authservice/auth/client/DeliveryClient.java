@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 // 라이더 회원가입 feign 처리
-@FeignClient(name = "delivery-service", configuration = FeignConfig.class)
+@FeignClient(name = "delivery-service", url = "${DELIVERY_SERVICE_URL}", configuration = FeignConfig.class)
 public interface DeliveryClient {
 
     @PostMapping("/api/signup")

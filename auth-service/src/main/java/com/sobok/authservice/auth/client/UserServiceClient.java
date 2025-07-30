@@ -14,7 +14,7 @@ import com.sobok.authservice.auth.dto.response.*;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
-@FeignClient(name = "user-service", configuration = FeignConfig.class)
+@FeignClient(name = "user-service", url = "${USER_SERVICE_URL}", configuration = FeignConfig.class)
 public interface UserServiceClient {
 
     @PostMapping("/api/findByPhoneNumber")

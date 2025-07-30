@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "api-service", configuration = FeignConfig.class)
+@FeignClient(name = "api-service", url = "${API_SERVICE_URL}", configuration = FeignConfig.class)
 public interface ApiFeignClient {
 
     /**

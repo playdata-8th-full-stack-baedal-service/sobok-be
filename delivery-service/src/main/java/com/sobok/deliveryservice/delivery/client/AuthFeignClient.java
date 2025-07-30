@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "auth-service", configuration = FeignConfig.class)
+@FeignClient(name = "auth-service", url = "${AUTH_SERVICE_URL}", configuration = FeignConfig.class)
 public interface AuthFeignClient {
 
     /**

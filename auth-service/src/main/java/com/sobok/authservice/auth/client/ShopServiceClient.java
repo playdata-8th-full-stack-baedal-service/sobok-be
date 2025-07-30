@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "shop-service", configuration = FeignConfig.class)
+@FeignClient(name = "shop-service", url = "${SHOP_SERVICE_URL}", configuration = FeignConfig.class)
 public interface ShopServiceClient {
 
     @PostMapping("/api/register")

@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "delivery-service", configuration = FeignConfig.class)
+@FeignClient(name = "delivery-service", url = "${DELIVERY_SERVICE_URL}", configuration = FeignConfig.class)
 public interface DeliveryFeignClient {
 
     //paymentId로 배달 정보 조회

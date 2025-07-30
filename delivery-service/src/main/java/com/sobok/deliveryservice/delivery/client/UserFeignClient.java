@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "user-service", configuration = FeignConfig.class)
+@FeignClient(name = "user-service", url = "${USER_SERVICE_URL}", configuration = FeignConfig.class)
 public interface UserFeignClient {
 
     /**

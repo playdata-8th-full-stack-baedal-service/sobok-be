@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient(name = "shop-service", configuration = FeignConfig.class)
+@FeignClient(name = "shop-service", url = "${SHOP_SERVICE_URL}", configuration = FeignConfig.class)
 public interface ShopFeignClient {
 
     @PostMapping("/api/assign-shop")
