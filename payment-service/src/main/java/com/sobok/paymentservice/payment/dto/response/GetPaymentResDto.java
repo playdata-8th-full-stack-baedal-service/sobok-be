@@ -3,6 +3,7 @@ package com.sobok.paymentservice.payment.dto.response;
 import com.sobok.paymentservice.common.enums.OrderState;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -15,7 +16,7 @@ public class GetPaymentResDto {
     private String orderId;
     private Long totalPrice;
     private OrderState orderState;
-    private Long createdAt;
+    private LocalDateTime createdAt;
     private List<Cook> cook;
 
     @Data

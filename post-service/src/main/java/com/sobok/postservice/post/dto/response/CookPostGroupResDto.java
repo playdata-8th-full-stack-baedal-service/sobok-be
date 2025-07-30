@@ -2,6 +2,7 @@ package com.sobok.postservice.post.dto.response;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -26,6 +27,6 @@ public class CookPostGroupResDto {
         private String title;
         private String thumbnail;
         private Long likeCount;
-        private Long updatedAt;
+        private LocalDateTime updatedAt;
     }
 }

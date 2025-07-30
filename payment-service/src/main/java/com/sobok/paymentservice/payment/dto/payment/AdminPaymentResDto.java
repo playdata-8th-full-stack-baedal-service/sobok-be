@@ -4,6 +4,7 @@ package com.sobok.paymentservice.payment.dto.payment;
 import com.sobok.paymentservice.common.enums.OrderState;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -20,7 +21,7 @@ public class AdminPaymentResDto {
     private Long totalPrice;
     private String payMethod;
     private OrderState orderState;
-    private Long createdAt;
+    private LocalDateTime createdAt;
     private Long userAddressId;
 
     // 유저 정보
