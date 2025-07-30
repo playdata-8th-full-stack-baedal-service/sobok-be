@@ -245,8 +245,8 @@ public class CartService {
         QCartCook cc = cartCook;
         QPayment p = payment;
         // 현재 시각 기준으로 한달 전 주문 조회
-        long fromMillis = LocalDateTime.now().minusMonths(1)
-                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+        long fromMillis = oneMonthAgo.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
         return queryFactory // cookId, 주문 수 형태로 조회
                 .select(Projections.constructor(CookOrderCountDto.class,
@@ -255,7 +255,7 @@ public class CartService {
                 ))
                 .from(cc)
                 .join(p).on(cc.paymentId.eq(p.id)) // payment 테이블과 결제 ID 기준으로 조인
-                .where(p.createdAt.goe(fromMillis))  // payment의 생성 시간이 한달 전 이후인 것만
+                .where(p.createdAt.goe(oneMonthAgo))  // payment의 생성 시간이 한달 전 이후인 것만
                 .groupBy(cc.cookId) // cookId 기준으로 그룹핑
                 .orderBy(cc.count().desc()) // 내림차순
                 .offset(PageRequest.of(page, size).getOffset()) // 페이징

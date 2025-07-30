@@ -20,5 +20,5 @@ public class PostListResDto {
     private Long userId;
     private Long likeCount;
     private String thumbnail;
-    private Long updatedAt;
+    private LocalDateTime updatedAt;
 }

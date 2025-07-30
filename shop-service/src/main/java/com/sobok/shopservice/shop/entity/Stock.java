@@ -26,9 +26,6 @@ public class Stock extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Version
-    private Long version;
-
     @Column(nullable = false)
     private Long ingredientId;
 

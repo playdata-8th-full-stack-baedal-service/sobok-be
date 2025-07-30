@@ -21,6 +21,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -274,7 +275,7 @@ public class PostService {
             String title = post.getTitle();
             String thumbnail = postImageRepository.findTopByPostIdOrderByIndexAsc(postId)
                     .map(PostImage::getImagePath).orElse(null);
-            Long updatedAt = post.getUpdatedAt();
+            LocalDateTime updatedAt = post.getUpdatedAt();
 
             return CookPostGroupResDto.PostSummaryDto.builder()
                     .postId(postId)

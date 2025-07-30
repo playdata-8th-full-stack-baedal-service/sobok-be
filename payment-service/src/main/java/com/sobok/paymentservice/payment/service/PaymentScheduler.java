@@ -26,8 +26,7 @@ public class PaymentScheduler {
     @Scheduled(cron = "0 0 * * * *")
     public void scheduledOrderCountFeign() {
         // 현재 시각 기준으로 한달 전 주문 조회
-        long monthToMillis = LocalDateTime.now().minusMonths(1)
-                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime monthToMillis = LocalDateTime.now().minusMonths(1);
 
         // 주문량 순 요리 조회
         List<MonthlyHot> monthlyHotList = cartCookQueryRepository.getMonthlyHotCartCook(monthToMillis);
