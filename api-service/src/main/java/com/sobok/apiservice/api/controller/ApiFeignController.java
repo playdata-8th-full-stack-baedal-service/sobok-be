@@ -65,8 +65,8 @@ public class ApiFeignController {
     }
 
     @GetMapping("/convert-addr")
-    public LocationResDto convertAddress(@RequestParam String roadFull) {
-        return convertAddressService.getLocation(roadFull);
+    public ResponseEntity<LocationResDto> convertAddress(@RequestParam String roadFull) {
+        return ResponseEntity.ok().body(convertAddressService.getLocation(roadFull));
     }
 
     /**
