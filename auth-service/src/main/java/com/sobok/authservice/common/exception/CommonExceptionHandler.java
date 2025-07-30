@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
@@ -47,12 +48,13 @@ public class CommonExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .reduce((m1, m2) -> m1 + ", " + m2)
-                .orElse("입력값이 올바르지 않습니다.");
+                .map(error -> error.getDefaultMessage())
+                .distinct()
+                .collect(Collectors.joining(", "));
 
-        return new ResponseEntity<>(ApiResponse.fail(HttpStatus.BAD_REQUEST, "입력 오류: " + message), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ApiResponse.fail(HttpStatus.BAD_REQUEST, message), HttpStatus.BAD_REQUEST);
     }
+
 
     @ExceptionHandler({
             MissingServletRequestParameterException.class, //해당 파라미터를 미포함
