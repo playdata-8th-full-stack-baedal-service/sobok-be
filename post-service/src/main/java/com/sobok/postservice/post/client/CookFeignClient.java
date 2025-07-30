@@ -2,6 +2,7 @@ package com.sobok.postservice.post.client;
 
 import com.sobok.postservice.common.config.FeignConfig;
 import com.sobok.postservice.post.dto.response.CookNameResDto;
+import com.sobok.postservice.post.dto.response.IngredientResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-import java.util.Map;
 
 @FeignClient(name = "cook-service", configuration = FeignConfig.class)
 public interface CookFeignClient {
@@ -32,5 +32,11 @@ public interface CookFeignClient {
      */
     @GetMapping("/api/cook-thumbnail")
     ResponseEntity<String> getCookThumbnail(@RequestParam Long cookId);
+
+    /**
+     * 요리 ID로 기본 식재료 목록 조회
+     */
+    @GetMapping("/api/cook/base-ingredients")
+    ResponseEntity<List<IngredientResDto>> getDefaultIngredients(@RequestParam Long cookId);
 }
 

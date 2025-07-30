@@ -59,20 +59,8 @@ public class PaymentFeignController {
      * 결제 상태 정보
      */
     @GetMapping("/payment/completed")
-    public Boolean isPaymentCompleted(@RequestParam Long paymentId, @RequestParam Long userId) {
-        return paymentService.isPaymentCompleted(paymentId, userId);
-    }
-
-
-    /**
-     * 결제 ID로 연결된 요리 중 하나의 cookId를 반환
-     */
-    @GetMapping("/payment/cook-id")
-    public Long getCookIdByPaymentId(@RequestParam Long paymentId) {
-        return paymentService.getCookIdsByPaymentId(paymentId)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new CustomException("해당 주문에 요리가 없습니다.", HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> isPaymentCompleted(@RequestParam Long paymentId, @RequestParam Long userId) {
+        return ResponseEntity.ok().body(paymentService.isPaymentCompleted(paymentId, userId));
     }
 
     /**
@@ -101,27 +89,27 @@ public class PaymentFeignController {
     }
 
     /**
-     * 요리 ID로 기본 식재료 목록 조회
+     * paymentId로 cartCookId 조회
      */
     @GetMapping("/payment/cart-cook-id")
-    public Long getCartCookIdByPaymentId(@RequestParam Long paymentId) {
-        return paymentService.getCartCookIdByPaymentId(paymentId);
+    public ResponseEntity<Long> getCartCookIdByPaymentId(@RequestParam Long paymentId) {
+        return ResponseEntity.ok().body(paymentService.getCartCookIdByPaymentId(paymentId));
     }
 
     /**
      * cartCookId 기준으로 추가 식재료 목록 조회
      */
     @GetMapping("/payment/default-ingredients")
-    public List<IngredientTwoResDto> getDefaultIngredients(@RequestParam Long cookId) {
-        return paymentService.getDefaultIngredients(cookId);
+    public ResponseEntity<List<IngredientTwoResDto>> getDefaultIngredients(@RequestParam Long cookId) {
+        return ResponseEntity.ok().body(paymentService.getDefaultIngredients(cookId));
     }
 
     /**
      * 요리 ID로 요리 이름 조회
      */
     @GetMapping("/payment/extra-ingredients")
-    public List<IngredientTwoResDto> getExtraIngredients(@RequestParam Long cartCookId) {
-        return paymentService.getExtraIngredients(cartCookId);
+    public ResponseEntity<List<IngredientTwoResDto>> getExtraIngredients(@RequestParam Long cartCookId) {
+        return ResponseEntity.ok().body(paymentService.getExtraIngredients(cartCookId));
     }
 
     /**
