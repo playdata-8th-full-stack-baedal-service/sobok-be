@@ -104,7 +104,6 @@ public class UserService {
                 .email(reqDto.getEmail())
                 .build();
 
-
         // user DB에 저장
         userRepository.save(user);
 

@@ -97,7 +97,7 @@ public class RegisterService {
             photoUrl = apiServiceClient.registerImg(dto.getPhoto());
         } catch (Exception e) {
             log.error("사진 등록 실패", e);
-            throw new CustomException("사진 등록 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+            photoUrl = null;
         }
 
         // Auth 저장
