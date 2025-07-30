@@ -10,12 +10,15 @@ import com.sobok.shopservice.shop.repository.StockQueryRepository;
 import com.sobok.shopservice.shop.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -24,6 +27,7 @@ import java.util.List;
 public class StockService {
     private final StockQueryRepository queryRepository;
     private final StockRepository stockRepository;
+    private final RedissonClient redissonClient;
 
     /**
      * 재고 등록
@@ -80,9 +84,15 @@ public class StockService {
     }
 
     @Transactional
-    public void updateStock(ShopAssignDto reqDto, DeliveryAvailShopResDto nearestShop) throws InterruptedException {
-        // TODO : 분산락
+    public void updateStock(ShopAssignDto reqDto, DeliveryAvailShopResDto nearestShop) {
+        String key = "SHOP:ASSIGN:" + nearestShop.getShopId();
+        RLock lock = redissonClient.getLock(key);
         try {
+            boolean isAvailable = lock.tryLock(5, 2, TimeUnit.SECONDS);
+            if(isAvailable) {
+                throw new CustomException("다른 가게가 승인 중입니다.", HttpStatus.CONFLICT);
+            }
+
             List<Stock> stocks = stockRepository.findByShopIdAndIngredientIdIn(
                     nearestShop.getShopId(),
                     reqDto.getCartIngreIdList().keySet()
@@ -95,9 +105,8 @@ public class StockService {
             stockRepository.saveAll(stocks);
 
             return;
-        } catch (ObjectOptimisticLockingFailureException e) {
-            log.warn("낙관적 락 충돌 발생.");
-            throw new CustomException("낙관적 락 충돌 발생.", HttpStatus.CONFLICT);
+        } catch (InterruptedException e) {
+            throw new CustomException("분산락 충돌 발생.", HttpStatus.CONFLICT);
         }
     }
 }
