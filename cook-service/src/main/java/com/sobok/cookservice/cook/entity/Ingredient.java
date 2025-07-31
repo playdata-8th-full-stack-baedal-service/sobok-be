@@ -1,0 +1,44 @@
+package com.sobok.cookservice.cook.entity;
+
+import com.sobok.cookservice.cook.dto.request.IngreEditReqDto;
+import com.sobok.cookservice.cook.dto.request.IngreReqDto;
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.util.StringUtils;
+
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Builder
+@ToString
+@Table(name = "ingredient", indexes = {
+        @Index(name = "idx_ingre_name", columnList = "ingreName")
+})
+public class Ingredient {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "ingre_name", nullable = false, unique = true)
+    private String ingreName;
+
+    @Column(nullable = false)
+    private Integer price;
+
+    @Column(nullable = false)
+    private String origin;
+
+    @Column(nullable = false)
+    private Integer unit;
+
+    public void update(IngreEditReqDto dto) {
+        if (StringUtils.hasText(dto.getIngreName())) this.ingreName = dto.getIngreName();
+        if (dto.getPrice() != null) this.price = dto.getPrice();
+        if (StringUtils.hasText(dto.getOrigin())) this.origin = dto.getOrigin();
+        if (dto.getUnit() != null) this.unit = dto.getUnit();
+    }
+
+
+}

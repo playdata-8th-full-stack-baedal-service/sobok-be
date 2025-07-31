@@ -73,3 +73,7 @@ bin/
 /.nb-gradle/
 
 sobok.erd.json
+
+.claude/
+
+config-server/src/main/resources/application.yml

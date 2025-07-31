@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sobok-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sobok
+      MYSQL_USER: sobok
+      MYSQL_PASSWORD: sobok
+    ports:
+      - "3316:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.2
+    container_name: sobok-redis
+    restart: always
+    ports:
+      - "6389:6379"
+    networks:
+      - backend
+
+volumes:
+  mysql_data:
+
+networks:
+  backend:
+    driver: bridge

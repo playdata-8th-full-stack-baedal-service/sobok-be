@@ -1,6 +1,21 @@
-# 개발 진행 중(로컬)일때는 dev
-# 배포 진행 중일때는 prod
+server:
+  port: 8888
 
 spring:
-  profiles:
-    default: dev
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/playdata-8th-full-stack-baedal-service/sobok-config.git
+          default-label: deploy
+          username: ${GIT_USERNAME}
+          password: ${GIT_PASSWORD}
+management:
+  endpoints:
+    web:
+      exposure:
+        #        include: health, refresh, beans
+        #        모든 actuator 접근이 필요할 때 주석 해제
+        include: "*"

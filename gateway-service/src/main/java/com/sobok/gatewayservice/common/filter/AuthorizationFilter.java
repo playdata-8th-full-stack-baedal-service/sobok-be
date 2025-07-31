@@ -1,9 +1,11 @@
 package com.sobok.gatewayservice.common.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sobok.gatewayservice.common.response.ApiResponse;
+import com.sobok.gatewayservice.common.dto.ApiResponse;
 
+import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -12,15 +14,20 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 
 @Component
 @Slf4j
 public class AuthorizationFilter extends AbstractGatewayFilterFactory<AuthorizationFilter.Config> {
     private final ObjectMapper objectMapper;
+
+    @Value("${jwt.secretKey}")
+    private String accessTokenSecretKey;
 
     public AuthorizationFilter(ObjectMapper objectMapper) {
         super(Config.class);
@@ -29,7 +36,20 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
 
     // 허용 Path 설정
     private static final List<String> whiteList = List.of(
-            "/actuator"
+            "/actuator",
+            "/sms/send", "/sms/verify", "/auth/recover/**", "/auth/login", "/auth/reissue",
+            "/auth/user-signup", "/auth/rider-signup", "/auth/shop-signup",
+            "/auth/findLoginId", "/auth/verification", "/auth/reset-password", "/user/findByPhoneNumber",
+            "/ingredient/keyword-search",
+            "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email", "/auth/check-permission",
+            "/auth/check-shopName", "/auth/check-shopAddress"
+            , "/cook/get-cook", "/cook/get-cook-category", "/cook/search-cook"
+            , "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view",
+            "/auth/social-user-signup","/user/check-nickname","/user/check-email","/delivery/check-permission",
+            "/shop/check-shopName", "/shop/check-shopAddress","/post/post-list", "/post/cook-posts/**","/post/detail/{postId}"
+            ,"/cook/popular", "/cook/get-cook/**", "/v3/**", "/swagger-ui/**", "/post/check-registered", "/cooks"
+
+
     );
 
     /**
@@ -41,9 +61,18 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
 
-            // WhiteList에 등록된 Path는 검사하지 않고 통과
-            String path = request.getURI().getPath();
-            if(whiteList.stream().anyMatch(path::startsWith)) {
+            String path = exchange.getRequest().getURI().getPath();
+            log.info("요청 path: {}", path); // 추가
+            AntPathMatcher antPathMatcher = new AntPathMatcher();
+
+            // 허용 url 리스트를 순회하면서 지금 들어온 요청 url과 하나라도 일치하면 true 리턴
+            boolean isAllowed
+                    = whiteList.stream()
+                    .anyMatch(url -> antPathMatcher.match(url, path));
+            log.info("isAllowed:{}", isAllowed);
+
+            if (isAllowed || path.startsWith("/actuator") || path.contains("swagger")) {
+                log.info("gateway filter 통과!");
                 return chain.filter(exchange);
             }
 
@@ -51,13 +80,13 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             String raw = request.getHeaders().getFirst("Authorization");
 
             // Authorization 헤더가 없거나 비어있다면?
-            if(raw == null || raw.isEmpty()) {
+            if (raw == null || raw.isEmpty()) {
                 log.warn("Authorization 헤더가 없거나 비어있습니다.");
                 return onError(response);
             }
 
             // Bearer 토큰이 아니라면
-            if(!raw.startsWith("Bearer ")) {
+            if (!raw.startsWith("Bearer ")) {
                 log.warn("Bearer 토큰이 아닙니다.");
                 return onError(response);
             }
@@ -66,8 +95,7 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             String token = raw.substring(7);
 
             // 토큰이 유효하지 않다면
-            boolean tokenValid = validateToken(token);
-            if(!tokenValid) {
+            if (!validateToken(token)) {
                 log.warn("토큰이 유효하지 않습니다.");
                 return onError(response);
             }
@@ -83,14 +111,26 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
 
     /**
      * 토큰 유효성 검
+     *
      * @param token
      * @return
      */
     private boolean validateToken(String token) {
+        try {
+            // 만료 기간 가져오기
+            Date expiration = Jwts.parserBuilder()
+                    .setSigningKey(accessTokenSecretKey.getBytes(StandardCharsets.UTF_8))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
 
-
-        // 토큰이 유효하다면
-        return true;
+            // 토큰 유효하다면 통과
+            return expiration.after(new Date());
+        } catch (Exception e) {
+            log.error("토큰 파싱 과정에서 오류가 발생했습니다.");
+            return false;
+        }
     }
 
     /**
@@ -114,8 +154,6 @@ public class AuthorizationFilter extends AbstractGatewayFilterFactory<Authorizat
             return response.setComplete();
         }
     }
-
-
 
 
     public static class Config {
