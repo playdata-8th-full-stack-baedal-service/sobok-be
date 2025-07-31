@@ -40,8 +40,8 @@ public class ApiFeignController {
      * S3 이미지 등록 - 업로드 후 실제 정보 저장이 완료되면 실행
      */
     @PostMapping("/register-image")
-    public String registerImg(@RequestParam String url) {
-        return s3Service.registerImage(url);
+    public ResponseEntity<String> registerImg(@RequestParam String url) {
+        return ResponseEntity.ok().body(s3Service.registerImage(url));
     }
 
     /**
@@ -49,8 +49,8 @@ public class ApiFeignController {
      * S3 이미지 변경
      */
     @PostMapping("/change-image")
-    public String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
-        return s3Service.changeImage(image, category, oldPhoto);
+    public ResponseEntity<String> changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
+        return ResponseEntity.ok().body(s3Service.changeImage(image, category, oldPhoto));
     }
 
     /**
@@ -65,8 +65,8 @@ public class ApiFeignController {
     }
 
     @GetMapping("/convert-addr")
-    public LocationResDto convertAddress(@RequestParam String roadFull) {
-        return convertAddressService.getLocation(roadFull);
+    public ResponseEntity<LocationResDto> convertAddress(@RequestParam String roadFull) {
+        return ResponseEntity.ok().body(convertAddressService.getLocation(roadFull));
     }
 
     /**

@@ -60,14 +60,6 @@ public class CookFeignController {
     }
 
     /**
-     * 주문 전체 조회용(요리이름)
-     */
-    @PostMapping("/admin/cook-names")
-    public ResponseEntity<List<CookNameResDto>> getCookNames(@RequestBody List<Long> cookIds) {
-        return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
-    }
-
-    /**
      * 식재료 이름 조회(주문 조회)
      */
     @PostMapping("/admin/ingredient-names")
@@ -111,15 +103,15 @@ public class CookFeignController {
      */
     @PostMapping("/cook-names")
     public ResponseEntity<List<CookNameResDto>> getCookNamesForPostService(@RequestBody List<Long> cookIds) {
-        return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
+        return ResponseEntity.ok().body(cookService.getCookNamesByIds(cookIds));
     }
 
     /**
      * 대표 이미지가 없는 post를 위한 사진 공유
      */
     @GetMapping("/cook-thumbnail")
-    String getCookThumbnail(@RequestParam Long cookId) {
-        return cookService.getCookThumbnail(cookId);
+    public ResponseEntity<String> getCookThumbnail(@RequestParam Long cookId) {
+        return ResponseEntity.ok().body(cookService.getCookThumbnail(cookId));
     }
 
     @PutMapping("/monthly-hot")

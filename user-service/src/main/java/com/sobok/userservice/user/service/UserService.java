@@ -327,7 +327,7 @@ public class UserService {
         String url = null;
         try {
             // url 생성
-            url = apiServiceClient.changeImage(image, category, user.getPhoto());
+            url = apiServiceClient.changeImage(image, category, user.getPhoto()).getBody();
             user.setPhoto(url);
         } catch (Exception e) {
             log.error("사진을 등록하는 URL을 발급받는 과정에서 오류가 발생했습니다.", e);

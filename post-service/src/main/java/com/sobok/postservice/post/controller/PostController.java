@@ -69,7 +69,7 @@ public class PostController {
     }
 
     /**
-     * 요리별 요리별 좋아요순, 최신순 정렬 조회
+     * 요리별 좋아요순, 최신순 정렬 조회
      */
     @GetMapping("/cook-posts/{cookId}")
     public ResponseEntity<CookPostGroupResDto> getCookPosts(
@@ -83,7 +83,7 @@ public class PostController {
      * 사용자별 게시글 조회
      */
     @GetMapping("/user-post")
-    public ResponseEntity<ApiResponse<PagedResponse<PostListResDto>>> getUserPosts(
+    public ResponseEntity<?> getUserPosts(
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestParam int page,
             @RequestParam int size

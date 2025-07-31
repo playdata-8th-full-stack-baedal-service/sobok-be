@@ -1,5 +1,6 @@
 package com.sobok.postservice.post.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,4 +18,6 @@ public class IngredientResDto {
     private int quantity;
     private int price;
     private String origin;
+    @JsonIgnore
+    private boolean defaultFlag;
 }

@@ -104,8 +104,8 @@ public class DeliveryFeignController {
      * 가게용 주문 전체 조회에서 사용되는 shopId로 paymentId 조회
      */
     @GetMapping("/getPaymentId")
-    public List<Long> getPaymentId(@RequestParam("shopId") Long shopId) {
-        return deliveryService.getPaymentId(shopId);
+    public ResponseEntity<List<Long>> getPaymentId(@RequestParam("shopId") Long shopId) {
+        return ResponseEntity.ok().body(deliveryService.getPaymentId(shopId));
     }
 
 
