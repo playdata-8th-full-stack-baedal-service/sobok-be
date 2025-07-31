@@ -20,5 +20,5 @@ public interface AuthFeignClient {
     ResponseEntity<RiderInfoResDto> getRiderAuthInfo(@RequestParam Long authId);
 
     @GetMapping("/api/get-rider-inactive")
-    List<Long> getInactiveRidersInfo();
+    ResponseEntity<List<Long>> getInactiveRidersInfo();
 }

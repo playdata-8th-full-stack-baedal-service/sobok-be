@@ -18,9 +18,6 @@ public interface ApiServiceClient {
     @DeleteMapping("/api/delete-S3-image")
     ResponseEntity<ApiResponse<String>> deleteS3Image(@RequestParam String key);
 
-    @GetMapping("/api/presignFeign")
-    String generatePresignedUrlFeign(@RequestParam String fileName, @RequestParam String category);
-
     @PostMapping(value = "/api/change-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<String> changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto);
 }

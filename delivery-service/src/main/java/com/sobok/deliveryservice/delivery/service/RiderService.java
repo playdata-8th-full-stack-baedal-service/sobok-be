@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -115,7 +116,7 @@ public class RiderService {
                     ResponseEntity<RiderInfoResDto> authInfo = authFeignClient.getRiderAuthInfo(rider.getAuthId());
 
                     if (authInfo == null || authInfo.getBody() == null) {
-                        throw new CustomException("cook 정보 조회 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+                        throw new CustomException("라이더 정보 조회 실패", HttpStatus.INTERNAL_SERVER_ERROR);
                     }
 
                     return RiderInfoResDto.builder()
@@ -146,12 +147,12 @@ public class RiderService {
     public ArrayList<RiderResDto> getPendingRiders() {
         List<Long> inactiveRidersAuthIds;
         try {
-            inactiveRidersAuthIds = authFeignClient.getInactiveRidersInfo();
+            inactiveRidersAuthIds = authFeignClient.getInactiveRidersInfo().getBody();
         } catch (Exception e) {
             throw new CustomException("Feign 과정에서 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        if (inactiveRidersAuthIds.isEmpty()) {
+        if (Objects.requireNonNull(inactiveRidersAuthIds).isEmpty()) {
             return new ArrayList<>();
         }
 
