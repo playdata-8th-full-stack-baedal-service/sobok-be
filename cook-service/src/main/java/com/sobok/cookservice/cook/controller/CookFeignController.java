@@ -47,7 +47,7 @@ public class CookFeignController {
      */
     @GetMapping("/check-cook")
     ResponseEntity<?> checkCook(@RequestParam Long cookId) {
-        return ResponseEntity.ok(cookService.checkCook(cookId));
+        return ResponseEntity.ok().body(cookService.checkCook(cookId));
     }
 
     /**

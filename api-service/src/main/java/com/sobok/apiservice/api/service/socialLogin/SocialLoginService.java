@@ -89,7 +89,7 @@ public class SocialLoginService {
 
     public OauthResDto findOauth(Long oauthId) {
         Oauth oauth = oauthRepository.findById(oauthId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 Oauth ID의 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException("해당 Oauth ID의 사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
         log.info("oauth: {}", oauth);
 

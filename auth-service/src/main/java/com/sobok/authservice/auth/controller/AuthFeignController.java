@@ -53,7 +53,7 @@ public class AuthFeignController {
     }
 
     @GetMapping("/get-rider-inactive")
-    List<Long> getInactiveRidersInfo() {
-        return infoService.getInactiveRidersInfo();
+    public ResponseEntity<List<Long>> getInactiveRidersInfo() {
+        return ResponseEntity.ok().body(infoService.getInactiveRidersInfo());
     }
 }
