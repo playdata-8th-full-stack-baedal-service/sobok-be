@@ -24,8 +24,8 @@ public interface DeliveryFeignClient {
     /**
      * 라이더 정보 조회
      */
-    @GetMapping("/api/admin/rider-info")
-    ResponseEntity<RiderPaymentInfoResDto> getRiderName(@RequestParam Long paymentId);
+    @GetMapping("/api/admin/delivery-info")
+    ResponseEntity<RiderPaymentInfoResDto> getDeliveryAndRider(@RequestParam Long paymentId);
 
     /**
      * paymentId 기준으로 delivery 테이블의 shopId 추출용

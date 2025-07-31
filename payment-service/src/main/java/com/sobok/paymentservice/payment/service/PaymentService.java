@@ -1,7 +1,6 @@
 package com.sobok.paymentservice.payment.service;
 
 import com.querydsl.core.BooleanBuilder;
-import com.sobok.paymentservice.common.dto.ApiResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.common.enums.DeliveryState;
 import com.sobok.paymentservice.common.enums.OrderState;
@@ -591,12 +590,12 @@ public class PaymentService {
     public void processDeliveryAction(
             TokenUserInfo userInfo, Long paymentId, DeliveryState state, Consumer<AcceptOrderReqDto> deliveryAction
     ) {
-        Payment payment = getAndValidatePayment(userInfo, paymentId, state);
+        Payment payment = getAndValidatePayment(paymentId, state);
         DeliveryActionHandler strategy = strategyFactory.getStrategy(state);
         strategy.execute(userInfo, paymentId, deliveryAction, payment);
     }
 
-    private Payment getAndValidatePayment(TokenUserInfo userInfo, Long paymentId, DeliveryState state) {
+    private Payment getAndValidatePayment(Long paymentId, DeliveryState state) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
                 new CustomException("해당 주문 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -616,59 +615,62 @@ public class PaymentService {
 
     /**
      * 관리자 전용 사용자 주문 전체 조회
+     *
+     * @return
      */
-    public Page<AdminPaymentResponseDto> getAllPayments(TokenUserInfo userInfo, int page, int size) {
-        // payment-service 로부터 PagedResponse<AdminPaymentResDto> 응답 받음
+    public List<AdminPaymentBasicResDto> getAllPayments(int page, int size) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")); // 최신순 정렬
-        PagedResponse<AdminPaymentResDto> payments = getAllPaymentsForAdmin(pageable);
-        log.info(payments.getContent().toString());
 
-        // 각 결제에 필요한 정보 조합
-        List<AdminPaymentResponseDto> result = payments.getContent().stream().map(payment -> {
-            // 유저 정보
-            UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId()).getBody();
+        Page<Payment> payments = paymentRepository.findAllByOrderByCreatedAtDesc(pageable);
+        log.info("page로 조회한 payments: {}", payments);
 
-            // 라이더 정보
-            log.info(payment.getId().toString());
-            RiderPaymentInfoResDto rider = payment.getRiderId() == null
-                    ? new RiderPaymentInfoResDto()
-                    : deliveryFeignClient.getRiderName(payment.getRiderId()).getBody();
+        return payments.getContent().stream()
+                .map(payment -> AdminPaymentBasicResDto.builder()
+                        .paymentId(payment.getId())
+                        .orderId(payment.getOrderId())
+                        .createdAt(payment.getCreatedAt())
+                        .build())
+                .toList();
+    }
 
-            // 가게 정보
-            Long shopId = deliveryFeignClient.getShopIdByPaymentId(payment.getId()).getBody();
-            AdminShopResDto shopInfo = shopFeignClient.getShopInfo(shopId).getBody();
+    public AdminPaymentResponseDto getPaymentDetail(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
+                new CustomException("결제 정보를 찾지 못하였습니다.", HttpStatus.NOT_FOUND)
+        );
 
-            // 요리 + 기본식재료 + 추가식재료
-            List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(payment.getId());
+        // 사용자 정보
+        UserInfoResDto userInfoResDto = userServiceClient.getUserInfo(payment.getUserAddressId()).getBody();
+        String loginId = authFeignClient.getLoginId(userInfoResDto.getAuthId()).getBody();
 
-            // 사용자 정보
-            Long userId = userServiceClient.getUserIdByUserAddressId(payment.getUserAddressId()).getBody();
-            Long authId = userServiceClient.getAuthIdByUserId(userId).getBody();
-            String loginId = authFeignClient.getLoginId(authId).getBody();
+        // 배달, 라이더 정보
+        RiderPaymentInfoResDto riderPaymentInfoResDto = deliveryFeignClient.getDeliveryAndRider(paymentId).getBody();
 
-            return AdminPaymentResponseDto.builder()
-                    .orderId(payment.getOrderId())
-                    .totalPrice(payment.getTotalPrice())
-                    .payMethod(payment.getPayMethod())
-                    .orderState(payment.getOrderState())
-                    .createdAt(payment.getCreatedAt())
-                    .nickname(userInfoResDto.getNickname())
-                    .phone(userInfoResDto.getPhone())
-                    .roadFull(userInfoResDto.getRoadFull())
-                    .address(userInfoResDto.getAddress())
-                    .riderName(rider.getRiderName())
-                    .riderPhone(rider.getRiderPhone())
-                    .shopName(shopInfo.getShopName())
-                    .shopPhone(shopInfo.getShopPhone())
-                    .ownerName(shopInfo.getOwnerName())
-                    .shopAddress(shopInfo.getShopAddress())
-                    .cooks(cooks)
-                    .loginId(loginId)
-                    .build();
-        }).toList();
+        // 가게 정보
+        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(Objects.requireNonNull(riderPaymentInfoResDto).getShopId()).getBody();
 
-        // Page 객체로 감싸서 보냄
-        return new PageImpl<>(result, PageRequest.of(page, size), payments.getTotalElements());
+        // 요리 + 기본식재료 + 추가식재료
+        List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(paymentId);
+
+        return AdminPaymentResponseDto.builder()
+                .orderId(payment.getOrderId())
+                .totalPrice(payment.getTotalPrice())
+                .payMethod(payment.getPayMethod())
+                .orderState(payment.getOrderState())
+                .createdAt(payment.getCreatedAt())
+                .completeTime(riderPaymentInfoResDto.getCompleteTime())
+                .nickname(userInfoResDto.getNickname())
+                .phone(userInfoResDto.getPhone())
+                .roadFull(userInfoResDto.getRoadFull())
+                .address(userInfoResDto.getAddress())
+                .riderName(riderPaymentInfoResDto.getRiderName())
+                .riderPhone(riderPaymentInfoResDto.getRiderPhone())
+                .shopName(shopInfo.getShopName())
+                .shopPhone(shopInfo.getShopPhone())
+                .ownerName(shopInfo.getOwnerName())
+                .shopAddress(shopInfo.getShopAddress())
+                .cooks(cooks)
+                .loginId(loginId)
+                .build();
     }
 
     /**

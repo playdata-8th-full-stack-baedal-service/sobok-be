@@ -42,7 +42,7 @@ public class SecurityConfig {
                                 "/payment/accept-delivery", "/payment/complete-delivery"
                         ).hasRole("RIDER")
 
-                        .requestMatchers("/payment/all").hasRole("ADMIN")
+                        .requestMatchers("/payment/all", "/payment/all/{id}").hasRole("ADMIN")
                         .requestMatchers("/payment/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )

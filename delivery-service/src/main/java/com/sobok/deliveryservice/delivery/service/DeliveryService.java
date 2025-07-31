@@ -67,6 +67,8 @@ public class DeliveryService {
                 .riderId(rider.getId())
                 .riderName(rider.getName())
                 .riderPhone(rider.getPhone())
+                .shopId(delivery.getShopId())
+                .completeTime(delivery.getCompleteTime())
                 .build();
     }
 
