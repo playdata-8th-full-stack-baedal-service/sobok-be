@@ -164,7 +164,7 @@ public class ShopService {
 
 
     public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState) {
-        List<Long> paymentIdList = deliveryClient.getPaymentId(shopId);
+        List<Long> paymentIdList = deliveryClient.getPaymentId(shopId).getBody();
         log.info("들어온 결제 번호 목록: {}", paymentIdList);
         if (paymentIdList == null || paymentIdList.isEmpty()) {
             return List.of();
