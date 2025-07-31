@@ -70,8 +70,8 @@ dependencies {
 
     implementation group: 'org.json', name: 'json', version: '20090211'
 //    // Swagger
-//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-//}
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+}
 
 dependencyManagement {
     imports {
