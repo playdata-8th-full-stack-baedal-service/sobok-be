@@ -8,7 +8,7 @@
 
 ## 🚀 프로젝트 개요
 
-- **프로젝트 기간**: 2025.XX ~ 2025.XX
+- **프로젝트 기간**: 2025.07 ~ 2025.08
 - **기술 스택**: Spring Boot, Spring Cloud, MySQL, Redis, Docker, Kubernetes, ArgoCD, AWS
 - **아키텍처**: MSA (Microservices Architecture)
 
@@ -16,18 +16,18 @@
 
 ## 📦 마이크로서비스 구조
 
-| 서비스 이름                     | 역할                 |
-|----------------------------|--------------------|
-| `auth-service`             | 로그인/회원가입, JWT 인증   |
-| `user-service`             | 사용자 정보, 선호 재료      |
-| `cook-service`             | 레시피 기반 식재료 추천      |
-| `payment-service`          | 주문, 결제 처리          |
-| `delivery-service`         | 배달 상태 추적           |
-| `shop-service`             | 공급자 등록, 재고 관리      |
-| `post-service`             | 유저 레시피 공유 게시판      |
+| 서비스 이름                     | 역할                  |
+|----------------------------|---------------------|
+| `auth-service`             | 로그인/회원가입, JWT 인증    |
+| `user-service`             | 사용자 정보              |
+| `cook-service`             | 레시피 기반 식재료 추천       |
+| `payment-service`          | 주문, 결제 처리           |
+| `delivery-service`         | 배달 상태 추적            |
+| `shop-service`             | 식재료 준비 및 재고 관리      |
+| `post-service`             | 유저 레시피 공유 게시판       |
 | `gateway-service`          | API Gateway + 인증 필터 |
-| `config-server`            | 공통 설정 관리           |
-| (제외됨) `discovery-service` | 내부 개발용             |
+| `config-server`            | 공통 설정 관리            |
+| (제외됨) `discovery-service` | 내부 개발용              |
 
 ---
 
@@ -50,6 +50,9 @@
 | `ECR_REGISTRY` | ECR 주소 (`123456.dkr.ecr.ap-northeast-2.amazonaws.com`) |
 | `GIT_USERNAME` | Config Server가 Git repo 접근 시 사용 |
 | `GIT_PASSWORD` | GitHub Token (config repo 접근용) |
+| `INFRA_TOKEN` | GitHub Token (sobok-infra repo 접근용) |
+| `INFRA_EMAIL` | GitHub Email (sobok-infra repo 접근용) |
+| `INFRA_NAME` | GitHub Name (sobok-infra repo 접근용) |
 
 ---
 
