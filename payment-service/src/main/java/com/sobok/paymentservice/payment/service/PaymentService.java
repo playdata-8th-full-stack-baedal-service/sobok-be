@@ -560,7 +560,7 @@ public class PaymentService {
     public List<IngredientTwoResDto> getExtraIngredients(Long cartCookId) {
         List<CartIngredient> ingredients = CartIngreRepository.findByCartCookIdAndDefaultIngre(cartCookId, "N");
 
-        if(ingredients.isEmpty()){
+        if (ingredients.isEmpty()) {
 //                throw new CustomException("cartCookId " + cartCookId + "번의 추가 식재료가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
             log.info("cartCookId " + cartCookId + "번의 추가 식재료가 존재하지 않습니다.");
             return List.of();
@@ -721,15 +721,21 @@ public class PaymentService {
             List<String> baseNames = baseIngredientNames.getBody().stream()
                     .map(IngredientNameResDto::getIngreName)
                     .toList();
+
+            List<String> addNames = null;
             // 추가 재료 ID 이름 변환
-            ResponseEntity<List<IngredientNameResDto>> addOIngredientNames = cookFeignClient.getIngredientNames(addIds);
-            if (addOIngredientNames.getBody() == null || addOIngredientNames.getBody().isEmpty()) {
-                throw new CustomException("추가 식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+            if (!addIds.isEmpty()) {
+                log.info("추가 식재료 존재!");
+                ResponseEntity<List<IngredientNameResDto>> addIngredientNames = cookFeignClient.getIngredientNames(addIds);
+                if (addIngredientNames.getBody() == null || addIngredientNames.getBody().isEmpty()) {
+                    throw new CustomException("추가 식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+                }
+
+                addNames = addIngredientNames.getBody().stream()
+                        .map(IngredientNameResDto::getIngreName)
+                        .toList();
             }
 
-            List<String> addNames = addOIngredientNames.getBody().stream()
-                    .map(IngredientNameResDto::getIngreName)
-                    .toList();
             // 요리 이름 조회
             String cookName = cookNameMap.get(cartCook.getCookId());
 
