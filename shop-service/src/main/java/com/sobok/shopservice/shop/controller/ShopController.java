@@ -50,9 +50,9 @@ public class ShopController {
      * 가게에 들어온 전체 주문 조회 (최신순)
      */
     @GetMapping("/all-order")
-    public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
-                                          @RequestParam Long pageNo, @RequestParam Long numOfRows) {
-        List<ShopPaymentResDto> allOrders = shopService.getAllOrders(userInfo, pageNo, numOfRows);
+    public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo
+                                         ) {
+        List<ShopPaymentResDto> allOrders = shopService.getAllOrders(userInfo);
         if (allOrders.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
         }
@@ -63,9 +63,8 @@ public class ShopController {
      * 가게에 들어온 주문을 주문 상태에 따라 필터링 조회 (최신순)
      */
     @GetMapping("/filtering-order")
-    public ResponseEntity<?> getFilterOrders(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String orderState,
-                                             @RequestParam Long pageNo, @RequestParam Long numOfRows) {
-        List<ShopPaymentResDto> allOrders = shopService.getFilteringOrders(userInfo, orderState, pageNo, numOfRows);
+    public ResponseEntity<?> getFilterOrders(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String orderState) {
+        List<ShopPaymentResDto> allOrders = shopService.getFilteringOrders(userInfo, orderState);
         if (allOrders.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
         }
