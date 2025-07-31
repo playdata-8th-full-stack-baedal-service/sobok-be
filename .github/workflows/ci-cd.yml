@@ -211,7 +211,7 @@ jobs:
           git push origin main
 
   notify-completion:
-    needs: [detect-changes, build-and-push]
+    needs: [ detect-changes, build-and-push ]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -221,11 +221,21 @@ jobs:
           echo "| Service | Status | Changed |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|--------|---------|" >> $GITHUB_STEP_SUMMARY
           
-          services=("api-service" "auth-service" "config-server" "cook-service" "delivery-service" 
-                   "gateway-service" "payment-service" "post-service" "shop-service" "user-service")
+          declare -A changed_services=(
+            ["api-service"]="${{ needs.detect-changes.outputs.api-service }}"
+            ["auth-service"]="${{ needs.detect-changes.outputs.auth-service }}"
+            ["config-server"]="${{ needs.detect-changes.outputs.config-server }}"
+            ["cook-service"]="${{ needs.detect-changes.outputs.cook-service }}"
+            ["delivery-service"]="${{ needs.detect-changes.outputs.delivery-service }}"
+            ["gateway-service"]="${{ needs.detect-changes.outputs.gateway-service }}"
+            ["payment-service"]="${{ needs.detect-changes.outputs.payment-service }}"
+            ["post-service"]="${{ needs.detect-changes.outputs.post-service }}"
+            ["shop-service"]="${{ needs.detect-changes.outputs.shop-service }}"
+            ["user-service"]="${{ needs.detect-changes.outputs.user-service }}"
+          )
           
-          for service in "${services[@]}"; do
-            changed="${{ needs.detect-changes.outputs[service] }}"
+          for service in "${!changed_services[@]}"; do
+            changed="${changed_services[$service]}"
             if [ "$changed" == "true" ]; then
               echo "| $service | ✅ Built | ✅ |" >> $GITHUB_STEP_SUMMARY
             else
