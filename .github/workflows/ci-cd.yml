@@ -161,7 +161,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Extract metadata
-        if: matrix.service.changed == 'true'
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -170,10 +169,26 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{ github.ref_name == 'main' }}
+            type=raw,value=latest
 
-      - name: Build and push Docker image
-        if: matrix.service.changed == 'true'
+      - name: Build and push Docker image (config-server)
+        if: matrix.service.changed == 'true' && matrix.service.name == 'config-server'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./config-server
+          file: ./config-server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          build-args: |
+            GIT_USERNAME=${{ secrets.GIT_USERNAME }}
+            GIT_PASSWORD=${{ secrets.GIT_PASSWORD }}
+
+      - name: Build and push Docker image (others)
+        if: matrix.service.changed == 'true' && matrix.service.name != 'config-server'
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.service.name }}
@@ -184,8 +199,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-          build-args: ${{ matrix.service.name == 'config-server' && format('GIT_USERNAME={0}\nGIT_PASSWORD={1}', secrets.GIT_USERNAME, secrets.GIT_PASSWORD) || '' }}
-
       - name: Update deployment status
         if: matrix.service.changed == 'true'
         run: |

@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableFeignClients
 public class UserServiceApplication {
 
-    // version 1.0.2
+    // version 1.0.3
     public static void main(String[] args) {
         SpringApplication.run(UserServiceApplication.class, args);
     }
