@@ -58,7 +58,9 @@ public class CartCookService {
     public void deleteCartCookList(TokenUserInfo userInfo, DeleteCartReqDto reqDto) {
         // 1. 사용자 입력 검증
         List<Long> reqList = reqDto.getCartCookIdList();
-        if (reqList == null || reqList.isEmpty()) return;
+        if (reqList == null || reqList.isEmpty()) {
+            throw new CustomException("삭제할 항목이 없습니다.", HttpStatus.BAD_REQUEST);
+        }
 
         // 2. 입력 리스트를 바탕으로 삭제할 ID 리스트 생성
         List<Long> deleteIdList = cartCookRepository.findByIdInAndUserId(reqList, userInfo.getUserId())
