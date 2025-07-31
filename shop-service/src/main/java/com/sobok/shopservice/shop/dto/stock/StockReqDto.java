@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StockReqDto {
-    @NotNull
     private Long shopId;
 
     @NotNull
@@ -18,7 +17,6 @@ public class StockReqDto {
 
     @NotNull
     private Integer quantity;
-
 
     public Stock toEntity() {
         return Stock.builder()

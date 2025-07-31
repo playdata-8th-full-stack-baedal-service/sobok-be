@@ -15,7 +15,7 @@ public class PaymentDetailResDto {
     private String orderId;
     private Long totalPrice;
     private OrderState orderState;
-    private Long createdAt;
+    private LocalDateTime createdAt;
     private String payMethod;
     private String riderRequest;
 

@@ -97,7 +97,7 @@ public class RegisterService {
             photoUrl = apiServiceClient.registerImg(dto.getPhoto()).getBody();
         } catch (Exception e) {
             log.error("사진 등록 실패", e);
-            throw new CustomException("사진 등록 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+            photoUrl = null;
         }
 
         // Auth 저장
@@ -193,11 +193,10 @@ public class RegisterService {
      * </pre>
      *
      * @param authShopReqDto 가게 회원가입 요청 데이터
-     * @param userInfo       로그인한 사용자 정보
      * @return AuthShopResDto 회원가입 후 응답 데이터
      */
     @Transactional
-    public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto, TokenUserInfo userInfo) {
+    public AuthShopResDto shopCreate(AuthShopReqDto authShopReqDto) {
 
         authRepository.findByLoginId(authShopReqDto.getLoginId())
                 .ifPresent(auth -> {

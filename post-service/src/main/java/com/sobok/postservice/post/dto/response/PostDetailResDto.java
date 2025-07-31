@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -23,7 +24,7 @@ public class PostDetailResDto {
     private Long authId;
     private Long likeCount;
     private List<String> images;
-    private Long updatedAt;
+    private LocalDateTime updatedAt;
     private String content;
 
     @JsonProperty("baseIngredients") // json에서 써있는 이름으로 표시

@@ -88,15 +88,18 @@ public class ShopAssignService {
                 }
 
                 if (flag) {
-                    nearestShop = shopInfo;
-                    break;
+                    try {
+                        // stock update
+                        stockService.updateStock(reqDto,shopInfo);
+                    } catch (Exception e) {
+                        continue;
+                    }
+                    return shopInfo;
                 }
             }
 
             if (nearestShop == null) {
                 throw new CustomException("선택한 주소지에 가까운 가게를 찾지 못했습니다.", HttpStatus.NOT_FOUND);
-            } else {
-                stockService.updateStock(reqDto, nearestShop);
             }
             return nearestShop;
         } catch (CustomException e) {

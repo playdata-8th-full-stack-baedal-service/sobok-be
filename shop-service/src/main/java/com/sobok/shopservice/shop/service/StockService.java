@@ -11,12 +11,15 @@ import com.sobok.shopservice.shop.repository.StockQueryRepository;
 import com.sobok.shopservice.shop.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -25,7 +28,11 @@ import java.util.List;
 public class StockService {
     private final StockQueryRepository queryRepository;
     private final StockRepository stockRepository;
+
+    private final RedissonClient redissonClient;
+
     private final CookFeignClient cookFeignClient;
+
 
     /**
      * 재고 등록
@@ -86,24 +93,33 @@ public class StockService {
     }
 
     @Transactional
-    public void updateStock(ShopAssignDto reqDto, DeliveryAvailShopResDto nearestShop) throws InterruptedException {
-        for (int i = 0; i < 5; i++) {
-            try {
-                List<Stock> stocks = stockRepository.findByShopIdAndIngredientIdIn(
-                        nearestShop.getShopId(),
-                        reqDto.getCartIngreIdList().keySet()
-                );
+    public void updateStock(ShopAssignDto reqDto, DeliveryAvailShopResDto nearestShop) {
+        String key = "SHOP:ASSIGN:" + nearestShop.getShopId();
+        RLock lock = redissonClient.getLock(key);
+        Boolean isLocked = false;
+        try {
+            isLocked = lock.tryLock(5, 2, TimeUnit.SECONDS);
+            if(!isLocked) {
+                throw new CustomException("다른 가게가 승인 중입니다.", HttpStatus.CONFLICT);
+            }
 
-                stocks.forEach(stock ->
-                        stock.updateQuantity(-reqDto.getCartIngreIdList().get(stock.getIngredientId()))
-                );
+            List<Stock> stocks = stockRepository.findByShopIdAndIngredientIdIn(
+                    nearestShop.getShopId(),
+                    reqDto.getCartIngreIdList().keySet()
+            );
 
-                stockRepository.saveAll(stocks);
+            stocks.forEach(stock ->
+                    stock.updateQuantity(-reqDto.getCartIngreIdList().get(stock.getIngredientId()))
+            );
 
-                return;
-            } catch (ObjectOptimisticLockingFailureException e) {
-                Thread.sleep(50 * i);
-                log.warn("낙관적 락 충돌 발생. 재시도 {}회", i + 1);
+            stockRepository.saveAll(stocks);
+
+            return;
+        } catch (InterruptedException e) {
+            throw new CustomException("분산락 충돌 발생.", HttpStatus.CONFLICT);
+        } finally {
+            if (isLocked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
             }
         }
     }

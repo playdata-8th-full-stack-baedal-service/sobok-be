@@ -1,6 +1,5 @@
 package com.sobok.authservice.auth.service.auth;
 
-import com.sobok.authservice.auth.dto.request.AuthPasswordReqDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.TokenUserInfo;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.Objects;
 
 import static com.sobok.authservice.common.util.Constants.RECOVERY_DAY;
 import static com.sobok.authservice.common.util.Constants.RECOVERY_KEY;
@@ -68,7 +68,11 @@ public class StatusService {
      *     2. 있다면 활성화 상태를 Y로 바꾸고 복구용 키 삭제
      * </pre>
      */
-    public void recover(Long id) throws EntityNotFoundException, CustomException {
+    public void recover(Long id, TokenUserInfo userInfo) throws EntityNotFoundException, CustomException {
+        if(!Objects.equals(userInfo.getId(), id))  {
+            throw new CustomException("복구 대상이 아닌 계정입니다.", HttpStatus.BAD_REQUEST);
+        }
+
         // 복구 대상인지 확인
         boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + id);
         if (isRecoveryTarget) {

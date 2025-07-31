@@ -34,8 +34,8 @@ class IngredientServiceTest {
             "대한민국", "중국", "일본", "미국", "호주", "베트남", "태국", "인도", "멕시코", "프랑스"
     );
 
-    List<String> units = List.of(
-            "1", "10", "30", "50", "100"
+    List<Integer> units = List.of(
+            1, 10, 30, 50, 100
     );
 
 
