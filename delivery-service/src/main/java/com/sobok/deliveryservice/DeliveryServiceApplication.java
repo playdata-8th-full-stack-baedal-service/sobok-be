@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableFeignClients
 public class DeliveryServiceApplication {
 
+	// version 1.0.2
 	public static void main(String[] args) {
 		SpringApplication.run(DeliveryServiceApplication.class, args);
 	}
