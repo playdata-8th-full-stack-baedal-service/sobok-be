@@ -29,9 +29,8 @@ public class UserFeignController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto) {
+    public void userSignup(@RequestBody UserSignupReqDto reqDto) {
         userService.signup(reqDto);
-        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/findByPhoneNumber")

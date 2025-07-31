@@ -2,9 +2,7 @@ package com.sobok.authservice.auth.client;
 
 import com.sobok.authservice.auth.dto.info.AuthUserInfoResDto;
 import com.sobok.authservice.auth.dto.request.UserSignupReqDto;
-import com.sobok.authservice.auth.service.info.AuthUserInfoProvider;
 import com.sobok.authservice.common.config.FeignConfig;
-import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +19,7 @@ public interface UserServiceClient {
     ResponseEntity<ByPhoneResDto> findByPhone(@RequestBody String phoneNumber);
 
     @PostMapping("/api/signup")
-    ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto);
+    void userSignup(@RequestBody UserSignupReqDto reqDto);
 
     // 닉네임 중복 검증
     @GetMapping("/api/check-nickname")
@@ -35,5 +33,5 @@ public interface UserServiceClient {
     ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId);
 
     @GetMapping("/api/get-user-id")
-    Long getUserId(@RequestParam Long id);
+    ResponseEntity<Long> getUserId(@RequestParam Long id);
 }

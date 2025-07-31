@@ -40,8 +40,8 @@ public class ApiFeignController {
      * S3 이미지 등록 - 업로드 후 실제 정보 저장이 완료되면 실행
      */
     @PostMapping("/register-image")
-    public String registerImg(@RequestParam String url) {
-        return s3Service.registerImage(url);
+    public ResponseEntity<String> registerImg(@RequestParam String url) {
+        return ResponseEntity.ok().body(s3Service.registerImage(url));
     }
 
     /**
