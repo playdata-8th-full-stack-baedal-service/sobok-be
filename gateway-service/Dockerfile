@@ -18,7 +18,7 @@ RUN chmod +x ./gradlew
 RUN ./gradlew clean bootJar --no-daemon
 
 # 런타임 스테이지
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre
 
 # 애플리케이션 실행을 위한 사용자 생성
 RUN addgroup --system spring && adduser --system spring --ingroup spring

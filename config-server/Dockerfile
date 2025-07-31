@@ -18,7 +18,7 @@ RUN chmod +x ./gradlew
 RUN ./gradlew clean bootJar --no-daemon
 
 # 런타임 스테이지
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre
 
 ARG GIT_USERNAME
 ARG GIT_PASSWORD
