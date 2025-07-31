@@ -21,6 +21,6 @@ public class ConvertAddressService {
     private final ApiServiceClient apiServiceClient;
 
     public UserLocationResDto getLocation(UserAddressReqDto reqDto) {
-        return apiServiceClient.convertAddress(reqDto.getRoadFull());
+        return apiServiceClient.convertAddress(reqDto.getRoadFull()).getBody();
     }
 }

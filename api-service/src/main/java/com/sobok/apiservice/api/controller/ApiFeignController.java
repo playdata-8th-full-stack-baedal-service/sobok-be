@@ -49,8 +49,8 @@ public class ApiFeignController {
      * S3 이미지 변경
      */
     @PostMapping("/change-image")
-    public String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
-        return s3Service.changeImage(image, category, oldPhoto);
+    public ResponseEntity<String> changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto) {
+        return ResponseEntity.ok().body(s3Service.changeImage(image, category, oldPhoto));
     }
 
     /**
