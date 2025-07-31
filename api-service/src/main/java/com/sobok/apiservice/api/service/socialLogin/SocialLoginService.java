@@ -44,7 +44,7 @@ public class SocialLoginService {
             Oauth foundUser = oauth.get();
             OauthResDto oauthResDto;
             try {
-                oauthResDto = authFeignClient.authIdById(foundUser.getId());
+                oauthResDto = authFeignClient.authIdById(foundUser.getId()).getBody();
             } catch (CustomException e) {
                 log.info("oauth는 생성하였지만 회원가입을 마치지 못한 유저입니다.");
                 return OauthResDto.builder()
@@ -84,12 +84,12 @@ public class SocialLoginService {
     }
 
     public AuthLoginResDto socialLoginToken(Long id) {  //authId
-        return authFeignClient.socialToken(id);
+        return authFeignClient.socialToken(id).getBody();
     }
 
     public OauthResDto findOauth(Long oauthId) {
         Oauth oauth = oauthRepository.findById(oauthId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 Oauth ID의 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException("해당 Oauth ID의 사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
         log.info("oauth: {}", oauth);
 

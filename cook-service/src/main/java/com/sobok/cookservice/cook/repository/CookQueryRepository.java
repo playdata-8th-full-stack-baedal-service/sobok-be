@@ -49,16 +49,16 @@ public class CookQueryRepository {
                                 cook.id,
                                 cook.name,
                                 cook.thumbnail
-                                    )
+                        )
                 )
                 .from(cook)
                 .where(builder)
-           .leftJoin(cookOrderCountCache)
+                .leftJoin(cookOrderCountCache)
                 .on(cook.id.eq(cookOrderCountCache.cookId))
                 .orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]))
                 .offset(offset)
                 .limit(limit)
-            .fetch();
+                .fetch();
     }
 
 

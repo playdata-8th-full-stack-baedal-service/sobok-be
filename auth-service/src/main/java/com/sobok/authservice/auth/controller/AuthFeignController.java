@@ -32,15 +32,15 @@ public class AuthFeignController {
 
     //oauthId가 존재할 때 - oauthId로 authId 찾기
     @GetMapping("/findByOauthId")
-    OauthResDto authIdById(@RequestParam("id") Long id) {
+    public ResponseEntity<OauthResDto> authIdById(@RequestParam("id") Long id) {
         OauthResDto byOauthId = infoService.findByOauthId(id);
         log.info("authId: {}", byOauthId);
-        return byOauthId;
+        return ResponseEntity.ok().body(byOauthId);
     }
 
     @GetMapping("/social-token")
-    AuthLoginResDto socialToken(@RequestParam("authId") Long id) {
-        return authService.socialLoginToken(id);
+    public ResponseEntity<AuthLoginResDto> socialToken(@RequestParam Long id) {
+        return ResponseEntity.ok().body(authService.socialLoginToken(id));
     }
 
     /**
@@ -53,7 +53,7 @@ public class AuthFeignController {
     }
 
     @GetMapping("/get-rider-inactive")
-    List<Long> getInactiveRidersInfo() {
-        return infoService.getInactiveRidersInfo();
+    public ResponseEntity<List<Long>> getInactiveRidersInfo() {
+        return ResponseEntity.ok().body(infoService.getInactiveRidersInfo());
     }
 }

@@ -1,13 +1,11 @@
 package com.sobok.shopservice.shop.service;
 
 
-import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
 import com.sobok.shopservice.common.enums.OrderState;
 import com.sobok.shopservice.common.exception.CustomException;
 import com.sobok.shopservice.shop.client.DeliveryFeignClient;
 import com.sobok.shopservice.shop.client.PaymentFeignClient;
-import com.sobok.shopservice.shop.client.PostFeignClient;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
@@ -18,9 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +32,6 @@ public class ShopService {
     private final ConvertAddressService convertAddressService;
     private final DeliveryFeignClient deliveryClient;
     private final PaymentFeignClient paymentFeignClient;
-    private final PostFeignClient postFeignClient;
 
 
     public AuthShopResDto createShop(ShopSignupReqDto shopSignupReqDto) {
@@ -160,19 +156,23 @@ public class ShopService {
     /**
      * 가게에 들어온 전체 주문 조회
      */
-    public List<ShopPaymentResDto> getAllOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+    public List<ShopPaymentResDto> getAllOrders(TokenUserInfo userInfo) {
         // delivery-service 가서 shopId로 paymentId 가져와
         // 응답: 주문 번호, 주문 시간, 주문 상태
-        return filterOrders(userInfo.getShopId(), "", pageNo, numOfRows);
+        return filterOrders(userInfo.getShopId(), "");
     }
 
-    public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState, Long pageNo, Long numOfRows) {
-        List<Long> paymentIdList = deliveryClient.getPaymentId(shopId);
+
+    public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState) {
+        List<Long> paymentIdList = deliveryClient.getPaymentId(shopId).getBody();
         log.info("들어온 결제 번호 목록: {}", paymentIdList);
         if (paymentIdList == null || paymentIdList.isEmpty()) {
             return List.of();
         }
-        List<ShopPaymentResDto> allOrders = paymentFeignClient.getPayment(paymentIdList);
+        ResponseEntity<List<ShopPaymentResDto>> payment = paymentFeignClient.getPayment(paymentIdList);
+        if(payment.getBody() == null || payment.getBody().isEmpty()) {
+            throw new CustomException("주문 정보 조회에 실패했습니다.", HttpStatus.BAD_REQUEST);
+        }
 
         OrderState filterState = null;
         if (orderState != null && !orderState.isBlank()) {
@@ -184,15 +184,10 @@ public class ShopService {
             }
         }
 
-        // orderState로 필터링 + 최신순 정렬 + 페이징 처리
-        Long offset = (pageNo - 1) * numOfRows;
-
         OrderState finalFilterState = filterState;
-        List<ShopPaymentResDto> result = allOrders.stream()
+        List<ShopPaymentResDto> result = payment.getBody().stream()
                 .filter(order -> finalFilterState == null || order.getOrderState() == finalFilterState)
                 .sorted(Comparator.comparing(ShopPaymentResDto::getUpdatedAt).reversed())
-                .skip(offset)
-                .limit(numOfRows)
                 .toList();
 
         log.info("result: {}", result);
@@ -203,19 +198,8 @@ public class ShopService {
     /**
      * 가게에 들어온 주문을 주문 상태에 따라 필터링 조회 (최신순)
      */
-    public List<ShopPaymentResDto> getFilteringOrders(TokenUserInfo userInfo, String orderState, Long pageNo, Long numOfRows) {
-        return filterOrders(userInfo.getShopId(), orderState, pageNo, numOfRows);
-    }
-
-    /**
-     * 요리별로 좋아요 순으로 조회
-     */
-    public CookPostGroupResDto getPostsByCookId(Long cookId) {
-        try {
-            return postFeignClient.getCookPosts(cookId);
-        } catch (Exception e) {
-            throw new CustomException("Post 서비스 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public List<ShopPaymentResDto> getFilteringOrders(TokenUserInfo userInfo, String orderState) {
+        return filterOrders(userInfo.getShopId(), orderState);
     }
 
     /**

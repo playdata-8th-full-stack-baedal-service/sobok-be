@@ -184,6 +184,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+          build-args: ${{ matrix.service.name == 'config-server' && format('GIT_USERNAME={0}\nGIT_PASSWORD={1}', secrets.GIT_USERNAME, secrets.GIT_PASSWORD) || '' }}
 
       - name: Update deployment status
         if: matrix.service.changed == 'true'

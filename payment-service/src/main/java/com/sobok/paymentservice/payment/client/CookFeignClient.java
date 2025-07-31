@@ -55,9 +55,9 @@ public interface CookFeignClient {
     void updateMonthlyHotCooks(@RequestBody List<MonthlyHot> monthlyHotList);
 
     /**
-     * 요리 이름 조회(주문 조회용)
+     * 요리 Id 목록을 기반으로 요리 이름 정보를 조회
      */
-    @PostMapping("/api/admin/cook-names")
+    @PostMapping("/api/cook-names")
     ResponseEntity<List<CookNameResDto>> getCookNames(@RequestBody List<Long> cookIds);
 
     /**

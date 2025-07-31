@@ -4,12 +4,16 @@ import com.sobok.deliveryservice.common.dto.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.sql.SQLIntegrityConstraintViolationException;
 
 @RestControllerAdvice
 @Slf4j
@@ -52,5 +56,22 @@ public class CommonExceptionHandler {
         log.info("잘못된 요청 파라미터 또는 타입 불일치 오류 발생: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.fail(HttpStatus.NOT_FOUND, "잘못된 요청 또는 리소스가 없습니다."));
+    }
+
+    @ExceptionHandler({SQLIntegrityConstraintViolationException.class})
+    public ResponseEntity<?> sqlBadRequest(Exception ex) {
+        log.info("데이터베이스에서 무결성 제약 조건 위반 오류 발생: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(HttpStatus.BAD_REQUEST, "데이터베이스에서 무결성 제약 조건이 위반되었습니다."));
+    }
+
+     @ExceptionHandler({
+            HttpMessageNotReadableException.class,
+            DataIntegrityViolationException.class
+    })
+    public ResponseEntity<?> noRequestBodyBadRequest(Exception ex) {
+        log.info("request body 오류 발생: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(HttpStatus.BAD_REQUEST, "RequestBody를 확인해 주세요."));
     }
 }

@@ -94,7 +94,7 @@ public class RegisterService {
         // 사진 등록
         String photoUrl;
         try {
-            photoUrl = apiServiceClient.registerImg(dto.getPhoto());
+            photoUrl = apiServiceClient.registerImg(dto.getPhoto()).getBody();
         } catch (Exception e) {
             log.error("사진 등록 실패", e);
             photoUrl = null;

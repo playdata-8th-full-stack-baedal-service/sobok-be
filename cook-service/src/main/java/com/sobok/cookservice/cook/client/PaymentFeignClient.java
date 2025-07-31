@@ -16,8 +16,4 @@ public interface PaymentFeignClient {
     @GetMapping("/api/popular-cook-ids")
     ResponseEntity<List<CookOrderCountDto>> getPopularCookIds(@RequestParam int page,
                                                              @RequestParam int size);
-
-
-    @GetMapping("/api/monthly-hot")
-    CartMonthlyHotDto getMonthlyHotCooks(@RequestParam int pageNo, @RequestParam int numOfRows);
 }

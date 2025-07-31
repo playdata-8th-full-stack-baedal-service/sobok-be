@@ -47,7 +47,7 @@ public class CookFeignController {
      */
     @GetMapping("/check-cook")
     ResponseEntity<?> checkCook(@RequestParam Long cookId) {
-        return ResponseEntity.ok(cookService.checkCook(cookId));
+        return ResponseEntity.ok().body(cookService.checkCook(cookId));
     }
 
     /**
@@ -57,14 +57,6 @@ public class CookFeignController {
     ResponseEntity<?> preLookupCook(@RequestBody List<Long> cookIds) {
         List<UserBookmarkResDto> result = cookService.findCookById(cookIds);
         return ResponseEntity.ok(result);
-    }
-
-    /**
-     * 주문 전체 조회용(요리이름)
-     */
-    @PostMapping("/admin/cook-names")
-    public ResponseEntity<List<CookNameResDto>> getCookNames(@RequestBody List<Long> cookIds) {
-        return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
     }
 
     /**
@@ -111,15 +103,15 @@ public class CookFeignController {
      */
     @PostMapping("/cook-names")
     public ResponseEntity<List<CookNameResDto>> getCookNamesForPostService(@RequestBody List<Long> cookIds) {
-        return ResponseEntity.ok(cookService.getCookNamesByIds(cookIds));
+        return ResponseEntity.ok().body(cookService.getCookNamesByIds(cookIds));
     }
 
     /**
      * 대표 이미지가 없는 post를 위한 사진 공유
      */
     @GetMapping("/cook-thumbnail")
-    String getCookThumbnail(@RequestParam Long cookId) {
-        return cookService.getCookThumbnail(cookId);
+    public ResponseEntity<String> getCookThumbnail(@RequestParam Long cookId) {
+        return ResponseEntity.ok().body(cookService.getCookThumbnail(cookId));
     }
 
     @PutMapping("/monthly-hot")

@@ -29,9 +29,8 @@ public class UserFeignController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<Object> userSignup(@RequestBody UserSignupReqDto reqDto) {
+    public void userSignup(@RequestBody UserSignupReqDto reqDto) {
         userService.signup(reqDto);
-        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/findByPhoneNumber")
@@ -105,8 +104,8 @@ public class UserFeignController {
     }
 
     @GetMapping("/get-user-address")
-    UserLocationResDto getUserAddress(@RequestParam Long userAddressId) {
-        return userAddressService.getUserAddress(userAddressId);
+    public ResponseEntity<UserLocationResDto> getUserAddress(@RequestParam Long userAddressId) {
+        return ResponseEntity.ok().body(userAddressService.getUserAddress(userAddressId));
     }
 
     /**
@@ -132,8 +131,7 @@ public class UserFeignController {
      */
     @GetMapping("/post-info")
     public ResponseEntity<UserPostInfoResDto> getPostInfo(@RequestParam Long userId) {
-        UserPostInfoResDto res = userService.getPostUserInfo(userId);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().body(userService.getPostUserInfo(userId));
     }
 
     /**
@@ -149,55 +147,55 @@ public class UserFeignController {
      * 게시글의 좋아요 개수를 조회
      */
     @GetMapping("/user-like/count/{postId}")
-    public Long getLikeCount(@PathVariable Long postId) {
-        return userService.getLikeCount(postId);
+    public ResponseEntity<Long> getLikeCount(@PathVariable Long postId) {
+        return ResponseEntity.ok().body(userService.getLikeCount(postId));
     }
 
     /**
      * 사용자가 좋아요 누른 게시글 목록을 페이징하여 조회
      */
     @GetMapping("/user-like/liked-posts")
-    public LikedPostPagedResDto getLikedPostIds(
+    public ResponseEntity<LikedPostPagedResDto> getLikedPostIds(
             @RequestParam Long userId,
             @RequestParam int page,
             @RequestParam int size
     ) {
-        return userService.getLikedPosts(userId, page, size);
+        return ResponseEntity.ok().body(userService.getLikedPosts(userId, page, size));
     }
 
     /**
      * 전체 게시글의 좋아요 수 Map 반환
      */
     @GetMapping("/user-like/all-counts")
-    public Map<Long, Long> getAllLikeCounts() {
-        return userService.getAllLikeCounts();
+    public ResponseEntity<Map<Long, Long>> getAllLikeCounts() {
+        return ResponseEntity.ok().body(userService.getAllLikeCounts());
     }
 
     /**
      * 좋아요 수 기준 인기 게시글 목록을 페이징하여 반환
      */
     @GetMapping("/user-like/most-liked")
-    public LikedPostPagedResDto getMostLikedPostIds(
+    public ResponseEntity<LikedPostPagedResDto> getMostLikedPostIds(
             @RequestParam int page,
             @RequestParam int size
     ) {
-        return userService.getMostLikedPostIds(page, size);
+        return ResponseEntity.ok().body(userService.getMostLikedPostIds(page, size));
     }
 
     /**
      * 사용자 Id 리스트를 받아 사용자 정보를 조회하여 반환
      */
     @PostMapping("/post-info/batch")
-    public Map<Long, PostUserInfoResDto> getUserInfos(@RequestBody List<Long> userIds) {
-        return userService.getUserInfos(userIds);
+    public ResponseEntity<Map<Long, PostUserInfoResDto>> getUserInfos(@RequestBody List<Long> userIds) {
+        return ResponseEntity.ok().body(userService.getUserInfos(userIds));
     }
 
     /**
      * 게시글 ID 목록의 좋아요 수를 Map 형태로 반환
      */
     @PostMapping("/user-like/count-map")
-    public Map<Long, Long> getLikeCountMap(@RequestBody List<Long> postIds) {
-        return userService.getLikeCountMap(postIds);
+    public ResponseEntity<Map<Long, Long>> getLikeCountMap(@RequestBody List<Long> postIds) {
+        return ResponseEntity.ok().body(userService.getLikeCountMap(postIds));
     }
 
     /**
