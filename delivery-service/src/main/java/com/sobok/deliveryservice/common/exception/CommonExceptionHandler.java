@@ -11,6 +11,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+
 @RestControllerAdvice
 @Slf4j
 public class CommonExceptionHandler {
@@ -52,5 +54,14 @@ public class CommonExceptionHandler {
         log.info("잘못된 요청 파라미터 또는 타입 불일치 오류 발생: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.fail(HttpStatus.NOT_FOUND, "잘못된 요청 또는 리소스가 없습니다."));
+    }
+
+    @ExceptionHandler({
+            SQLIntegrityConstraintViolationException.class
+    })
+    public ResponseEntity<?> sqlBadRequest(Exception ex) {
+        log.info("데이터베이스에서 무결성 제약 조건 위반 오류 발생: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(HttpStatus.BAD_REQUEST, "데이터베이스에서 무결성 제약 조건이 위반되었습니다."));
     }
 }

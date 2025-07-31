@@ -89,13 +89,13 @@ public class AuthService {
 
     private Long getRoleId(Auth auth, boolean isSocialLogin) {
         return switch (auth.getRole()) {
-            case USER -> userServiceClient.getUserId(auth.getId());
+            case USER -> userServiceClient.getUserId(auth.getId()).getBody();
             case RIDER -> {
-                if (!isSocialLogin) yield deliveryClient.getRiderId(auth.getId());
+                if (!isSocialLogin) yield deliveryClient.getRiderId(auth.getId()).getBody();
                 else yield 0L; // socialLoginToken 에서는 RIDER 처리 안함
             }
             case HUB -> {
-                if (!isSocialLogin) yield shopServiceClient.getShopId(auth.getId());
+                if (!isSocialLogin) yield shopServiceClient.getShopId(auth.getId()).getBody();
                 else yield 0L; // socialLoginToken 에서는 HUB 처리 안함
             }
             default -> 0L;
@@ -156,9 +156,9 @@ public class AuthService {
                 );
 
                 Long roleId = switch (auth.getRole()) {
-                    case USER -> userServiceClient.getUserId(auth.getId());
-                    case RIDER -> deliveryClient.getRiderId(auth.getId());
-                    case HUB -> shopServiceClient.getShopId(auth.getId());
+                    case USER -> userServiceClient.getUserId(auth.getId()).getBody();
+                    case RIDER -> deliveryClient.getRiderId(auth.getId()).getBody();
+                    case HUB -> shopServiceClient.getShopId(auth.getId()).getBody();
                     default -> 0L;
                 };
 

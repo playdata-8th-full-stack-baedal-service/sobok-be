@@ -38,13 +38,17 @@ public class AssignDeliveryAction implements DeliveryActionHandler {
             // 캐시 히트 체크 (키가 있으면 이미 수락된 상태) -> 이미 수락된 배달이면 종료
             //Redis 캐시 키
             String cacheKey = "delivery-accepted:" + paymentId;
+            Boolean success = redisTemplate.opsForValue()
+                    .setIfAbsent(cacheKey, "true", Duration.ofMinutes(2));
+
+            if (!Boolean.TRUE.equals(success)) {
+                throw new CustomException("다른 라이더가 처리 중입니다.", HttpStatus.CONFLICT);
+            }
+            log.info("캐시 저장 성공: {}", cacheKey);
 
             String value = redisTemplate.opsForValue().get(cacheKey);
             log.info("value: {}", value);
 
-            if (redisTemplate.hasKey(cacheKey)) {
-                throw new CustomException("다른 라이더가 처리 중입니다.", HttpStatus.CONFLICT);
-            }
 
             // 최대 5초 동안 락 획득을 시도하고, 락을 획득하면 10초 동안 점유. 자동 해제
             isLocked = lock.tryLock(5, 10, TimeUnit.SECONDS);

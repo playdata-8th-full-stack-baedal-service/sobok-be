@@ -77,6 +77,15 @@ public class UserController {
     }
 
     /**
+     * 이메일 삭제
+     */
+    @DeleteMapping("/deleteEmail")
+    public ResponseEntity<?> deleteEmail(@AuthenticationPrincipal TokenUserInfo userInfo) {
+        userService.deleteEmail(userInfo);
+        return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 삭제하였습니다."));
+    }
+
+    /**
      * 사용자 전화번호 변경
      */
     @PatchMapping("/editPhone")

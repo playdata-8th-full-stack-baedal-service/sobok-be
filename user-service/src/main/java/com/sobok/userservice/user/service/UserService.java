@@ -104,7 +104,6 @@ public class UserService {
                 .email(reqDto.getEmail())
                 .build();
 
-
         // user DB에 저장
         userRepository.save(user);
 
@@ -176,7 +175,7 @@ public class UserService {
         );
 
         // 인증번호 확인
-        String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + user.getPhone());
+        String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + userPhoneDto.getPhone());
         if(verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
             throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
@@ -328,7 +327,7 @@ public class UserService {
         String url = null;
         try {
             // url 생성
-            url = apiServiceClient.changeImage(image, category, user.getPhoto());
+            url = apiServiceClient.changeImage(image, category, user.getPhoto()).getBody();
             user.setPhoto(url);
         } catch (Exception e) {
             log.error("사진을 등록하는 URL을 발급받는 과정에서 오류가 발생했습니다.", e);
@@ -633,4 +632,25 @@ public class UserService {
     public boolean checkPostLike(TokenUserInfo userInfo, Long postId) {
         return userLikeRepository.findByUserIdAndPostId(userInfo.getUserId(), postId).isPresent();
     }
+
+    /**
+     * 이메일 삭제
+     */
+    @Transactional
+    public void deleteEmail(TokenUserInfo userInfo) {
+        // 유저 조회
+        User user = userRepository.findById(userInfo.getId())
+                .orElseThrow(() -> new CustomException("존재하지 않는 사용자입니다.", HttpStatus.NOT_FOUND));
+
+        // 이메일이 비어있으면 예외
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new CustomException("이미 삭제된 이메일입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        // 이메일 삭제
+        user.setEmail(null);
+
+        userRepository.save(user);
+    }
+
 }

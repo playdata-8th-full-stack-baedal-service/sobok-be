@@ -2,8 +2,8 @@ package com.sobok.shopservice.shop.client;
 
 import com.sobok.shopservice.common.config.FeignConfig;
 import com.sobok.shopservice.shop.dto.payment.DeliveryRegisterDto;
-import com.sobok.shopservice.shop.dto.payment.LocationResDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,5 +17,5 @@ public interface DeliveryFeignClient {
     void registerDelivery(@RequestBody DeliveryRegisterDto deliveryRegisterDto);
 
     @GetMapping("/api/getPaymentId")
-    List<Long> getPaymentId(@RequestParam Long shopId);
+    ResponseEntity<List<Long>> getPaymentId(@RequestParam Long shopId);
 }

@@ -16,5 +16,5 @@ public interface ApiServiceClient {
     ResponseEntity<OauthResDto> oauthIdById(@RequestParam("id") Long id);
 
     @PostMapping("/api/register-image")
-    String registerImg(@RequestParam String url);
+    ResponseEntity<String> registerImg(@RequestParam String url);
 }

@@ -6,6 +6,7 @@ import com.sobok.authservice.auth.dto.request.VerificationReqDto;
 import com.sobok.authservice.auth.service.etc.SmsService;
 import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.exception.CustomException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,13 +25,13 @@ public class SmsController {
     private final SmsService smsService;
 
     @PostMapping("/send")
-    public ResponseEntity<?> SendSMS(@RequestBody SmsReqDto smsReqDto) {
+    public ResponseEntity<?> SendSMS(@RequestBody @Valid SmsReqDto smsReqDto) {
         smsService.SendSms(smsReqDto);
         return ResponseEntity.ok(ApiResponse.ok("문자를 전송했습니다."));
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyCode(@RequestBody VerificationReqDto request) {
+    public ResponseEntity<?> verifyCode(@RequestBody @Valid VerificationReqDto request) {
         log.info("인증번호 검증 요청 phoneNumber: {}, inputCode: {}", request.getPhoneNumber(), request.getInputCode());
 
         boolean isValid = smsService.verifySmsCode(request.getPhoneNumber(), request.getInputCode());

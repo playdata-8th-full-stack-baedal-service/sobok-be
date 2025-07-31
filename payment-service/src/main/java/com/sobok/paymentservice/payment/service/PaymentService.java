@@ -238,11 +238,16 @@ public class PaymentService {
      * 결제 정보에 맞는 요리 이름 조회용
      */
     public List<Long> getCookIdsByPaymentId(Long paymentId) {
-        return cartCookRepository.findByPaymentId(paymentId)
+        List<Long> cookIds = cartCookRepository.findByPaymentId(paymentId)
                 .stream()
                 .map(CartCook::getCookId)
                 .distinct()
                 .toList();
+
+        if (cookIds.isEmpty()) {
+            throw new CustomException("존재하지 않는 주문입니다.", HttpStatus.NOT_FOUND);
+        }
+        return cookIds;
     }
 
     /**
@@ -555,10 +560,16 @@ public class PaymentService {
     public List<IngredientTwoResDto> getExtraIngredients(Long cartCookId) {
         List<CartIngredient> ingredients = CartIngreRepository.findByCartCookIdAndDefaultIngre(cartCookId, "N");
 
+        if(ingredients.isEmpty()){
+//                throw new CustomException("cartCookId " + cartCookId + "번의 추가 식재료가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+            log.info("cartCookId " + cartCookId + "번의 추가 식재료가 존재하지 않습니다.");
+            return List.of();
+        }
+
         return ingredients.stream().map(cartIngre -> {
             IngredientTwoResDto info = cookFeignClient.getIngredientInfo(cartIngre.getIngreId()).getBody();
             if (info == null) {
-                throw new CustomException("식재료 정보를 가져오지 못했습니다. id=" + cartIngre.getIngreId(), HttpStatus.NOT_FOUND);
+                throw new CustomException("추가 식재료 정보를 가져오지 못했습니다. id=" + cartIngre.getIngreId(), HttpStatus.NOT_FOUND);
             }
             info.setQuantity(cartIngre.getUnitQuantity());
             info.setDefaultFlag(false);

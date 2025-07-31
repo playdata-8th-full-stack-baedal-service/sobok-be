@@ -62,7 +62,7 @@ public class ShopAvailabilityService {
      */
     private LocationResDto getUserLocation(Long addressId) {
         try {
-            return userFeignClient.getUserAddress(addressId);
+            return userFeignClient.getUserAddress(addressId).getBody();
         } catch (Exception e) {
             log.error("사용자 주소 조회 중 오류 발생: addressId={}", addressId, e);
             throw new CustomException("사용자 주소 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);

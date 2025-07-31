@@ -59,10 +59,9 @@ public class GoogleLoginService {
                 .code(code)
                 .redirectUri("http://localhost:8000/api-service/api/google-login")
                 .grantType("authorization_code")
-                .build());
+                .build()).getBody();
 
-        System.out.println("받은 id_token: " + googleTokenResponse.getId_token());
-        GoogleDetailResDto userInfo = googleFeignClient.getUserInfo("Bearer " + googleTokenResponse.getAccess_token());
+        GoogleDetailResDto userInfo = googleFeignClient.getUserInfo("Bearer " + googleTokenResponse.getAccess_token()).getBody();
         return userInfo;
     }
 

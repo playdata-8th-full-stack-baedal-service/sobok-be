@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ApiServiceClient {
 
     @GetMapping("/api/convert-addr")
-    UserLocationResDto convertAddress(@RequestParam String roadFull);
+    ResponseEntity<UserLocationResDto> convertAddress(@RequestParam String roadFull);
 
     @DeleteMapping("/api/delete-S3-image")
     ResponseEntity<ApiResponse<String>> deleteS3Image(@RequestParam String key);
@@ -22,5 +22,5 @@ public interface ApiServiceClient {
     String generatePresignedUrlFeign(@RequestParam String fileName, @RequestParam String category);
 
     @PostMapping(value = "/api/change-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    String changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto);
+    ResponseEntity<String> changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto);
 }

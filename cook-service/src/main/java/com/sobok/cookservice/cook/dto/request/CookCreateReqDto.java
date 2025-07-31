@@ -2,6 +2,7 @@ package com.sobok.cookservice.cook.dto.request;
 
 import com.sobok.cookservice.common.enums.CookCategory;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -44,6 +45,7 @@ public class CookCreateReqDto {
         private Long ingredientId; // 식재료 id
 
         @NotNull(message = "단위 수량은 필수입니다.")
+        @Min(value = 1, message = "단위 수량은 1 이상이어야 합니다.")
         private Integer unitQuantity; // 식재료 단위
     }
 }
