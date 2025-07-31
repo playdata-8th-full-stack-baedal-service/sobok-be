@@ -55,4 +55,11 @@ public class CommonExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.fail(HttpStatus.NOT_FOUND, "잘못된 요청 또는 리소스가 없습니다."));
     }
+
+    @ExceptionHandler({NullPointerException.class})
+    public ResponseEntity<?> nullBadRequest(Exception ex) {
+        log.info("입력값 누락으로 NullPointerException 발생: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(HttpStatus.BAD_REQUEST, "입력값이 누락되었습니다."));
+    }
 }
