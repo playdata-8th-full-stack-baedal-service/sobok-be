@@ -68,7 +68,7 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     // Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
     // redisson
     implementation 'org.redisson:redisson-spring-boot-starter:3.17.0'
