@@ -200,10 +200,9 @@ public class UserService {
         User user = userCheck(userInfo.getId(), userInfo.getUserId());
 
         //cookId가 존재하는지 확인
-        ResponseEntity<?> response = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
-        Boolean cookExists = (Boolean) response.getBody();
+        boolean cookExists = cookServiceClient.checkCook(userBookmarkReqDto.getCookId());
 
-        if (!Boolean.TRUE.equals(cookExists)) {
+        if (!cookExists) {
             throw new CustomException("해당하는 요리가 없습니다.", HttpStatus.BAD_REQUEST);
         }
 
@@ -260,10 +259,7 @@ public class UserService {
 
         log.info("cookInfoList: {}", cookInfoList);
 
-        if (cookInfoList == null || cookInfoList.getBody() == null) {
-            throw new CustomException("cook 정보 조회 실패", HttpStatus.INTERNAL_SERVER_ERROR);
-        } else if (cookInfoList.getBody().isEmpty()) {
-            log.warn("조회된 cook 정보가 없습니다.");
+        if (Objects.requireNonNull(cookInfoList.getBody()).isEmpty() || cookInfoList.getBody() == null) {
             throw new CustomException("조회된 cook 정보가 없습니다.", HttpStatus.NO_CONTENT);
         }
 

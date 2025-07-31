@@ -171,7 +171,7 @@ public class RegisterService {
                 .permissionNumber(authRiderReqDto.getPermissionNumber())
                 .build();
 
-        deliveryClient. registerRider(riderDto);
+        deliveryClient.registerRider(riderDto);
 
         log.info("라이더 회원가입 완료: {}", saved);
 

@@ -66,8 +66,8 @@ public class ShopFeignController {
     }
 
     @GetMapping("/get-shop-id")
-    public Long getShopId(@RequestParam Long id) {
-        return shopService.getShopId(id);
+    public ResponseEntity<Long> getShopId(@RequestParam Long id) {
+        return ResponseEntity.ok().body(shopService.getShopId(id));
     }
 
     /**
@@ -84,14 +84,6 @@ public class ShopFeignController {
     @GetMapping("/find-near-shop")
     public ResponseEntity<List<DeliveryAvailShopResDto>> getNearShop(@RequestParam Double latitude, @RequestParam Double longitude) {
         return ResponseEntity.ok().body(shopAssignService.findNearShop(latitude, longitude, 10));
-    }
-
-    /**
-     * 요리별로 좋아요 순으로 조회
-     */
-    @GetMapping("/cook-posts/{cookId}")
-    public ResponseEntity<CookPostGroupResDto> getCookPosts(@PathVariable Long cookId) {
-        return ResponseEntity.ok(shopService.getPostsByCookId(cookId));
     }
 
     /**

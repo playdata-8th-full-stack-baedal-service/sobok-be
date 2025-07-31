@@ -6,7 +6,6 @@ import com.sobok.shopservice.common.enums.OrderState;
 import com.sobok.shopservice.common.exception.CustomException;
 import com.sobok.shopservice.shop.client.DeliveryFeignClient;
 import com.sobok.shopservice.shop.client.PaymentFeignClient;
-import com.sobok.shopservice.shop.client.PostFeignClient;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;
 import com.sobok.shopservice.shop.dto.request.UserAddressReqDto;
@@ -33,7 +32,6 @@ public class ShopService {
     private final ConvertAddressService convertAddressService;
     private final DeliveryFeignClient deliveryClient;
     private final PaymentFeignClient paymentFeignClient;
-    private final PostFeignClient postFeignClient;
 
 
     public AuthShopResDto createShop(ShopSignupReqDto shopSignupReqDto) {
@@ -206,17 +204,6 @@ public class ShopService {
      */
     public List<ShopPaymentResDto> getFilteringOrders(TokenUserInfo userInfo, String orderState, Long pageNo, Long numOfRows) {
         return filterOrders(userInfo.getShopId(), orderState, pageNo, numOfRows);
-    }
-
-    /**
-     * 요리별로 좋아요 순으로 조회
-     */
-    public CookPostGroupResDto getPostsByCookId(Long cookId) {
-        try {
-            return postFeignClient.getCookPosts(cookId).getBody();
-        } catch (Exception e) {
-            throw new CustomException("Post 서비스 통신 실패", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 
     /**
