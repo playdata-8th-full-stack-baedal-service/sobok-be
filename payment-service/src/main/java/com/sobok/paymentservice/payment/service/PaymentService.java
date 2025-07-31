@@ -234,22 +234,6 @@ public class PaymentService {
     }
 
     /**
-     * 결제 정보에 맞는 요리 이름 조회용
-     */
-    public List<Long> getCookIdsByPaymentId(Long paymentId) {
-        List<Long> cookIds = cartCookRepository.findByPaymentId(paymentId)
-                .stream()
-                .map(CartCook::getCookId)
-                .distinct()
-                .toList();
-
-        if (cookIds.isEmpty()) {
-            throw new CustomException("존재하지 않는 주문입니다.", HttpStatus.NOT_FOUND);
-        }
-        return cookIds;
-    }
-
-    /**
      * 결제 Id에 해당하는 장바구니 요리 목록을 조회하여 DTO로 변환
      */
     public List<CartCookResDto> getCartCooksByPaymentId(Long paymentId) {
@@ -633,6 +617,9 @@ public class PaymentService {
                 .toList();
     }
 
+    /**
+     * 관리자용 주문 상세 조회
+     */
     public AdminPaymentResponseDto getPaymentDetail(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() ->
                 new CustomException("결제 정보를 찾지 못하였습니다.", HttpStatus.NOT_FOUND)
@@ -673,6 +660,20 @@ public class PaymentService {
                 .build();
     }
 
+    public Map<Long, List<CartIngredientResDto>> getIngredientsByCartCookIds(List<Long> cartCookIds) {
+        List<CartIngredient> allIngredients = CartIngreRepository.findByCartCookIdIn(cartCookIds);
+
+        return allIngredients.stream()
+                .map(ingre -> CartIngredientResDto.builder()
+                        .cartCookId(ingre.getCartCookId())
+                        .ingreId(ingre.getIngreId())
+                        .defaultIngre(ingre.getDefaultIngre())
+                        .unitQuantity(ingre.getUnitQuantity())
+                        .build())
+                .collect(Collectors.groupingBy(CartIngredientResDto::getCartCookId));
+    }
+
+
     /**
      * 결제 ID에 해당하는 장바구니 요리이름 재료 정보를 조회,
      * 요리 이름과 기본/추가 식재료 목록을 포함한 상세 DTO 리스트를 반환
@@ -698,53 +699,48 @@ public class PaymentService {
         Map<Long, String> cookNameMap = cookNames.getBody().stream()
                 .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
 
+        List<Long> cartCookIds = cartCooks.stream()
+                .map(CartCookResDto::getId)
+                .toList();
+
+        // 장바구니 요리 ID별 재료 전체 일괄 조회
+        Map<Long, List<CartIngredientResDto>> ingredientsByCartCookId = getIngredientsByCartCookIds(cartCookIds);
+
+        // 전체 식재료 ID 수집 (중복 제거)
+        Set<Long> allIngredientIds = ingredientsByCartCookId.values().stream()
+                .flatMap(List::stream)
+                .map(CartIngredientResDto::getIngreId)
+                .collect(Collectors.toSet());
+
+        // 전체 식재료 이름 조회
+        ResponseEntity<List<IngredientNameResDto>> ingredientNamesRes = cookFeignClient.getIngredientNames(new ArrayList<>(allIngredientIds));
+        if (ingredientNamesRes.getBody() == null || ingredientNamesRes.getBody().isEmpty()) {
+            throw new CustomException("식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        Map<Long, String> ingredientNameMap = ingredientNamesRes.getBody().stream()
+                .collect(Collectors.toMap(IngredientNameResDto::getIngreId, IngredientNameResDto::getIngreName));
+
         List<CookDetailWithIngredientsResDto> result = new ArrayList<>();
-
-        // 각 장바구니 요리별로 재료 조회 및 가공
         for (CartCookResDto cartCook : cartCooks) {
-            // 해당 장바구니 요리에 포함된 재료 목록 조회
-            List<CartIngredientResDto> ingredients = getIngredientsByCartCookId(cartCook.getId());
+            List<CartIngredientResDto> ingredients = ingredientsByCartCookId.getOrDefault(cartCook.getId(), Collections.emptyList());
 
-            // 기본 재료 ID만 필터링
-            List<Long> baseIds = ingredients.stream()
+            List<String> baseNames = ingredients.stream()
                     .filter(i -> "Y".equals(i.getDefaultIngre()))
-                    .map(CartIngredientResDto::getIngreId)
+                    .map(i -> ingredientNameMap.get(i.getIngreId()))
+                    .filter(Objects::nonNull)
                     .toList();
-            // 추가 재료 ID만 필터링
-            List<Long> addIds = ingredients.stream()
+
+            List<String> addNames = ingredients.stream()
                     .filter(i -> "N".equals(i.getDefaultIngre()))
-                    .map(CartIngredientResDto::getIngreId)
+                    .map(i -> ingredientNameMap.get(i.getIngreId()))
+                    .filter(Objects::nonNull)
                     .toList();
-            //기본 재료 ID 이름 변환
-            ResponseEntity<List<IngredientNameResDto>> baseIngredientNames = cookFeignClient.getIngredientNames(baseIds);
-            if (baseIngredientNames.getBody() == null || baseIngredientNames.getBody().isEmpty()) {
-                throw new CustomException("기본 식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
-            }
-            List<String> baseNames = baseIngredientNames.getBody().stream()
-                    .map(IngredientNameResDto::getIngreName)
-                    .toList();
-
-            List<String> addNames = null;
-            // 추가 재료 ID 이름 변환
-            if (!addIds.isEmpty()) {
-                log.info("추가 식재료 존재!");
-                ResponseEntity<List<IngredientNameResDto>> addIngredientNames = cookFeignClient.getIngredientNames(addIds);
-                if (addIngredientNames.getBody() == null || addIngredientNames.getBody().isEmpty()) {
-                    throw new CustomException("추가 식재료 정보를 불러오지 못했습니다.", HttpStatus.BAD_REQUEST);
-                }
-
-                addNames = addIngredientNames.getBody().stream()
-                        .map(IngredientNameResDto::getIngreName)
-                        .toList();
-            }
-
-            // 요리 이름 조회
-            String cookName = cookNameMap.get(cartCook.getCookId());
 
             result.add(CookDetailWithIngredientsResDto.builder()
-                    .cookName(cookName)
+                    .cookName(cookNameMap.get(cartCook.getCookId()))
                     .baseIngredients(baseNames)
-                    .additionalIngredients(addNames)
+                    .additionalIngredients(addNames.isEmpty() ? null : addNames)
                     .build());
         }
 

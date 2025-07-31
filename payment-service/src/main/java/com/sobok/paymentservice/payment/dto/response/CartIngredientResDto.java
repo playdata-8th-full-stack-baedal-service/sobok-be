@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class CartIngredientResDto {
+    private Long cartCookId;
     private Long ingreId;
     private String defaultIngre;
     private Integer unitQuantity;
