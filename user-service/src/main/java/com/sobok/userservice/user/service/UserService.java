@@ -175,7 +175,7 @@ public class UserService {
         );
 
         // 인증번호 확인
-        String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + user.getPhone());
+        String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + userPhoneDto.getPhone());
         if(verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
             throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
