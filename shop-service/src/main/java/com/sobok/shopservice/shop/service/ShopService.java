@@ -160,13 +160,13 @@ public class ShopService {
     /**
      * 가게에 들어온 전체 주문 조회
      */
-    public List<ShopPaymentResDto> getAllOrders(TokenUserInfo userInfo, Long pageNo, Long numOfRows) {
+    public List<ShopPaymentResDto> getAllOrders(TokenUserInfo userInfo) {
         // delivery-service 가서 shopId로 paymentId 가져와
         // 응답: 주문 번호, 주문 시간, 주문 상태
-        return filterOrders(userInfo.getShopId(), "", pageNo, numOfRows);
+        return filterOrders(userInfo.getShopId(), "");
     }
 
-    public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState, Long pageNo, Long numOfRows) {
+    public List<ShopPaymentResDto> filterOrders(Long shopId, String orderState) {
         List<Long> paymentIdList = deliveryClient.getPaymentId(shopId);
         log.info("들어온 결제 번호 목록: {}", paymentIdList);
         if (paymentIdList == null || paymentIdList.isEmpty()) {
@@ -184,15 +184,10 @@ public class ShopService {
             }
         }
 
-        // orderState로 필터링 + 최신순 정렬 + 페이징 처리
-        Long offset = (pageNo - 1) * numOfRows;
-
         OrderState finalFilterState = filterState;
         List<ShopPaymentResDto> result = allOrders.stream()
                 .filter(order -> finalFilterState == null || order.getOrderState() == finalFilterState)
                 .sorted(Comparator.comparing(ShopPaymentResDto::getUpdatedAt).reversed())
-                .skip(offset)
-                .limit(numOfRows)
                 .toList();
 
         log.info("result: {}", result);
@@ -203,8 +198,8 @@ public class ShopService {
     /**
      * 가게에 들어온 주문을 주문 상태에 따라 필터링 조회 (최신순)
      */
-    public List<ShopPaymentResDto> getFilteringOrders(TokenUserInfo userInfo, String orderState, Long pageNo, Long numOfRows) {
-        return filterOrders(userInfo.getShopId(), orderState, pageNo, numOfRows);
+    public List<ShopPaymentResDto> getFilteringOrders(TokenUserInfo userInfo, String orderState) {
+        return filterOrders(userInfo.getShopId(), orderState);
     }
 
     /**
