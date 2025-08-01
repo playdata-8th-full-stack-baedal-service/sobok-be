@@ -440,10 +440,11 @@ public class PaymentService {
      * 배달 조회에 사용되는 paymentId로 주문 정보 받기
      */
     public List<ShopPaymentResDto> getRiderAvailPaymentList(List<Long> ids, @Nullable List<OrderState> filterStates) {
+        log.info("ids: {}, filterStates: {}", ids, filterStates);
         QPayment payment = QPayment.payment;
 
-        BooleanBuilder builder = new BooleanBuilder()
-                .and(payment.id.in(ids));
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(payment.id.in(ids));
 
         if (filterStates != null && !filterStates.isEmpty()) {
             builder.and(payment.orderState.in(filterStates));
@@ -455,7 +456,9 @@ public class PaymentService {
                 .orderBy(payment.updatedAt.asc())
                 .fetch();
 
+        log.info("==================================================================");
         log.info("paymentList: {}", paymentList);
+        log.info("==================================================================");
 
         return paymentList.stream()
                 .map(p -> ShopPaymentResDto.builder()
@@ -635,17 +638,10 @@ public class PaymentService {
             riderPaymentInfoResDto = deliveryFeignClient.getDeliveryAndRider(paymentId).getBody();
         } catch (Exception e) {
             log.error("배달, 라이더 정보를 찾지 못하였습니다. | payment id : {}", paymentId);
-            riderPaymentInfoResDto = new RiderPaymentInfoResDto(0L, "", "", 0L, null);
         }
 
         // 가게 정보
-        AdminShopResDto shopInfo = null;
-        if (riderPaymentInfoResDto.getShopId() != 0L) {
-            shopInfo = shopFeignClient.getShopInfo(Objects.requireNonNull(riderPaymentInfoResDto).getShopId()).getBody();
-        } else {
-            log.error("가게 정보를 찾지 못하였습니다. | payment id : {}", paymentId);
-            shopInfo = new AdminShopResDto(0L, "", "", "", "");
-        }
+        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(Objects.requireNonNull(riderPaymentInfoResDto).getShopId()).getBody();
 
         // 요리 + 기본식재료 + 추가식재료
         List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(paymentId);
