@@ -6,6 +6,7 @@ import com.sobok.paymentservice.common.enums.DeliveryState;
 import com.sobok.paymentservice.payment.client.DeliveryFeignClient;
 import com.sobok.paymentservice.payment.dto.cart.CartAddCookReqDto;
 import com.sobok.paymentservice.payment.dto.cart.CartStartPayDto;
+import com.sobok.paymentservice.payment.dto.payment.AdminPaymentBasicResDto;
 import com.sobok.paymentservice.payment.dto.payment.AdminPaymentResponseDto;
 import com.sobok.paymentservice.payment.dto.response.GetPaymentResDto;
 import com.sobok.paymentservice.payment.dto.payment.PaymentRegisterReqDto;
@@ -120,14 +121,21 @@ public class PaymentController {
      * 관리자 전용 사용자 주문 전체 조회
      */
     @GetMapping("/all")
-    public ResponseEntity<?> getAllOrders(@AuthenticationPrincipal TokenUserInfo userInfo,
-                                          @RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "10") int size) {
-        Page<AdminPaymentResponseDto> result = paymentService.getAllPayments(userInfo, page, size);
+    public ResponseEntity<?> getAllOrders(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        List<AdminPaymentBasicResDto> result = paymentService.getAllPayments(page, size);
         if (result.isEmpty()) {
             return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));  // 204
         }
         return ResponseEntity.ok(ApiResponse.ok(result, "전체 주문 조회 성공"));
+    }
+
+    /**
+     * 관리자 전용 사용자 주문 세부 조회
+     */
+    @GetMapping("/all/{id}")
+    public ResponseEntity<?> getOrderDetail(@PathVariable("id") Long paymentId) {
+        AdminPaymentResponseDto result = paymentService.getPaymentDetail(paymentId);
+        return ResponseEntity.ok(ApiResponse.ok(result, "주문 싱세 조회 성공"));
     }
 
 }

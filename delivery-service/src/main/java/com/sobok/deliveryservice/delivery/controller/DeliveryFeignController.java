@@ -78,7 +78,7 @@ public class DeliveryFeignController {
     /**
      * 결제관련 라이더 정보 조회
      */
-    @GetMapping("/admin/rider-info")
+    @GetMapping("/admin/delivery-info")
     public ResponseEntity<RiderPaymentInfoResDto> getRiderPaymentInfo(@RequestParam Long paymentId) {
         return ResponseEntity.ok().body(deliveryService.getRiderInfoByPaymentId(paymentId));
     }

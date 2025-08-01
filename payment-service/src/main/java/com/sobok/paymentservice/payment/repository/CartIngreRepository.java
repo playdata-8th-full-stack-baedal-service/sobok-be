@@ -12,8 +12,6 @@ public interface CartIngreRepository extends JpaRepository<CartIngredient, Long>
 
     List<CartIngredient> findByCartCookId(Long cartCookId);
 
-    void deleteByCartCookId(Long cartCookId);
-
     @Modifying
     @Query("DELETE FROM CartIngredient c WHERE c.cartCookId = :id")
     void deleteByUnpaidCartCookId(@Param("id") Long cartCookId);

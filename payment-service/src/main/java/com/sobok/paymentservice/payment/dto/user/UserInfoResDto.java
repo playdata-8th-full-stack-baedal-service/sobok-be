@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserInfoResDto {
+    private Long authId;
     private String nickname;
     private String address;
     private String roadFull;
