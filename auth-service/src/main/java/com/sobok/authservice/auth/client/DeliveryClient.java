@@ -33,4 +33,7 @@ public interface DeliveryClient {
 
     @GetMapping("/api/get-rider-id")
     ResponseEntity<Long> getRiderId(@RequestParam Long id);
+
+    @GetMapping("/api/get-auth-id")
+    ResponseEntity<Long> getAuthId(@RequestParam Long id);
 }

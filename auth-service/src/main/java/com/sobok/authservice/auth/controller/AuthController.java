@@ -111,7 +111,7 @@ public class AuthController {
      * 사용자 비활성화(탈퇴)
      */
     @DeleteMapping("/delete")
-    public ResponseEntity<?> delete( @RequestHeader("Authorization") String authorizationHeader, @AuthenticationPrincipal TokenUserInfo userInfo) {
+    public ResponseEntity<?> delete(@RequestHeader("Authorization") String authorizationHeader, @AuthenticationPrincipal TokenUserInfo userInfo) {
         String accessToken = authorizationHeader.replace("Bearer ", "");
         statusService.delete(accessToken, userInfo);
         return ResponseEntity.ok(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
@@ -209,10 +209,8 @@ public class AuthController {
      * rider 회원가입 승인 요청
      */
     @PutMapping("/rider-active")
-    public ResponseEntity<ApiResponse<Void>> activeRider(
-            @RequestParam Long authId,
-            @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
-        statusService.activeRider(authId);
+    public ResponseEntity<ApiResponse<Void>> activeRider(@RequestParam Long riderId) {
+        statusService.activeRider(riderId);
         return ResponseEntity.ok(ApiResponse.ok(null, "라이더 계정이 활성화되었습니다."));
     }
 }
