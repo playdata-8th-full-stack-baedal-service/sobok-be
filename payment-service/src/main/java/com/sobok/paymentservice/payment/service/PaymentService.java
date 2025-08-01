@@ -630,10 +630,22 @@ public class PaymentService {
         String loginId = authFeignClient.getLoginId(userInfoResDto.getAuthId()).getBody();
 
         // 배달, 라이더 정보
-        RiderPaymentInfoResDto riderPaymentInfoResDto = deliveryFeignClient.getDeliveryAndRider(paymentId).getBody();
+        RiderPaymentInfoResDto riderPaymentInfoResDto = null;
+        try {
+            riderPaymentInfoResDto = deliveryFeignClient.getDeliveryAndRider(paymentId).getBody();
+        } catch (Exception e) {
+            log.error("배달, 라이더 정보를 찾지 못하였습니다. | payment id : {}", paymentId);
+            riderPaymentInfoResDto = new RiderPaymentInfoResDto(0L, "", "", 0L, null);
+        }
 
         // 가게 정보
-        AdminShopResDto shopInfo = shopFeignClient.getShopInfo(Objects.requireNonNull(riderPaymentInfoResDto).getShopId()).getBody();
+        AdminShopResDto shopInfo = null;
+        if (riderPaymentInfoResDto.getShopId() != 0L) {
+            shopInfo = shopFeignClient.getShopInfo(Objects.requireNonNull(riderPaymentInfoResDto).getShopId()).getBody();
+        } else {
+            log.error("가게 정보를 찾지 못하였습니다. | payment id : {}", paymentId);
+            shopInfo = new AdminShopResDto(0L, "", "", "", "");
+        }
 
         // 요리 + 기본식재료 + 추가식재료
         List<CookDetailWithIngredientsResDto> cooks = getCookDetailsByPaymentId(paymentId);
