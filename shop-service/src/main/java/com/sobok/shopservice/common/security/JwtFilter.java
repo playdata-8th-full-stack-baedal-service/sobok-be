@@ -33,6 +33,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private static final String ACCESS_TOKEN_BLACKLIST_KEY = "BLACKLIST_ACCESS_TOKEN:";
+
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
     List<String> whiteList = List.of(
