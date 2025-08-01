@@ -71,6 +71,8 @@ dependencies {
 
     // Tika (S3 이미지 유효성 검증)
     implementation 'org.apache.tika:tika-core:2.9.0'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 dependencyManagement {

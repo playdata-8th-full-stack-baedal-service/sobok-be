@@ -129,9 +129,11 @@ public class AuthService {
      *
      * @param userInfo
      */
-    public void logout(TokenUserInfo userInfo) {
+    public void logout(TokenUserInfo userInfo, String accessToken) {
         // redis에 있는 refresh token 삭제
         redisStringTemplate.delete(REFRESH_TOKEN_KEY + userInfo.getId().toString());
+        // 엑세스 토큰 블랙리스트 추가
+        jwtTokenProvider.logout(accessToken, userInfo.getId());
         log.info("{}번 사용자의 로그아웃 성공", userInfo.getId());
     }
 
