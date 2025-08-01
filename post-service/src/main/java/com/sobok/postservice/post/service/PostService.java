@@ -130,8 +130,22 @@ public class PostService {
         postImageRepository.deleteByPostId(post.getId());
 
         // 새 이미지 등록
-        List<PostImage> newImages = buildPostImages(post.getId(), dto.getImages());
-        postImageRepository.saveAll(newImages);
+        List<PostImage> newImages = new ArrayList<>();
+        if(dto.getImages().isEmpty()) {
+            String url = cookClient.getCookThumbnail(post.getCookId()).getBody();
+            PostImage save = postImageRepository.save(
+                    PostImage.builder()
+                            .postId(post.getId())
+                            .imagePath(url)
+                            .index(1)
+                            .build()
+            );
+
+            newImages.add(save);
+        } else {
+            newImages = buildPostImages(post.getId(), dto.getImages());
+            postImageRepository.saveAll(newImages);
+        }
 
         return PostUpdateResDto.builder()
                 .postId(post.getId())
