@@ -19,4 +19,5 @@ public class AuthUserInfoResDto {
     String phone;
     String photo;
     List<UserAddressDto> addresses;
+    Long authId;
 }

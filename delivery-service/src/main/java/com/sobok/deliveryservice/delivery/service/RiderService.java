@@ -82,8 +82,8 @@ public class RiderService {
     /**
      * 라이더 정보 찾기
      */
-    public AuthRiderInfoResDto getInfo(Long authId) {
-        Rider rider = riderRepository.getRiderByAuthId(authId).orElseThrow(
+    public AuthRiderInfoResDto getInfo(Long riderId) {
+        Rider rider = riderRepository.findById(riderId).orElseThrow(
                 () -> new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
         );
 
@@ -92,6 +92,7 @@ public class RiderService {
                 .permissionNumber(rider.getPermissionNumber())
                 .name(rider.getName())
                 .loginId(null)
+                .authId(rider.getAuthId())
                 .build();
     }
 

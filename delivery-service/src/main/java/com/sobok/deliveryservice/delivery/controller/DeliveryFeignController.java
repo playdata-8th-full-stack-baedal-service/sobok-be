@@ -60,8 +60,8 @@ public class DeliveryFeignController {
     }
 
     @GetMapping("/rider-info")
-    public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId) {
-        AuthRiderInfoResDto resDto = riderService.getInfo(authId);
+    public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long riderId) {
+        AuthRiderInfoResDto resDto = riderService.getInfo(riderId);
         return ResponseEntity.ok().body(resDto);
     }
 

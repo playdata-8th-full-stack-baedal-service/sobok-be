@@ -55,8 +55,8 @@ public class ShopFeignController {
     }
 
     @GetMapping("/shop-info")
-    public ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId) {
-        AuthShopInfoResDto resDto = shopService.getInfo(authId);
+    public ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long shopId) {
+        AuthShopInfoResDto resDto = shopService.getInfo(shopId);
         return ResponseEntity.ok().body(resDto);
     }
 
