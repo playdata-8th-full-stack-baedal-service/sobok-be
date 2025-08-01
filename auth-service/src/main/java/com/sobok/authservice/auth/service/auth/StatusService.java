@@ -68,11 +68,7 @@ public class StatusService {
      *     2. 있다면 활성화 상태를 Y로 바꾸고 복구용 키 삭제
      * </pre>
      */
-    public void recover(Long id, TokenUserInfo userInfo) throws EntityNotFoundException, CustomException {
-        if(!Objects.equals(userInfo.getId(), id))  {
-            throw new CustomException("복구 대상이 아닌 계정입니다.", HttpStatus.BAD_REQUEST);
-        }
-
+    public void recover(Long id) throws EntityNotFoundException, CustomException {
         // 복구 대상인지 확인
         boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + id);
         if (isRecoveryTarget) {
