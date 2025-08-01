@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -31,10 +32,13 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+    private static final String ACCESS_TOKEN_BLACKLIST_KEY = "BLACKLIST_ACCESS_TOKEN:";
+
     @Value("${jwt.secretKey}")
     private String secretKey;
 
     private final ObjectMapper objectMapper;
+    private final RedisTemplate<String, String> redisTemplate;
 
     List<String> whiteList = List.of(
             "/actuator/**", "/api/confirm", "/api/kakao-login", "/api/google-login", "/api/google-login-view", "/v3/**"
@@ -83,6 +87,15 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // 토큰 유효성 검사
             String token = authHeader.replace("Bearer ", "");
+
+            // 블랙리스트 검사 로직
+            // Redis에서 현재 토큰이 블랙리스트에 등록되어 있는지 확인
+            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + token) != null) {
+                log.warn("블랙리스트에 등록된 토큰으로 접근 시도. 토큰: {}", token);
+                onError(response,401, "블랙리스트에 등록된 토큰입니다.");
+                return;
+            }
+
             if (!validateToken(token)) {
                 log.warn("토큰이 만료되었습니다.");
                 throw new Exception();
@@ -127,7 +140,7 @@ public class JwtFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         } catch (Exception e) {
             log.warn("토큰 정보가 유효하지 않습니다.");
-            onError(response);
+            onError(response,666, "토큰 검증에 실패하였습니다.");
             return;
         }
 
@@ -182,13 +195,13 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param response
      * @throws IOException
      */
-    private void onError(HttpServletResponse response) throws IOException {
+    private void onError(HttpServletResponse response, int httpStatus, String message) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         // 공통 실패 응답 JSON으로 변환
-        String body = objectMapper.writeValueAsString(ApiResponse.fail(666, "토큰 검증에 실패하였습니다."));
+        String body = objectMapper.writeValueAsString(ApiResponse.fail(httpStatus, message));
         response.getWriter().write(body);
     }
 }
