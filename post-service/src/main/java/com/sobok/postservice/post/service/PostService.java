@@ -98,7 +98,7 @@ public class PostService {
     }
 
     public void validateNoScriptTag(String html) {
-        if (html != null && html.toLowerCase().contains("<script")) {
+        if (html != null && (html.toLowerCase().contains("<script") || html.toLowerCase().contains("<input"))) {
             throw new CustomException("해당 내용의 게시물은 등록할 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }

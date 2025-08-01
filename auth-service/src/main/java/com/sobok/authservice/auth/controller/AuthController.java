@@ -63,7 +63,7 @@ public class AuthController {
      * 통합 로그인
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthLoginReqDto reqDto) throws EntityNotFoundException, CustomException {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthLoginReqDto reqDto) throws EntityNotFoundException, CustomException {
         AuthLoginResDto resDto = authService.login(reqDto);
 
         // 복구 대상인지에 따라 다른 메세지 전달
@@ -139,7 +139,7 @@ public class AuthController {
      * 사용자 아이디 찾기
      */
     @PostMapping("/findLoginId")
-    public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
+    public ResponseEntity<?> getFindUserId(@Valid @RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
         List<AuthFindIdResDto> authFindIdResDto = accountService.userFindId(authFindReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
     }
@@ -178,13 +178,10 @@ public class AuthController {
      */
     @GetMapping("/get-info")
     public ResponseEntity<?> getInfo(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        // 1. 비밀번호 확인 (사라짐)
-        String loginId = accountService.verifyByPassword(userInfo.getId());
+        // 1. 유저 정보 가져오기
+        AuthBaseInfoResDto info = infoService.getInfo(userInfo);
 
-        // 2. 유저 정보 가져오기
-        AuthBaseInfoResDto info = infoService.getInfo(userInfo, loginId);
-
-        // 3. 리턴
+        // 2. 리턴
         return ResponseEntity.ok().body(ApiResponse.ok(info, "성공적으로 정보가 조회되었습니다."));
     }
 

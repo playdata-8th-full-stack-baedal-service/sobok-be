@@ -128,10 +128,10 @@ public class UserService {
      * 2. 주소 가져오기
      * 3. dto로 변환 (loginId는 없음)
      */
-    public AuthUserInfoResDto getUserInfo(Long authId) {
-        log.info("사용자 정보 조회 시작 : {}", authId);
+    public AuthUserInfoResDto getUserInfo(Long userId) {
+        log.info("사용자 정보 조회 시작 : {}", userId);
 
-        User user = userRepository.findByAuthId(authId).orElseThrow(
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new CustomException("Auth ID가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
@@ -152,6 +152,7 @@ public class UserService {
                 .photo(user.getPhoto())
                 .email(user.getEmail())
                 .addresses(userAddress)
+                .authId(user.getAuthId())
                 .build();
     }
 
@@ -648,6 +649,14 @@ public class UserService {
         user.setEmail(null);
 
         userRepository.save(user);
+    }
+
+    public Long getAuthId(Long userId) {
+        User userByUserId = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("유저가 없습니다.")
+        );
+
+        return userByUserId.getAuthId();
     }
 
 }
