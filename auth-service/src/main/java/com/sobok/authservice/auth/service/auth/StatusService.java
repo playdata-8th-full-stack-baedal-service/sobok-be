@@ -36,7 +36,7 @@ public class StatusService {
      *     2. 사용자의 active 상태를 N으로 변경
      * </pre>
      */
-    public void delete(TokenUserInfo userInfo) {
+    public void delete(String accessToken, TokenUserInfo userInfo) {
         Auth auth = authRepository.findById(userInfo.getId())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
 
@@ -58,7 +58,7 @@ public class StatusService {
         // 로그아웃 처리
         log.info("{}번 사용자를 비활성화했습니다.", userInfo.getId());
 
-        authService.logout(userInfo);
+        authService.logout(userInfo, accessToken);
     }
 
     /**

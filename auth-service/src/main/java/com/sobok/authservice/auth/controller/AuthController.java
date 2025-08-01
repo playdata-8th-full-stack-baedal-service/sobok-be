@@ -75,8 +75,16 @@ public class AuthController {
      * 통합 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        authService.logout(userInfo);
+    public ResponseEntity<?> logout(
+            @RequestHeader("Authorization") String authorizationHeader, // Authorization 헤더를 받음
+            @AuthenticationPrincipal TokenUserInfo userInfo) {
+
+        // 액세스 토큰 추출
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+
+        // 액세스 토큰과 사용자 정보를 전달
+        authService.logout(userInfo, accessToken);
+
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "로그아웃에 성공하였습니다."));
     }
 
@@ -103,8 +111,9 @@ public class AuthController {
      * 사용자 비활성화(탈퇴)
      */
     @DeleteMapping("/delete")
-    public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        statusService.delete(userInfo);
+    public ResponseEntity<?> delete( @RequestHeader("Authorization") String authorizationHeader, @AuthenticationPrincipal TokenUserInfo userInfo) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        statusService.delete(accessToken, userInfo);
         return ResponseEntity.ok(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
     }
 
