@@ -29,8 +29,11 @@ public interface DeliveryClient {
     boolean checkPermission(@RequestParam String permission);
 
     @GetMapping("/api/rider-info")
-    ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId);
+    ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long riderId);
 
     @GetMapping("/api/get-rider-id")
     ResponseEntity<Long> getRiderId(@RequestParam Long id);
+
+    @GetMapping("/api/get-auth-id")
+    ResponseEntity<Long> getAuthId(@RequestParam Long id);
 }

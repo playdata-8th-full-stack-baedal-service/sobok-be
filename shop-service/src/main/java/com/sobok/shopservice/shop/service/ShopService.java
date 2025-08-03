@@ -94,8 +94,8 @@ public class ShopService {
     /**
      * 가게 정보 찾기
      */
-    public AuthShopInfoResDto getInfo(Long authId) {
-        Shop shop = shopRepository.findByAuthId(authId).orElseThrow(
+    public AuthShopInfoResDto getInfo(Long shopId) {
+        Shop shop = shopRepository.findById(shopId).orElseThrow(
                 () -> new CustomException("해당하는 가게 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND)
         );
 
@@ -105,6 +105,7 @@ public class ShopService {
                 .phone(shop.getPhone())
                 .ownerName(shop.getOwnerName())
                 .loginId(null)
+                .authId(shop.getAuthId())
                 .build();
     }
 

@@ -36,7 +36,7 @@ public class UserController {
      */
     @PostMapping("/addAddress")
     public ResponseEntity<?> addAddress(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestBody @Valid UserAddressReqDto reqDto) {
-        userAddressService.addAddress(userInfo.getId(), reqDto);
+        userAddressService.addAddress(userInfo.getUserId(), reqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "성공적으로 주소가 저장되었습니다."));
     }
 

@@ -1,5 +1,6 @@
 package com.sobok.authservice.auth.service.auth;
 
+import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.TokenUserInfo;
@@ -28,6 +29,7 @@ public class StatusService {
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisStringTemplate;
     private final AuthService authService;
+    private final DeliveryClient deliveryClient;
 
     /**
      * <pre>
@@ -97,7 +99,8 @@ public class StatusService {
      * 라이더 활성화 기능
      */
     @Transactional
-    public void activeRider(Long authId) {
+    public void activeRider(Long riderId) {
+        Long authId = deliveryClient.getAuthId(riderId).getBody();
         // Id 검증
         Auth auth = authRepository.findById(authId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 유저가 없습니다."));

@@ -32,7 +32,7 @@ public interface ShopServiceClient {
     boolean checkShopAddress(@RequestParam String shopAddress);
   
     @GetMapping("/api/shop-info")
-    ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId);
+    ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long shopId);
 
     @GetMapping("/api/get-shop-id")
     ResponseEntity<Long> getShopId(@RequestParam Long id);

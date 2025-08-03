@@ -60,8 +60,8 @@ public class DeliveryFeignController {
     }
 
     @GetMapping("/rider-info")
-    public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId) {
-        AuthRiderInfoResDto resDto = riderService.getInfo(authId);
+    public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long riderId) {
+        AuthRiderInfoResDto resDto = riderService.getInfo(riderId);
         return ResponseEntity.ok().body(resDto);
     }
 
@@ -109,7 +109,6 @@ public class DeliveryFeignController {
     }
 
 
-
     /**
      * 라이더 주문 수락
      */
@@ -124,5 +123,10 @@ public class DeliveryFeignController {
     @PostMapping("/complete-delivery")
     public void deliveryComplete(@RequestBody AcceptOrderReqDto acceptOrderReqDto) {
         deliveryService.deliveryComplete(acceptOrderReqDto);
+    }
+
+    @GetMapping("/get-auth-id")
+    public ResponseEntity<Long> getAuthId(@RequestParam Long id) {
+        return ResponseEntity.ok().body(riderService.getAuthId(id));
     }
 }
