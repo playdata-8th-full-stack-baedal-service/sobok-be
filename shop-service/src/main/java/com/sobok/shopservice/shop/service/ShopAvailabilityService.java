@@ -1,12 +1,11 @@
 package com.sobok.shopservice.shop.service;
 
 import com.sobok.shopservice.common.exception.CustomException;
+import com.sobok.shopservice.shop.client.CookFeignClient;
 import com.sobok.shopservice.shop.client.UserFeignClient;
 import com.sobok.shopservice.shop.dto.payment.LocationResDto;
 import com.sobok.shopservice.shop.dto.response.DeliveryAvailShopResDto;
-import com.sobok.shopservice.shop.dto.stock.AvailableShopInfoDto;
-import com.sobok.shopservice.shop.dto.stock.CartIngredientStock;
-import com.sobok.shopservice.shop.dto.stock.IngredientIdListDto;
+import com.sobok.shopservice.shop.dto.stock.*;
 import com.sobok.shopservice.shop.entity.Shop;
 import com.sobok.shopservice.shop.repository.ShopRepository;
 import com.sobok.shopservice.shop.repository.StockQueryRepository;
@@ -15,10 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,25 +26,28 @@ public class ShopAvailabilityService {
     private final ShopAssignService shopAssignService;
     private final StockQueryRepository stockQueryRepository;
     private final ShopRepository shopRepository;
+    private final CookFeignClient cookFeignClient;
 
     public List<AvailableShopInfoDto> getAvailableShopList(Long addressId, IngredientIdListDto reqDto) {
         // 1. 입력 검증 - 재료가 없으면 빈 리스트 반환 (원래 로직 유지)
         if (isEmptyIngredientRequest(reqDto)) {
             return new ArrayList<>();
         }
-        
+
         // 2. 사용자 위치 조회
         LocationResDto userLocation = getUserLocation(addressId);
-        
+
         // 3. 근처 가게 조회
         List<DeliveryAvailShopResDto> nearShops = findNearbyShops(userLocation);
-        
+
         // 4. 재고 기반 필터링된 가게 조회
         Map<Long, Integer> userIngreIdList = CartIngredientStock.convertIngreIdList(reqDto);
-        Map<Long, Map<Long, Integer>> availableShops = filterShopsByStock(nearShops, userIngreIdList);
-        
+        log.info("userIngreIdList: {}", userIngreIdList);
+        List<ShopStockResult> shopStockResultList = filterShopsByStock(nearShops, userIngreIdList);
+        log.info("shopStockResultList: {}", shopStockResultList);
+
         // 5. 응답 생성
-        return buildAvailableShopResponse(nearShops, availableShops, userIngreIdList);
+        return buildAvailableShopResponse(nearShops, shopStockResultList, userIngreIdList);
     }
 
     /**
@@ -75,15 +75,15 @@ public class ShopAvailabilityService {
     private List<DeliveryAvailShopResDto> findNearbyShops(LocationResDto userLocation) {
         try {
             List<DeliveryAvailShopResDto> nearShops = shopAssignService.findNearShop(
-                userLocation.getLatitude(), 
-                userLocation.getLongitude(), 
-                10.0
+                    userLocation.getLatitude(),
+                    userLocation.getLongitude(),
+                    10.0
             );
-            
+
             if (nearShops == null || nearShops.isEmpty()) {
                 throw new CustomException("선택한 주소지에 가까운 가게를 찾지 못했습니다.", HttpStatus.NOT_FOUND);
             }
-            
+
             return nearShops;
         } catch (CustomException e) {
             throw e; // CustomException은 그대로 전파
@@ -96,43 +96,77 @@ public class ShopAvailabilityService {
     /**
      * 재고 기반으로 가게 필터링
      */
-    private Map<Long, Map<Long, Integer>> filterShopsByStock(
-            List<DeliveryAvailShopResDto> nearShops, 
+    private List<ShopStockResult> filterShopsByStock(
+            List<DeliveryAvailShopResDto> nearShops,
             Map<Long, Integer> userIngreIdList) {
-        
+
         List<Long> nearShopIdList = DeliveryAvailShopResDto.convertShopIdList(nearShops);
         Map<Long, Map<Long, Integer>> currentStockList = stockQueryRepository.getStockByIngreIdList(
-            nearShopIdList, 
-            userIngreIdList.keySet()
+                nearShopIdList,
+                userIngreIdList.keySet()
         );
 
-        Map<Long, Map<Long, Integer>> availableShops = new HashMap<>();
-        
-        for (Long shopId : currentStockList.keySet()) {
-            Map<Long, Integer> shopStock = currentStockList.getOrDefault(shopId, new HashMap<>());
-            
-            // 모든 필요 재료가 있는지 확인
-            if (shopStock.size() == userIngreIdList.size() && hasEnoughStock(shopStock, userIngreIdList)) {
-                availableShops.put(shopId, shopStock);
+        List<ShopStockResult> shopStockResultList = new ArrayList<>();
+
+        log.info("currentStockList: {}", currentStockList);
+        if (currentStockList.isEmpty()) {
+            // 모든 가게에 대해 0개 재고 맵 세팅
+            for (Long shopId : nearShopIdList) {
+                Map<Long, Integer> emptyStock = userIngreIdList.keySet()
+                        .stream()
+                        .collect(Collectors.toMap(ingreId -> ingreId, ingreId -> 0));
+                currentStockList.put(shopId, emptyStock);
             }
         }
-        
-        return availableShops;
+
+        for (Long shopId : currentStockList.keySet()) {
+            Map<Long, Integer> shopStock = currentStockList.getOrDefault(shopId, new HashMap<>());
+
+            List<MissingIngredientDto> missing = hasEnoughStock(shopStock, userIngreIdList);
+
+            log.info("missing: {}", missing);
+
+            ShopStockResult shopResult = new ShopStockResult();
+            shopResult.setShopId(shopId);
+            shopResult.setStockMap(shopStock);
+            shopResult.setMissingIngredients(missing);
+            shopResult.setSatisfiable(missing.isEmpty());
+
+            shopStockResultList.add(shopResult);
+        }
+
+        return shopStockResultList;
     }
 
     /**
      * 가게의 재고가 충분한지 확인
      */
-    private boolean hasEnoughStock(Map<Long, Integer> shopStock, Map<Long, Integer> userRequirement) {
-        for (Long ingredientId : userRequirement.keySet()) {
-            Integer availableStock = shopStock.getOrDefault(ingredientId, -1);
-            Integer requiredStock = userRequirement.get(ingredientId);
-            
-            if (availableStock < requiredStock) {
-                return false;
+    private List<MissingIngredientDto> hasEnoughStock(Map<Long, Integer> shopStock, Map<Long, Integer> userRequirement) {
+        List<Long> missingIngredientIds = new ArrayList<>();
+
+        for (Map.Entry<Long, Integer> entry : userRequirement.entrySet()) {
+            Long ingredientId = entry.getKey();
+            Integer required = entry.getValue();
+            Integer available = shopStock.getOrDefault(ingredientId, 0);
+
+            if (available < required) {
+                missingIngredientIds.add(ingredientId);
             }
         }
-        return true;
+
+        if (missingIngredientIds.isEmpty()) return Collections.emptyList();
+        Map<Long, String> names = cookFeignClient.getNames(missingIngredientIds).getBody();
+
+        // Dto 생성
+        List<MissingIngredientDto> missingList = new ArrayList<>();
+        for (Long ingredientId : missingIngredientIds) {
+            Integer available = shopStock.getOrDefault(ingredientId, 0);
+            String name = names.getOrDefault(ingredientId, "이름없음");
+
+            missingList.add(new MissingIngredientDto(ingredientId, name, available));
+        }
+
+        return missingList;
     }
 
     /**
@@ -140,39 +174,50 @@ public class ShopAvailabilityService {
      */
     private List<AvailableShopInfoDto> buildAvailableShopResponse(
             List<DeliveryAvailShopResDto> nearShops,
-            Map<Long, Map<Long, Integer>> availableShops,
+            List<ShopStockResult> shopStockResultList,
             Map<Long, Integer> userIngreIdList) {
-        
+
         // 한 번에 모든 가게 정보 조회 (N+1 쿼리 문제 해결)
-        List<Long> availableShopIds = new ArrayList<>(availableShops.keySet());
+        List<Long> availableShopIds = shopStockResultList.stream()
+                .map(ShopStockResult::getShopId)
+                .collect(Collectors.toList());
         Map<Long, String> shopNameMap = shopRepository.findAllById(availableShopIds)
                 .stream()
                 .collect(Collectors.toMap(Shop::getId, Shop::getShopName));
 
+        Map<Long, ShopStockResult> shopStockResultMap = shopStockResultList.stream()
+                .collect(Collectors.toMap(ShopStockResult::getShopId, Function.identity()));
+
+
         List<AvailableShopInfoDto> result = new ArrayList<>();
-        
+
         // 근처 가게 순서 유지 (거리순)
         for (DeliveryAvailShopResDto nearShop : nearShops) {
             Long shopId = nearShop.getShopId();
-            Map<Long, Integer> shopStock = availableShops.get(shopId);
-            
+            ShopStockResult shopStock = shopStockResultMap.get(shopId);
+
             if (shopStock == null) continue; // 재고가 부족한 가게는 제외
-            
+
             String shopName = shopNameMap.get(shopId);
             if (shopName == null) {
                 log.warn("가게 정보를 찾을 수 없습니다: shopId={}", shopId);
                 continue;
             }
-            
+
             List<CartIngredientStock> ingredientStocks = userIngreIdList.keySet()
                     .stream()
-                    .map(ingredientId -> new CartIngredientStock(shopId, ingredientId, shopStock.get(ingredientId)))
+                    .map(ingredientId -> new CartIngredientStock(
+                            shopId,
+                            ingredientId,
+                            shopStock.getStockMap().getOrDefault(ingredientId, 0)
+                    ))
                     .collect(Collectors.toList());
-            
-            AvailableShopInfoDto shopInfo = new AvailableShopInfoDto(shopId, shopName, ingredientStocks);
+
+            AvailableShopInfoDto shopInfo = new AvailableShopInfoDto(shopId, shopName, ingredientStocks,
+                    shopStock.isSatisfiable(), shopStock.getMissingIngredients());
             result.add(shopInfo);
         }
-        
+
         return result;
     }
 }

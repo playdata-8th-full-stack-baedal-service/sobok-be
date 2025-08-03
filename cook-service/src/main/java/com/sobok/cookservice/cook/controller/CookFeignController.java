@@ -3,7 +3,6 @@ package com.sobok.cookservice.cook.controller;
 
 import com.sobok.cookservice.cook.dto.display.MonthlyHot;
 import com.sobok.cookservice.cook.dto.response.*;
-import com.sobok.cookservice.cook.repository.CookRepository;
 import com.sobok.cookservice.cook.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -122,5 +121,10 @@ public class CookFeignController {
     @GetMapping("/exist-ingre")
     public ResponseEntity<Boolean> verifyUser(@RequestParam Long ingreId) {
         return ResponseEntity.ok().body(ingredientService.existIngredient(ingreId));
+    }
+
+    @GetMapping("/get-names")
+    public ResponseEntity<Map<Long, String>> getNamesByIds(@RequestParam List<Long> ids) {
+        return ResponseEntity.ok().body(ingredientService.getNamesByIds(ids));
     }
 }
