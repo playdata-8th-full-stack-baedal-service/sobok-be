@@ -142,7 +142,8 @@ public class ShopAvailabilityService {
      * 가게의 재고가 충분한지 확인
      */
     private List<MissingIngredientDto> hasEnoughStock(Map<Long, Integer> shopStock, Map<Long, Integer> userRequirement) {
-        List<Long> missingIngredientIds = new ArrayList<>();
+        List<MissingIngredientDto> missingList = new ArrayList<>();
+        Set<Long> missingIngredientIds = new HashSet<>();
 
         for (Map.Entry<Long, Integer> entry : userRequirement.entrySet()) {
             Long ingredientId = entry.getKey();
@@ -151,20 +152,17 @@ public class ShopAvailabilityService {
 
             if (available < required) {
                 missingIngredientIds.add(ingredientId);
+                missingList.add(new MissingIngredientDto(ingredientId, null, available));
             }
         }
 
         if (missingIngredientIds.isEmpty()) return Collections.emptyList();
-        Map<Long, String> names = cookFeignClient.getNames(missingIngredientIds).getBody();
+        Map<Long, String> names = cookFeignClient.getNames(new ArrayList<>(missingIngredientIds)).getBody();
 
-        // Dto 생성
-        List<MissingIngredientDto> missingList = new ArrayList<>();
-        for (Long ingredientId : missingIngredientIds) {
-            Integer available = shopStock.getOrDefault(ingredientId, 0);
-            String name = names.getOrDefault(ingredientId, "이름없음");
-
-            missingList.add(new MissingIngredientDto(ingredientId, name, available));
-        }
+        // DTO 리스트를 순회하며 이름 정보를 업데이트
+        missingList.forEach(dto -> dto.setIngredientName(
+                names.getOrDefault(dto.getIngredientId(), "알 수 없음")
+        ));
 
         return missingList;
     }
