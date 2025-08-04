@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/sms")
 @Slf4j
 @RequiredArgsConstructor
-public class SmsController {
+public class SmsController implements SmsControllerDocs{
 
     private final SmsService smsService;
 
