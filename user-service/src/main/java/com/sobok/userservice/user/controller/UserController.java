@@ -26,7 +26,7 @@ import java.util.List;
 @RequestMapping("/user")
 @Slf4j
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserControllerDocs {
 
     private final UserService userService;
     private final UserAddressService userAddressService;
