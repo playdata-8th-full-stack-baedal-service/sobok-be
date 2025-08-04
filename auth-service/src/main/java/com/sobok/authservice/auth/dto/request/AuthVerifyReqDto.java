@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthVerifyReqDto {
+    @Pattern(regexp="^[a-zA-Z0-9_]{4,20}$", message = "아이디 형식이 유효하지 않습니다.")
     private String loginId;
     private String userPhoneNumber;
 }

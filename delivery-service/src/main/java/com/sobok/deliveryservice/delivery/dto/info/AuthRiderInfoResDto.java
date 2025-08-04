@@ -14,4 +14,5 @@ public class AuthRiderInfoResDto {
     String name;
     String phone;
     String permissionNumber;
+    Long authId;
 }

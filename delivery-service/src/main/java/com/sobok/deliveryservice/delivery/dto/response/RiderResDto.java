@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class RiderResDto {
 
     private Long id;
-    private Long authId;
+//    private Long authId;
     private String name;
     private String phone;
     private String permissionNumber;

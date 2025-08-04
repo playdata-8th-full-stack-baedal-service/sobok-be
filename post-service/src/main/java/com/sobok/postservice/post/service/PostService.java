@@ -103,7 +103,7 @@ public class PostService {
     }
 
     public void validateNoScriptTag(String html) {
-        if (html != null && html.toLowerCase().contains("<script")) {
+        if (html != null && (html.toLowerCase().contains("<script") || html.toLowerCase().contains("<input"))) {
             throw new CustomException("해당 내용의 게시물은 등록할 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }
@@ -137,17 +137,20 @@ public class PostService {
         postImageRepository.deleteByPostId(post.getId());
 
         // 새 이미지 등록
-        List<PostImage> newImages = buildPostImages(post.getId(), dto.getImages());
-        if (newImages.isEmpty()) {
+        List<PostImage> newImages = new ArrayList<>();
+        if(dto.getImages().isEmpty()) {
             String url = cookClient.getCookThumbnail(post.getCookId()).getBody();
-            postImageRepository.save(
+            PostImage save = postImageRepository.save(
                     PostImage.builder()
                             .postId(post.getId())
                             .imagePath(url)
                             .index(1)
                             .build()
             );
+
+            newImages.add(save);
         } else {
+            newImages = buildPostImages(post.getId(), dto.getImages());
             postImageRepository.saveAll(newImages);
         }
 

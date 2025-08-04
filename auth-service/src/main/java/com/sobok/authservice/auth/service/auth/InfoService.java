@@ -15,6 +15,7 @@ import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -35,15 +36,16 @@ public class InfoService {
      *
      * @return
      */
-    public AuthBaseInfoResDto getInfo(TokenUserInfo userInfo, String loginId) {
+    public AuthBaseInfoResDto getInfo(TokenUserInfo userInfo) {
         AuthBaseInfoResDto info = null;
 
         // 2. role에 따라 요청 보내기
         try {
+            if (!EnumUtils.isValidEnum(Role.class, userInfo.getRole())) {
+                throw new CustomException("올바르지 않은 권한입니다.", HttpStatus.BAD_REQUEST);
+            }
             AuthInfoProvider provider = authInfoProviderFactory.getProvider(Role.valueOf(userInfo.getRole()));
-            info = provider.getInfo(userInfo.getId());
-            info.setLoginId(loginId);
-            info.setAuthId(userInfo.getId());
+            info = provider.getInfo(userInfo);
         } catch (IllegalArgumentException e) {
             log.error("Role 변환 과정 중 오류 발생!");
             throw new CustomException("권한 변환 과정에서 오류가 발생하였습니다.", HttpStatus.BAD_REQUEST);

@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import static com.sobok.authservice.common.util.Constants.*;
 
 @Service
@@ -32,6 +33,8 @@ public class AuthService {
     private final UserServiceClient userServiceClient;
     private final ShopServiceClient shopServiceClient;
     private final DeliveryClient deliveryClient;
+    private static final String ACCESS_TOKEN_BLACKLIST_KEY = "BLACKLIST_ACCESS_TOKEN:";
+    private final RedisTemplate<String, String> redisTemplate;
 
 
     /**
@@ -82,6 +85,12 @@ public class AuthService {
             throw new CustomException("비밀번호가 틀렸습니다.", HttpStatus.FORBIDDEN);
         }
 
+
+        // 로그인 성공 시 블랙리스트 기록 초기화
+        // Redis에 남아있던 해당 사용자의 블랙리스트 키를 삭제
+        // 이는 이전 세션의 로그아웃 기록을 초기화하는 역할
+        redisTemplate.delete(ACCESS_TOKEN_BLACKLIST_KEY + auth.getId());
+        log.info("{}번 사용자의 블랙리스트 기록을 초기화합니다.", auth.getId());
         Long roleId = getRoleId(auth, false);
 
         return generateAuthLoginResDto(auth, roleId);
@@ -105,7 +114,7 @@ public class AuthService {
     private AuthLoginResDto generateAuthLoginResDto(Auth auth, Long roleId) {
         // 토큰 발급
         String accessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(auth);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(auth, roleId);
 
         // 토큰 저장
         jwtTokenProvider.saveRefreshToken(auth, refreshToken);
@@ -129,9 +138,11 @@ public class AuthService {
      *
      * @param userInfo
      */
-    public void logout(TokenUserInfo userInfo) {
+    public void logout(TokenUserInfo userInfo, String accessToken) {
         // redis에 있는 refresh token 삭제
         redisStringTemplate.delete(REFRESH_TOKEN_KEY + userInfo.getId().toString());
+        // 엑세스 토큰 블랙리스트 추가
+        jwtTokenProvider.logout(accessToken, userInfo.getId());
         log.info("{}번 사용자의 로그아웃 성공", userInfo.getId());
     }
 
@@ -150,6 +161,11 @@ public class AuthService {
             // 토큰 검증 시작 - 저장된 token 꺼내기
             String storedToken = redisStringTemplate.opsForValue().get(REFRESH_TOKEN_KEY + reqDto.getId().toString());
             if (storedToken != null && storedToken.equals(reqDto.getRefreshToken())) {
+                // 기존 리프레시 토큰 무효화
+                // 새로운 토큰을 발급하기 전에 현재 사용된 리프레시 토큰을 Redis에서 삭제
+                // 한 번 사용된 리프레시 토큰은 더 이상 유효하지 않음
+                redisStringTemplate.delete(REFRESH_TOKEN_KEY + reqDto.getId().toString());
+                log.info("{}번 유저의 기존 리프레시 토큰을 무효화합니다.", reqDto.getId());
                 // 토큰이 일치한다면 auth 정보 획득
                 Auth auth = authRepository.findById(reqDto.getId()).orElseThrow(
                         () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
@@ -162,9 +178,21 @@ public class AuthService {
                     default -> 0L;
                 };
 
-                // access token 재발급
-                log.info("{}번 유저 토큰 재발급", reqDto.getId());
-                return jwtTokenProvider.generateAccessToken(auth, roleId);
+//                // access token 재발급
+//                log.info("{}번 유저 토큰 재발급", reqDto.getId());
+//                return jwtTokenProvider.generateAccessToken(auth, roleId);
+                //  Access Token과 Refresh Token을 모두 새로 발급
+                String newAccessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
+                String newRefreshToken = jwtTokenProvider.generateRefreshToken(auth, roleId);
+                // 새로 발급한 Refresh Token을 Redis에 저장
+                // 새로운 리프레시 토큰을 Redis에 저장
+                redisStringTemplate.opsForValue().set(
+                        REFRESH_TOKEN_KEY + reqDto.getId().toString(),
+                        newRefreshToken
+                );
+
+                log.info("{}번 유저의 토큰 재발급 성공", reqDto.getId());
+                return newAccessToken; // 새 액세스 토큰 반환
             } else {
                 // 토큰이 일치하지 않는다면
                 log.info("refresh token : {}", storedToken);

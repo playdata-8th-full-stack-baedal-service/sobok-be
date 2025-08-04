@@ -130,4 +130,12 @@ public class IngredientService {
         return ingredientRepository.existsById(ingreId);
     }
 
+    public Map<Long, String> getNamesByIds(List<Long> ids) {
+        return ingredientRepository.findAllById(ids)
+                .stream()
+                .collect(Collectors.toMap(
+                        Ingredient::getId,
+                        Ingredient::getIngreName
+                ));
+    }
 }

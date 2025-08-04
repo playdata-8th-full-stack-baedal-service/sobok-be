@@ -14,6 +14,8 @@ import lombok.*;
 public class AuthUserReqDto {
 
     @NotBlank(message = "아이디는 필수 입니다.")
+    @Pattern(regexp="^[a-zA-Z0-9_]{4,20}$",
+            message = "아이디는 4~20자의 영문, 숫자, 해당 특수문자(_)만 가능합니다.")
     private String loginId;
 
     @NotBlank(message = "비밀번호는 필수 입니다.")

@@ -63,7 +63,7 @@ public class AuthController {
      * 통합 로그인
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthLoginReqDto reqDto) throws EntityNotFoundException, CustomException {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthLoginReqDto reqDto) throws EntityNotFoundException, CustomException {
         AuthLoginResDto resDto = authService.login(reqDto);
 
         // 복구 대상인지에 따라 다른 메세지 전달
@@ -75,8 +75,16 @@ public class AuthController {
      * 통합 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        authService.logout(userInfo);
+    public ResponseEntity<?> logout(
+            @RequestHeader("Authorization") String authorizationHeader, // Authorization 헤더를 받음
+            @AuthenticationPrincipal TokenUserInfo userInfo) {
+
+        // 액세스 토큰 추출
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+
+        // 액세스 토큰과 사용자 정보를 전달
+        authService.logout(userInfo, accessToken);
+
         return ResponseEntity.ok().body(ApiResponse.ok(userInfo.getId(), "로그아웃에 성공하였습니다."));
     }
 
@@ -103,8 +111,9 @@ public class AuthController {
      * 사용자 비활성화(탈퇴)
      */
     @DeleteMapping("/delete")
-    public ResponseEntity<?> delete(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        statusService.delete(userInfo);
+    public ResponseEntity<?> delete(@RequestHeader("Authorization") String authorizationHeader, @AuthenticationPrincipal TokenUserInfo userInfo) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        statusService.delete(accessToken, userInfo);
         return ResponseEntity.ok(ApiResponse.ok(userInfo.getId(), "사용자가 정상적으로 비활성화되었습니다."));
     }
 
@@ -112,8 +121,8 @@ public class AuthController {
      * 사용자 복구
      */
     @PostMapping("/recover/{id}")
-    public ResponseEntity<?> recover(@PathVariable Long id, @AuthenticationPrincipal TokenUserInfo userInfo) throws EntityNotFoundException, CustomException {
-        statusService.recover(id, userInfo);
+    public ResponseEntity<?> recover(@PathVariable Long id) throws EntityNotFoundException, CustomException {
+        statusService.recover(id);
         return ResponseEntity.ok().body(ApiResponse.ok(id, "사용자의 계정이 정상적으로 복구되었습니다."));
     }
 
@@ -139,7 +148,7 @@ public class AuthController {
      * 사용자 아이디 찾기
      */
     @PostMapping("/findLoginId")
-    public ResponseEntity<?> getFindUserId(@RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
+    public ResponseEntity<?> getFindUserId(@Valid @RequestBody AuthFindIdReqDto authFindReqDto) {  //전화번호, inputNumber
         List<AuthFindIdResDto> authFindIdResDto = accountService.userFindId(authFindReqDto);
         return ResponseEntity.ok().body(ApiResponse.ok(authFindIdResDto, "사용자 아이디 찾기 성공"));
     }
@@ -178,13 +187,10 @@ public class AuthController {
      */
     @GetMapping("/get-info")
     public ResponseEntity<?> getInfo(@AuthenticationPrincipal TokenUserInfo userInfo) {
-        // 1. 비밀번호 확인 (사라짐)
-        String loginId = accountService.verifyByPassword(userInfo.getId());
+        // 1. 유저 정보 가져오기
+        AuthBaseInfoResDto info = infoService.getInfo(userInfo);
 
-        // 2. 유저 정보 가져오기
-        AuthBaseInfoResDto info = infoService.getInfo(userInfo, loginId);
-
-        // 3. 리턴
+        // 2. 리턴
         return ResponseEntity.ok().body(ApiResponse.ok(info, "성공적으로 정보가 조회되었습니다."));
     }
 
@@ -203,10 +209,8 @@ public class AuthController {
      * rider 회원가입 승인 요청
      */
     @PutMapping("/rider-active")
-    public ResponseEntity<ApiResponse<Void>> activeRider(
-            @RequestParam Long authId,
-            @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
-        statusService.activeRider(authId);
+    public ResponseEntity<ApiResponse<Void>> activeRider(@RequestParam Long riderId) {
+        statusService.activeRider(riderId);
         return ResponseEntity.ok(ApiResponse.ok(null, "라이더 계정이 활성화되었습니다."));
     }
 }

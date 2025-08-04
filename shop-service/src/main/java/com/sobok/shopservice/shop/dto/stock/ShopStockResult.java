@@ -6,16 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class AvailableShopInfoDto {
+public class ShopStockResult {
     private Long shopId;
-    private String shopName;
-
-    private List<CartIngredientStock> cartIngredientStockList;
+    private Map<Long, Integer> stockMap;
     private boolean satisfiable;
     private List<MissingIngredientDto> missingIngredients;
 }
