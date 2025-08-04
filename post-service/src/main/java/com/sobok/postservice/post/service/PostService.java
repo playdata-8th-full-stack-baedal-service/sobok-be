@@ -63,11 +63,16 @@ public class PostService {
         log.info(dto.getCookId().toString());
         String cookName = cookClient.getCookNameById(dto.getCookId()).getBody();
 
+        String content = dto.getContent();
+        if (content != null) {
+            content = content.replaceAll("/temp/", "/");
+        }
+
         Post post = Post.builder()
                 .userId(userId)
                 .title(dto.getTitle())
                 .cookId(dto.getCookId())
-                .content(dto.getContent())
+                .content(content)
                 .paymentId(dto.getPaymentId())
                 .build();
         postRepository.save(post);
@@ -118,8 +123,10 @@ public class PostService {
         if (dto.getTitle() != null) post.setTitle(dto.getTitle());
         if (dto.getContent() != null) {
             // 스크립트 태그 포함 여부 검사
-            validateNoScriptTag(dto.getContent());
-            post.setContent(dto.getContent());
+            String content = dto.getContent();
+            validateNoScriptTag(content);
+            content = content.replaceAll("/temp/", "/");
+            post.setContent(content);
         }
 
         // 기존 이미지 S3에서 삭제
@@ -131,7 +138,18 @@ public class PostService {
 
         // 새 이미지 등록
         List<PostImage> newImages = buildPostImages(post.getId(), dto.getImages());
-        postImageRepository.saveAll(newImages);
+        if (newImages.isEmpty()) {
+            String url = cookClient.getCookThumbnail(post.getCookId()).getBody();
+            postImageRepository.save(
+                    PostImage.builder()
+                            .postId(post.getId())
+                            .imagePath(url)
+                            .index(1)
+                            .build()
+            );
+        } else {
+            postImageRepository.saveAll(newImages);
+        }
 
         return PostUpdateResDto.builder()
                 .postId(post.getId())
