@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class ApiServiceApplication {
 
-    // version 1.1.2
+    // version 1.1.3
     public static void main(String[] args) {
         SpringApplication.run(ApiServiceApplication.class, args);
     }
