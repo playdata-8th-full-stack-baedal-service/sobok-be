@@ -259,8 +259,15 @@ jobs:
           # 최신 반영
           git pull --rebase origin main || true
           
-          # values.yaml 갱신
-          yq -i '.image.tag = strenv(SHORT_SHA)' values.yaml
+          echo "🧪 Before:"
+          yq '.image.tag' values.yaml
+
+          echo "🧪 SHORT_SHA is: $SHORT_SHA"
+          
+          yq -i ".image.tag = \"$SHORT_SHA\"" values.yaml
+          
+          echo "✅ After:"
+          yq '.image.tag' values.yaml
 
           git add values.yaml
           git commit -m "chore(${{ matrix.service.name }}): bump image.tag to ${SHORT_SHA}" || echo "No changes to commit"
