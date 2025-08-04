@@ -1,17 +1,14 @@
 package com.sobok.paymentservice.payment.controller;
 
-import com.sobok.paymentservice.common.dto.ApiResponse;
+import com.sobok.paymentservice.common.dto.CommonResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
 import com.sobok.paymentservice.payment.dto.cart.DeleteCartReqDto;
-import com.sobok.paymentservice.payment.service.CartService;
 import com.sobok.paymentservice.payment.service.cart.CartCookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/cart")
@@ -27,7 +24,7 @@ public class CartController {
             @RequestParam Integer count
     ) {
         Long result = cartService.editCartCook(userInfo, cartCookId, count);
-        return ApiResponse.response(result, "장바구니 요리 수량 변경이 정상적으로 처리되었습니다.");
+        return CommonResponse.response(result, "장바구니 요리 수량 변경이 정상적으로 처리되었습니다.");
     }
 
     @DeleteMapping("/{id}")
@@ -36,7 +33,7 @@ public class CartController {
             @PathVariable(name = "id") Long cartCookId
     ) {
         Long result = cartService.deleteCartCook(userInfo, cartCookId);
-        return ApiResponse.response(result, "장바구니 요리 삭제가 정상적으로 처리되었습니다.");
+        return CommonResponse.response(result, "장바구니 요리 삭제가 정상적으로 처리되었습니다.");
     }
 
     @DeleteMapping("/all")
@@ -45,7 +42,7 @@ public class CartController {
             @RequestBody DeleteCartReqDto reqDto
     ) {
         cartService.deleteCartCookList(userInfo, reqDto);
-        return ApiResponse.response(userInfo.getUserId(), "장바구니의 모든 요리 제거가 성공적으로 처리되었습니다.");
+        return CommonResponse.response(userInfo.getUserId(), "장바구니의 모든 요리 제거가 성공적으로 처리되었습니다.");
     }
 
 }

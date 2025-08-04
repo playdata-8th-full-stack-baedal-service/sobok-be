@@ -6,15 +6,15 @@ import org.springframework.http.HttpStatus;
 
 @Builder
 @Getter
-public class ApiResponse<T> {
+public class CommonResponse<T> {
     private final boolean success;
     private final T data;
     private final String message;
     private final int status;
 
     // ------------------------------------------ 성공 ---------------------------------------------------------
-    public static <T> ApiResponse<T> ok(T data) {
-        return ApiResponse.<T>builder()
+    public static <T> CommonResponse<T> ok(T data) {
+        return CommonResponse.<T>builder()
                 .success(true)
                 .status(HttpStatus.OK.value())
                 .data(data)
@@ -22,8 +22,8 @@ public class ApiResponse<T> {
                 .build();
     }
 
-    public static <T> ApiResponse<T> ok(T data, HttpStatus status) {
-        return ApiResponse.<T>builder()
+    public static <T> CommonResponse<T> ok(T data, HttpStatus status) {
+        return CommonResponse.<T>builder()
                 .success(true)
                 .data(data)
                 .status(status.value())
@@ -32,8 +32,8 @@ public class ApiResponse<T> {
     }
 
 
-    public static <T> ApiResponse<T> ok(T data, String message) {
-        return ApiResponse.<T>builder()
+    public static <T> CommonResponse<T> ok(T data, String message) {
+        return CommonResponse.<T>builder()
                 .success(true)
                 .data(data)
                 .status(HttpStatus.OK.value())
@@ -42,24 +42,24 @@ public class ApiResponse<T> {
     }
 
     // ------------------------------------------ 실패 ---------------------------------------------------------
-    public static <T> ApiResponse<T> fail(HttpStatus status) {
-        return ApiResponse.<T>builder()
+    public static <T> CommonResponse<T> fail(HttpStatus status) {
+        return CommonResponse.<T>builder()
                 .success(false)
                 .message("응답에 실패하였습니다.")
                 .status(status.value())
                 .build();
     }
 
-    public static <T> ApiResponse<T> fail(HttpStatus status, String message) {
-        return ApiResponse.<T>builder()
+    public static <T> CommonResponse<T> fail(HttpStatus status, String message) {
+        return CommonResponse.<T>builder()
                 .success(false)
                 .message(message)
                 .status(status.value())
                 .build();
     }
 
-    public static <T> ApiResponse<T> fail(int status, String message) {
-        return ApiResponse.<T>builder()
+    public static <T> CommonResponse<T> fail(int status, String message) {
+        return CommonResponse.<T>builder()
                 .success(false)
                 .message(message)
                 .status(status)

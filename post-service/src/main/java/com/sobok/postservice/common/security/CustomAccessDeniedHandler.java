@@ -1,7 +1,7 @@
 package com.sobok.postservice.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sobok.postservice.common.dto.ApiResponse;
+import com.sobok.postservice.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setCharacterEncoding("UTF-8");
 
         // 공통 실패 응답 JSON으로 변환
-        String body = objectMapper.writeValueAsString(ApiResponse.fail(HttpStatus.FORBIDDEN, "인가 처리에 실패하였습니다"));
+        String body = objectMapper.writeValueAsString(CommonResponse.fail(HttpStatus.FORBIDDEN, "인가 처리에 실패하였습니다"));
         response.getWriter().write(body);
     }
 }
