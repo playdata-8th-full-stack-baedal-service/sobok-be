@@ -8,7 +8,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 public class GatewayServiceApplication {
 
-    // version 1.1.4
+    // version 1.1.5
     public static void main(String[] args) {
         SpringApplication.run(GatewayServiceApplication.class, args);
     }
