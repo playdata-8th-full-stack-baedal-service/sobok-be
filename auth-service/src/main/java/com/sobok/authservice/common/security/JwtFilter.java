@@ -37,7 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final RedisTemplate<String, String> redisTemplate;
     List<String> whiteList = List.of(
             "/actuator/**", "/auth/login", "/auth/reissue", "/sms/send", "/auth/recover/**", "/sms/verify",
-            "/auth/user-signup", "/auth/rider-signup", "/auth/shop-signup", "/auth/findLoginId", "/auth/verification", "/auth/reset-password",
+            "/auth/user-signup", "/auth/rider-signup", "/auth/findLoginId", "/auth/verification", "/auth/reset-password",
             "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email", "/auth/check-permission", "/auth/check-shopName",
             "/auth/check-shopAddress", "/auth/social-user-signup", "/v3/**"
     );
@@ -80,8 +80,14 @@ public class JwtFilter extends OncePerRequestFilter {
             // 토큰 유효성 검사
             String token = authHeader.replace("Bearer ", "");
 
+            // 토큰에서 사용자 정보 추출
+            Claims claims = getClaims(token);
+
+            // 토큰에서 정보 추출
+            long id = Long.parseLong(claims.getSubject());
+
             // 블랙리스트 검사 로직
-            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + token) != null) {
+            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + id) != null) {
                 log.warn("블랙리스트에 등록된 토큰입니다.");
                 throw new Exception("블랙리스트에 등록된 토큰입니다.");
             }
@@ -91,11 +97,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 throw new Exception();
             }
 
-            // 토큰에서 사용자 정보 추출
-            Claims claims = getClaims(token);
 
-            // 토큰에서 정보 추출
-            long id = Long.parseLong(claims.getSubject());
             Role role = Role.from(claims.get("role", String.class));
 
             // TEMP일 경우 URI 검사

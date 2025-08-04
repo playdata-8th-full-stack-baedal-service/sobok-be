@@ -105,7 +105,7 @@ public class JwtTokenProvider {
      * @param auth
      * @return
      */
-    public String generateRefreshToken(Auth auth) throws CustomException {
+    public String generateRefreshToken(Auth auth, Long roleId) throws CustomException {
         try {
             Date now = new Date();
             Date expiryDate = new Date(now.getTime() + refreshExpiration * 60 * 60 * 1000);
@@ -184,7 +184,7 @@ public class JwtTokenProvider {
 
             if (remainingTime > 0) { // 액세스 토큰이 유효 기간이 남았는지 확인 0보다 크면 블랙리스트 등록
                 redisTemplate.opsForValue().set( // redis에 저장
-                        ACCESS_TOKEN_BLACKLIST_KEY + accessToken,
+                        ACCESS_TOKEN_BLACKLIST_KEY + authId,
                         "logout",
                         remainingTime,
                         TimeUnit.MILLISECONDS // 블랙리스트 항목의 만료시간 (액세스 토큰 유효기간이 남는동안만 동작하도록)

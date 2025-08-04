@@ -83,9 +83,15 @@ public class JwtFilter extends OncePerRequestFilter {
             // 토큰 유효성 검사
             String token = authHeader.replace("Bearer ", "");
 
+            // 토큰에서 사용자 정보 추출
+            Claims claims = getClaims(token);
+
+            // 토큰에서 정보 추출
+            long id = Long.parseLong(claims.getSubject());
+
             // 블랙리스트 검사 로직
             // Redis에서 현재 토큰이 블랙리스트에 등록되어 있는지 확인
-            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + token) != null) {
+            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + id) != null) {
                 log.warn("블랙리스트에 등록된 토큰으로 접근 시도. 토큰: {}", token);
                 onError(response,401, "블랙리스트에 등록된 토큰입니다.");
                 return;
@@ -96,11 +102,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 throw new Exception();
             }
 
-            // 토큰에서 사용자 정보 추출
-            Claims claims = getClaims(token);
-
-            // 토큰에서 정보 추출
-            long id = Long.parseLong(claims.getSubject());
             Role role = Role.from(claims.get("role", String.class));
 
             // FEIGN일 경우 URI 검사
