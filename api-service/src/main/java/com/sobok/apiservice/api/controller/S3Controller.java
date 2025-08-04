@@ -1,7 +1,7 @@
 package com.sobok.apiservice.api.controller;
 
 import com.sobok.apiservice.api.service.s3.S3Service;
-import com.sobok.apiservice.common.dto.ApiResponse;
+import com.sobok.apiservice.common.dto.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ public class S3Controller {
     @DeleteMapping("/delete-S3-image")
     public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
         s3Service.deleteImage(key);
-        return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
+        return ResponseEntity.ok().body(CommonResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
     }
 
     /**
@@ -31,7 +31,7 @@ public class S3Controller {
     @PutMapping("/upload-image/{category}")
     public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category) {
         String imgUrl = s3Service.uploadImage(image, category);
-        return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
+        return ResponseEntity.ok().body(CommonResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
     }
 
 

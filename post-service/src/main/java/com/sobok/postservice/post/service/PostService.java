@@ -1,6 +1,6 @@
 package com.sobok.postservice.post.service;
 
-import com.sobok.postservice.common.dto.ApiResponse;
+import com.sobok.postservice.common.dto.CommonResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
 import com.sobok.postservice.post.client.ApiFeignClient;
@@ -63,11 +63,16 @@ public class PostService {
         log.info(dto.getCookId().toString());
         String cookName = cookClient.getCookNameById(dto.getCookId()).getBody();
 
+        String content = dto.getContent();
+        if (content != null) {
+            content = content.replaceAll("/temp/", "/");
+        }
+
         Post post = Post.builder()
                 .userId(userId)
                 .title(dto.getTitle())
                 .cookId(dto.getCookId())
-                .content(dto.getContent())
+                .content(content)
                 .paymentId(dto.getPaymentId())
                 .build();
         postRepository.save(post);
@@ -98,7 +103,7 @@ public class PostService {
     }
 
     public void validateNoScriptTag(String html) {
-        if (html != null && html.toLowerCase().contains("<script")) {
+        if (html != null && (html.toLowerCase().contains("<script") || html.toLowerCase().contains("<input"))) {
             throw new CustomException("해당 내용의 게시물은 등록할 수 없습니다.", HttpStatus.BAD_REQUEST);
         }
     }
@@ -118,8 +123,10 @@ public class PostService {
         if (dto.getTitle() != null) post.setTitle(dto.getTitle());
         if (dto.getContent() != null) {
             // 스크립트 태그 포함 여부 검사
-            validateNoScriptTag(dto.getContent());
-            post.setContent(dto.getContent());
+            String content = dto.getContent();
+            validateNoScriptTag(content);
+            content = content.replaceAll("/temp/", "/");
+            post.setContent(content);
         }
 
         // 기존 이미지 S3에서 삭제
@@ -130,8 +137,22 @@ public class PostService {
         postImageRepository.deleteByPostId(post.getId());
 
         // 새 이미지 등록
-        List<PostImage> newImages = buildPostImages(post.getId(), dto.getImages());
-        postImageRepository.saveAll(newImages);
+        List<PostImage> newImages = new ArrayList<>();
+        if(dto.getImages().isEmpty()) {
+            String url = cookClient.getCookThumbnail(post.getCookId()).getBody();
+            PostImage save = postImageRepository.save(
+                    PostImage.builder()
+                            .postId(post.getId())
+                            .imagePath(url)
+                            .index(1)
+                            .build()
+            );
+
+            newImages.add(save);
+        } else {
+            newImages = buildPostImages(post.getId(), dto.getImages());
+            postImageRepository.saveAll(newImages);
+        }
 
         return PostUpdateResDto.builder()
                 .postId(post.getId())
@@ -319,13 +340,13 @@ public class PostService {
     /**
      * 사용자별 게시글 조회
      */
-    public ApiResponse<PagedResponse<PostListResDto>> getUserPost(TokenUserInfo userInfo, int page, int size) {
+    public CommonResponse<PagedResponse<PostListResDto>> getUserPost(TokenUserInfo userInfo, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
         List<Post> posts = postPage.getContent();
 
         if (posts.isEmpty()) {
-            return ApiResponse.ok(new PagedResponse<>(
+            return CommonResponse.ok(new PagedResponse<>(
                     Collections.emptyList(), page, size, 0, 0, true
             ));
         }
@@ -359,7 +380,7 @@ public class PostService {
                     .build();
         }).toList();
 
-        return ApiResponse.ok(new PagedResponse<>(result, page, size,
+        return CommonResponse.ok(new PagedResponse<>(result, page, size,
                 postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
     }
 
@@ -470,14 +491,14 @@ public class PostService {
     /**
      * 게시글 존재 여부 확인 (버튼 제거용)
      */
-    public ApiResponse<PostRegisterCheckResDto> getRegisterCheckStatus(Long paymentId, Long cookId) {
+    public CommonResponse<PostRegisterCheckResDto> getRegisterCheckStatus(Long paymentId, Long cookId) {
         boolean exists = postRepository.existsByPaymentIdAndCookId(paymentId, cookId);
 
         String message = exists
                 ? "해당 요리에 대한 게시글이 이미 등록되어 있습니다."
                 : "해당 요리에 게시글을 등록할 수 있습니다.";
 
-        return ApiResponse.ok(new PostRegisterCheckResDto(exists), message);
+        return CommonResponse.ok(new PostRegisterCheckResDto(exists), message);
     }
 
 

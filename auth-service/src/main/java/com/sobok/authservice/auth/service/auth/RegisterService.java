@@ -12,8 +12,6 @@ import com.sobok.authservice.auth.dto.response.OauthResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.auth.service.etc.SmsService;
-import com.sobok.authservice.common.dto.ApiResponse;
-import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
 import com.sobok.authservice.common.exception.CustomException;
 import com.sobok.authservice.common.util.PasswordGenerator;

@@ -1,7 +1,7 @@
 package com.sobok.shopservice.shop.controller;
 
 
-import com.sobok.shopservice.common.dto.ApiResponse;
+import com.sobok.shopservice.common.dto.CommonResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
 
 import com.sobok.shopservice.shop.dto.response.ShopResDto;
@@ -34,7 +34,7 @@ public class ShopController {
     @GetMapping("/check-shopName")
     public ResponseEntity<?> checkShopName(@RequestParam String shopName) {
         shopService.checkShopName(shopName);
-        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 지점명 입니다."));
+        return ResponseEntity.ok(CommonResponse.ok(null, "사용 가능한 지점명 입니다."));
     }
 
     /**
@@ -43,7 +43,7 @@ public class ShopController {
     @GetMapping("/check-shopAddress")
     public ResponseEntity<?> checkShopAddress(@RequestParam String shopAddress) {
         shopService.checkShopAddress(shopAddress);
-        return ResponseEntity.ok(ApiResponse.ok(null, "사용 가능한 주소 입니다."));
+        return ResponseEntity.ok(CommonResponse.ok(null, "사용 가능한 주소 입니다."));
     }
 
     /**
@@ -54,9 +54,9 @@ public class ShopController {
                                          ) {
         List<ShopPaymentResDto> allOrders = shopService.getAllOrders(userInfo);
         if (allOrders.isEmpty()) {
-            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
+            return ResponseEntity.ok().body(CommonResponse.ok(null, HttpStatus.NO_CONTENT));
         }
-        return ResponseEntity.ok(ApiResponse.ok(allOrders, "들어온 모든 주문 목록을 조회하였습니다."));
+        return ResponseEntity.ok(CommonResponse.ok(allOrders, "들어온 모든 주문 목록을 조회하였습니다."));
     }
 
     /**
@@ -66,9 +66,9 @@ public class ShopController {
     public ResponseEntity<?> getFilterOrders(@AuthenticationPrincipal TokenUserInfo userInfo, @RequestParam String orderState) {
         List<ShopPaymentResDto> allOrders = shopService.getFilteringOrders(userInfo, orderState);
         if (allOrders.isEmpty()) {
-            return ResponseEntity.ok().body(ApiResponse.ok(null, HttpStatus.NO_CONTENT));
+            return ResponseEntity.ok().body(CommonResponse.ok(null, HttpStatus.NO_CONTENT));
         }
-        return ResponseEntity.ok(ApiResponse.ok(allOrders, "주문 목록을 상태별로 조회하였습니다."));
+        return ResponseEntity.ok(CommonResponse.ok(allOrders, "주문 목록을 상태별로 조회하였습니다."));
     }
 
     @PostMapping("/available")
@@ -77,7 +77,7 @@ public class ShopController {
             @RequestBody IngredientIdListDto reqDto
     ) {
         List<AvailableShopInfoDto> result = shopAvailabilityService.getAvailableShopList(addressId, reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(result, "가능한 가게 정보를 성공적으로 조회하였습니다."));
+        return ResponseEntity.ok().body(CommonResponse.ok(result, "가능한 가게 정보를 성공적으로 조회하였습니다."));
     }
 
     /**
@@ -86,7 +86,7 @@ public class ShopController {
     @GetMapping("/all")
     public ResponseEntity<?> getAllShops(@AuthenticationPrincipal TokenUserInfo userInfo) {
         List<ShopResDto> result = shopService.getAllShops();
-        return ResponseEntity.ok(ApiResponse.ok(result, "가게 전체 조회 성공"));
+        return ResponseEntity.ok(CommonResponse.ok(result, "가게 전체 조회 성공"));
 
     }
 }

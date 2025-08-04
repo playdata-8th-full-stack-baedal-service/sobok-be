@@ -30,7 +30,7 @@ public interface UserServiceClient {
     Boolean checkEmail(@RequestParam String email);
   
     @GetMapping("/api/user-info")
-    ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId);
+    ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long userId);
 
     @GetMapping("/api/get-user-id")
     ResponseEntity<Long> getUserId(@RequestParam Long id);

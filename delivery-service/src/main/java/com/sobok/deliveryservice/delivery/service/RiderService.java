@@ -52,7 +52,7 @@ public class RiderService {
 
         return RiderResDto.builder()
                 .id(saved.getId())
-                .authId(saved.getAuthId())
+//                .authId(saved.getAuthId())
                 .name(saved.getName())
                 .phone(saved.getPhone())
                 .permissionNumber(saved.getPermissionNumber())
@@ -82,8 +82,8 @@ public class RiderService {
     /**
      * 라이더 정보 찾기
      */
-    public AuthRiderInfoResDto getInfo(Long authId) {
-        Rider rider = riderRepository.getRiderByAuthId(authId).orElseThrow(
+    public AuthRiderInfoResDto getInfo(Long riderId) {
+        Rider rider = riderRepository.findById(riderId).orElseThrow(
                 () -> new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
         );
 
@@ -92,6 +92,7 @@ public class RiderService {
                 .permissionNumber(rider.getPermissionNumber())
                 .name(rider.getName())
                 .loginId(null)
+                .authId(rider.getAuthId())
                 .build();
     }
 
@@ -160,7 +161,8 @@ public class RiderService {
                 .stream()
                 .filter(rider -> inactiveRidersAuthIds.contains(rider.getAuthId()))
                 .map(rider -> RiderResDto.builder()
-                        .authId(rider.getAuthId())
+//                        .authId(rider.getAuthId())
+                        .id(rider.getId())
                         .name(rider.getName())
                         .phone(rider.getPhone())
                         .permissionNumber(rider.getPermissionNumber())
@@ -191,4 +193,16 @@ public class RiderService {
     public boolean existsByPermissionNumber(String permission) {
         return riderRepository.existsByPermissionNumber(permission);
     }
+
+    /**
+     * authId를 통해 라이더의 Id를 조회
+     */
+    public Long getAuthId(Long id) {
+        Rider rider = riderRepository.findById(id).orElseThrow(
+                () -> new CustomException("해당하는 라이더가 존재하지 않습니다.", HttpStatus.BAD_REQUEST)
+        );
+
+        return rider.getAuthId();
+    }
+
 }

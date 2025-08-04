@@ -9,10 +9,8 @@ import com.sobok.authservice.auth.dto.response.ByPhoneResDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.auth.service.etc.SmsService;
-import com.sobok.authservice.common.dto.ApiResponse;
 import com.sobok.authservice.common.exception.CustomException;
 import feign.FeignException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -107,7 +105,7 @@ public class AccountService {
      * 통합 비밀번호 찾기
      */
     //1단계
-    public Long authVerification(@Valid AuthVerifyReqDto authVerifyReqDto) {
+    public Long authVerification(AuthVerifyReqDto authVerifyReqDto) {
         //아이디로 auth.loginId가 존재하는지 확인, active "Y"
         Auth auth = authRepository.findByLoginIdAndActive(authVerifyReqDto.getLoginId(), "Y")
                 .orElseThrow(() -> new CustomException("해당 ID의 사용자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST));
@@ -190,23 +188,5 @@ public class AccountService {
             throw new CustomException("회원 정보 조회 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-    }
-
-    /**
-     * 비밀번호 검증
-     *
-     * @return loginId
-     */
-    public String verifyByPassword(Long id) {
-        Auth auth = authRepository.findById(id).orElseThrow(
-                () -> new CustomException("해당하는 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
-        );
-
-//        boolean isMatch = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
-//        if (!isMatch) {
-//            throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
-//        }
-
-        return auth.getLoginId();
     }
 }

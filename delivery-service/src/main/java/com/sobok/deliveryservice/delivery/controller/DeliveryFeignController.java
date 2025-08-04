@@ -1,8 +1,5 @@
 package com.sobok.deliveryservice.delivery.controller;
 
-import com.sobok.deliveryservice.common.dto.ApiResponse;
-import com.sobok.deliveryservice.common.dto.TokenUserInfo;
-import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
@@ -10,19 +7,13 @@ import com.sobok.deliveryservice.delivery.dto.request.AcceptOrderReqDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
-import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
-import com.sobok.deliveryservice.delivery.entity.Delivery;
-import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
-import com.sobok.deliveryservice.delivery.repository.RiderRepository;
 import com.sobok.deliveryservice.delivery.service.DeliveryService;
 import com.sobok.deliveryservice.delivery.service.RiderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,8 +51,8 @@ public class DeliveryFeignController {
     }
 
     @GetMapping("/rider-info")
-    public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long authId) {
-        AuthRiderInfoResDto resDto = riderService.getInfo(authId);
+    public ResponseEntity<AuthRiderInfoResDto> getInfo(@RequestParam Long riderId) {
+        AuthRiderInfoResDto resDto = riderService.getInfo(riderId);
         return ResponseEntity.ok().body(resDto);
     }
 
@@ -78,7 +69,7 @@ public class DeliveryFeignController {
     /**
      * 결제관련 라이더 정보 조회
      */
-    @GetMapping("/admin/rider-info")
+    @GetMapping("/admin/delivery-info")
     public ResponseEntity<RiderPaymentInfoResDto> getRiderPaymentInfo(@RequestParam Long paymentId) {
         return ResponseEntity.ok().body(deliveryService.getRiderInfoByPaymentId(paymentId));
     }
@@ -109,7 +100,6 @@ public class DeliveryFeignController {
     }
 
 
-
     /**
      * 라이더 주문 수락
      */
@@ -124,5 +114,10 @@ public class DeliveryFeignController {
     @PostMapping("/complete-delivery")
     public void deliveryComplete(@RequestBody AcceptOrderReqDto acceptOrderReqDto) {
         deliveryService.deliveryComplete(acceptOrderReqDto);
+    }
+
+    @GetMapping("/get-auth-id")
+    public ResponseEntity<Long> getAuthId(@RequestParam Long id) {
+        return ResponseEntity.ok().body(riderService.getAuthId(id));
     }
 }

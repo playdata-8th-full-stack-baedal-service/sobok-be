@@ -2,11 +2,13 @@ package com.sobok.authservice.auth.dto.info;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 @Getter
 @Setter
+@ToString
 public class AuthUserInfoResDto extends AuthBaseInfoResDto {
     String nickname;
     String email;

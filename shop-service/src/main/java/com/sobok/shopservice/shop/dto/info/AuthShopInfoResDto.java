@@ -15,4 +15,5 @@ public class AuthShopInfoResDto {
     String phone;
     String roadFull;
     String ownerName;
+    Long authId;
 }

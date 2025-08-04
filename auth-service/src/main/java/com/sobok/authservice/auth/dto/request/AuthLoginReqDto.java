@@ -1,5 +1,6 @@
 package com.sobok.authservice.auth.dto.request;
 
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthLoginReqDto {
+    @Pattern(regexp="^[a-zA-Z0-9_]{4,20}$", message = "아이디 형식이 유효하지 않습니다.")
     String loginId;
     String password;
 }

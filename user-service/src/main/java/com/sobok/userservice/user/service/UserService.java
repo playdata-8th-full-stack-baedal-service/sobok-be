@@ -105,7 +105,7 @@ public class UserService {
                 .build();
 
         // user DB에 저장
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
         // 사용자 주소 저장
         if (reqDto.getRoadFull() != null) {
@@ -114,7 +114,7 @@ public class UserService {
                     .addrDetail(reqDto.getAddrDetail())
                     .build();
 
-            userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+            userAddressService.addAddress(saved.getId(), addrDto);
             log.info("성공적으로 사용자의 주소를 저장했습니다.");
         }
 
@@ -128,10 +128,10 @@ public class UserService {
      * 2. 주소 가져오기
      * 3. dto로 변환 (loginId는 없음)
      */
-    public AuthUserInfoResDto getUserInfo(Long authId) {
-        log.info("사용자 정보 조회 시작 : {}", authId);
+    public AuthUserInfoResDto getUserInfo(Long userId) {
+        log.info("사용자 정보 조회 시작 : {}", userId);
 
-        User user = userRepository.findByAuthId(authId).orElseThrow(
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new CustomException("Auth ID가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
         );
 
@@ -152,6 +152,7 @@ public class UserService {
                 .photo(user.getPhoto())
                 .email(user.getEmail())
                 .addresses(userAddress)
+                .authId(user.getAuthId())
                 .build();
     }
 
@@ -176,7 +177,7 @@ public class UserService {
 
         // 인증번호 확인
         String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + userPhoneDto.getPhone());
-        if(verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
+        if (verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
             throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
@@ -367,7 +368,7 @@ public class UserService {
                 .build();
 
         // user DB에 저장
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
         // 사용자 주소 저장
         if (reqDto.getRoadFull() != null) {
@@ -376,7 +377,7 @@ public class UserService {
                     .addrDetail(reqDto.getAddrDetail())
                     .build();
 
-            userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+            userAddressService.addAddress(saved.getId(), addrDto);
             log.info("성공적으로 사용자의 주소를 저장했습니다.");
         }
 
@@ -395,6 +396,7 @@ public class UserService {
                 .orElseThrow(() -> new CustomException("사용자를 찾을 수 없습니다", HttpStatus.NOT_FOUND));
 
         return UserInfoResDto.builder()
+                .authId(user.getAuthId())
                 .nickname(user.getNickname())
                 .roadFull(address.getRoadFull())
                 .address(address.getAddrDetail())
@@ -436,6 +438,10 @@ public class UserService {
      * email 중복 체크
      */
     public void checkEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        if (!email.matches(emailRegex)) {
+            throw new CustomException("유효한 이메일 형식이 아닙니다.", HttpStatus.BAD_REQUEST);
+        }
         if (userRepository.existsByEmail(email)) {
             throw new CustomException("이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
         }
@@ -615,7 +621,7 @@ public class UserService {
      */
     public void defaultLikePost(Long postId) {
         if (userLikeRepository.existsByPostId(postId)) {
-            throw new CustomException("이미 좋아요가 등록된 게시글입니다.", HttpStatus.BAD_REQUEST);
+            throw new CustomException("게시물 등록에 실패했습니다.", HttpStatus.BAD_REQUEST);
         }
         userLikeRepository.save(
                 UserLike.builder()
@@ -647,6 +653,14 @@ public class UserService {
         user.setEmail(null);
 
         userRepository.save(user);
+    }
+
+    public Long getAuthId(Long userId) {
+        User userByUserId = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("유저가 없습니다.")
+        );
+
+        return userByUserId.getAuthId();
     }
 
 }

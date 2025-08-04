@@ -61,12 +61,20 @@ public class DeliveryService {
         Delivery delivery = deliveryRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new CustomException("배달 정보 없음", HttpStatus.NOT_FOUND));
 
-        Rider rider = riderService.findRiderByIdOrThrow(delivery.getRiderId());
+        Rider rider = null;
+        if(delivery.getRiderId() != null) {
+           rider = riderService.findRiderByIdOrThrow(delivery.getRiderId());
+        } else {
+            log.info("라이더 정보 없음");
+            rider = new Rider(0L, 0L, "", "", "");
+        }
 
         return RiderPaymentInfoResDto.builder()
                 .riderId(rider.getId())
                 .riderName(rider.getName())
                 .riderPhone(rider.getPhone())
+                .shopId(delivery.getShopId())
+                .completeTime(delivery.getCompleteTime())
                 .build();
     }
 
@@ -98,12 +106,14 @@ public class DeliveryService {
     ) {
         //라이더 검증
         riderService.existsByIdOrThrow(userInfo.getRiderId());
+        log.info("riderId: {}", userInfo.getRiderId());
 
         //근처 가게 정보 목록 조회
         ResponseEntity<List<DeliveryAvailShopResDto>> nearShop = shopFeignClient.getNearShop(latitude, longitude);
         log.info("nearShop: {}", nearShop);
 
         if (nearShop.getBody() == null || nearShop.getBody().isEmpty()) {
+            log.info("근처 가게 정보 목록 없음");
             return Collections.emptyList();
         }
 
@@ -111,20 +121,22 @@ public class DeliveryService {
                 .collect(Collectors.toMap(DeliveryAvailShopResDto::getShopId, Function.identity()));
         List<Long> shopIdList = new ArrayList<>(shopMap.keySet());
 
-        Pageable pageable = PageRequest.of(pageNo.intValue() - 1, numOfRows.intValue());
-
         //shopId에 해당하는 delivery 조회
-        Page<Delivery> deliveryPage = deliveryRepository.findAllByShopIdIn(shopIdList, pageable);
-        log.info("deliveryPage: {}", deliveryPage);
+        List<Delivery> deliveryPage = deliveryRepository.findAllByShopIdInAndRiderIdIsNull(shopIdList);
 
-        Map<Long, Delivery> paymentIdToDeliveryMap = deliveryPage.getContent().stream()
+        Map<Long, Delivery> paymentIdToDeliveryMap = deliveryPage.stream()
                 .collect(Collectors.toMap(Delivery::getPaymentId, Function.identity()));
+
         if (paymentIdToDeliveryMap.isEmpty()) {
+            log.info("배달 목록 없음");
             return Collections.emptyList();
         }
 
         // 배달 전인 주문 조회 (Payment 정보)
         List<Long> paymentIdList = new ArrayList<>(paymentIdToDeliveryMap.keySet());
+        log.info("==================================================================");
+        log.info("paymentIdList: {}", paymentIdList);
+        log.info("==================================================================");
         ResponseEntity<List<ShopPaymentResDto>> riderAvailPayment = paymentFeignClient.getRiderAvailPayment(paymentIdList);
         log.info("배달 가능한 주문들 Payment: {}", riderAvailPayment);
 
@@ -166,6 +178,8 @@ public class DeliveryService {
                             .build();
                 })
                 .filter(dto -> dto.getShopName() != null && dto.getRoadFull() != null)
+                .skip((pageNo - 1) * numOfRows)
+                .limit(numOfRows)
                 .toList();
     }
 

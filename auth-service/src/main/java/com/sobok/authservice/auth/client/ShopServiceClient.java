@@ -4,9 +4,7 @@ import com.sobok.authservice.auth.dto.info.AuthShopInfoResDto;
 import com.sobok.authservice.auth.dto.request.ShopSignupReqDto;
 import com.sobok.authservice.auth.dto.response.AuthShopResDto;
 import com.sobok.authservice.auth.dto.response.ByPhoneResDto;
-import com.sobok.authservice.auth.dto.response.UserResDto;
 import com.sobok.authservice.common.config.FeignConfig;
-import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +30,7 @@ public interface ShopServiceClient {
     boolean checkShopAddress(@RequestParam String shopAddress);
   
     @GetMapping("/api/shop-info")
-    ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long authId);
+    ResponseEntity<AuthShopInfoResDto> getInfo(@RequestParam Long shopId);
 
     @GetMapping("/api/get-shop-id")
     ResponseEntity<Long> getShopId(@RequestParam Long id);
