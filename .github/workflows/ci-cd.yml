@@ -185,7 +185,7 @@ jobs:
           images: ${{ env.ECR_REGISTRY }}/${{ matrix.service.name }}
           tags: |
             type=raw,value=${{ github.ref_name }}-latest
-            type=sha,format=short
+            type=sha,format=short,prefix=
             type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
 
       - name: Build and push Docker image (config-server)
