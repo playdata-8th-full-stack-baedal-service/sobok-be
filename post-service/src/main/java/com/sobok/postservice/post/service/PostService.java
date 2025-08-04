@@ -63,11 +63,16 @@ public class PostService {
         log.info(dto.getCookId().toString());
         String cookName = cookClient.getCookNameById(dto.getCookId()).getBody();
 
+        String content = dto.getContent();
+        if (content != null) {
+            content = content.replaceAll("/temp/", "/");
+        }
+
         Post post = Post.builder()
                 .userId(userId)
                 .title(dto.getTitle())
                 .cookId(dto.getCookId())
-                .content(dto.getContent())
+                .content(content)
                 .paymentId(dto.getPaymentId())
                 .build();
         postRepository.save(post);
@@ -118,8 +123,10 @@ public class PostService {
         if (dto.getTitle() != null) post.setTitle(dto.getTitle());
         if (dto.getContent() != null) {
             // 스크립트 태그 포함 여부 검사
-            validateNoScriptTag(dto.getContent());
-            post.setContent(dto.getContent());
+            String content = dto.getContent();
+            validateNoScriptTag(content);
+            content = content.replaceAll("/temp/", "/");
+            post.setContent(content);
         }
 
         // 기존 이미지 S3에서 삭제
