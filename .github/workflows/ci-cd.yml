@@ -241,7 +241,7 @@ jobs:
           set -e
           REPO_URL="https://${PAT}@github.com/playdata-8th-full-stack-baedal-service/sobok-infra.git"
           git clone "$REPO_URL"
-          cd sobok-infra/${{ matrix.service.name }}
+          cd sobok-infra/msa-chart/charts/${{ matrix.service.name }}
 
           # 최신 반영
           git pull --rebase origin main || true
