@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableFeignClients
 public class PostServiceApplication {
 
-    // version 1.1.2
+    // version 1.1.3
     public static void main(String[] args) {
         SpringApplication.run(PostServiceApplication.class, args);
     }
