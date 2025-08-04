@@ -76,7 +76,6 @@ public class AuthService {
             }
         }
 
-
         // 비밀번호 확인
         boolean passwordCorrect = passwordEncoder.matches(reqDto.getPassword(), auth.getPassword());
         if (!passwordCorrect) {
@@ -85,10 +84,8 @@ public class AuthService {
             throw new CustomException("비밀번호가 틀렸습니다.", HttpStatus.FORBIDDEN);
         }
 
-
         // 로그인 성공 시 블랙리스트 기록 초기화
         // Redis에 남아있던 해당 사용자의 블랙리스트 키를 삭제
-        // 이는 이전 세션의 로그아웃 기록을 초기화하는 역할
         redisTemplate.delete(ACCESS_TOKEN_BLACKLIST_KEY + auth.getId());
         log.info("{}번 사용자의 블랙리스트 기록을 초기화합니다.", auth.getId());
         Long roleId = getRoleId(auth, false);
@@ -178,13 +175,9 @@ public class AuthService {
                     default -> 0L;
                 };
 
-//                // access token 재발급
-//                log.info("{}번 유저 토큰 재발급", reqDto.getId());
-//                return jwtTokenProvider.generateAccessToken(auth, roleId);
                 //  Access Token과 Refresh Token을 모두 새로 발급
                 String newAccessToken = jwtTokenProvider.generateAccessToken(auth, roleId);
                 String newRefreshToken = jwtTokenProvider.generateRefreshToken(auth, roleId);
-                // 새로 발급한 Refresh Token을 Redis에 저장
                 // 새로운 리프레시 토큰을 Redis에 저장
                 redisStringTemplate.opsForValue().set(
                         REFRESH_TOKEN_KEY + reqDto.getId().toString(),
