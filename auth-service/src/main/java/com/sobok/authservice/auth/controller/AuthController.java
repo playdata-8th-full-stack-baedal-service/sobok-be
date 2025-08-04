@@ -1,6 +1,7 @@
 package com.sobok.authservice.auth.controller;
 
 
+import com.sobok.authservice.auth.controller.docs.AuthControllerDocs;
 import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;

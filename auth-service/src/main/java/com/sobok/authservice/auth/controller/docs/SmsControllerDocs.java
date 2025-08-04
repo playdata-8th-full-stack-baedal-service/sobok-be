@@ -1,4 +1,4 @@
-package com.sobok.authservice.auth.controller;
+package com.sobok.authservice.auth.controller.docs;
 
 import com.sobok.authservice.auth.dto.request.SmsReqDto;
 import com.sobok.authservice.auth.dto.request.VerificationReqDto;

@@ -1,8 +1,6 @@
-package com.sobok.authservice.auth.controller;
+package com.sobok.authservice.auth.controller.docs;
 
-import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
-import com.sobok.authservice.auth.dto.response.*;
 import com.sobok.authservice.common.dto.CommonResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,8 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "AuthController", description = "사용자, 라이더, 가게 회원가입, 로그인, 정보 조회, 상태 관리 API")
 @RequestMapping("/auth")
