@@ -177,7 +177,7 @@ public class UserService {
 
         // 인증번호 확인
         String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + userPhoneDto.getPhone());
-        if(verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
+        if (verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
             throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
@@ -438,6 +438,10 @@ public class UserService {
      * email 중복 체크
      */
     public void checkEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        if (!email.matches(emailRegex)) {
+            throw new CustomException("유효한 이메일 형식이 아닙니다.", HttpStatus.BAD_REQUEST);
+        }
         if (userRepository.existsByEmail(email)) {
             throw new CustomException("이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST);
         }
@@ -617,7 +621,7 @@ public class UserService {
      */
     public void defaultLikePost(Long postId) {
         if (userLikeRepository.existsByPostId(postId)) {
-            throw new CustomException("이미 좋아요가 등록된 게시글입니다.", HttpStatus.BAD_REQUEST);
+            throw new CustomException("게시물 등록에 실패했습니다.", HttpStatus.BAD_REQUEST);
         }
         userLikeRepository.save(
                 UserLike.builder()
