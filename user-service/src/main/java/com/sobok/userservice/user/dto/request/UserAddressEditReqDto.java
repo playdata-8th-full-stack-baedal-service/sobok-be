@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Schema(description = "사용자가 수정할 주소 정보 DTO")
 public class UserAddressEditReqDto {
     @Schema(description = "수정할 주소의 ID", example = "5", required = true)
     private Long addressId;
