@@ -4,7 +4,7 @@ package com.sobok.authservice.auth.controller;
 import com.sobok.authservice.auth.dto.request.SmsReqDto;
 import com.sobok.authservice.auth.dto.request.VerificationReqDto;
 import com.sobok.authservice.auth.service.etc.SmsService;
-import com.sobok.authservice.common.dto.ApiResponse;
+import com.sobok.authservice.common.dto.CommonResponse;
 import com.sobok.authservice.common.exception.CustomException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class SmsController {
     @PostMapping("/send")
     public ResponseEntity<?> SendSMS(@RequestBody @Valid SmsReqDto smsReqDto) {
         smsService.SendSms(smsReqDto);
-        return ResponseEntity.ok(ApiResponse.ok("문자를 전송했습니다."));
+        return ResponseEntity.ok(CommonResponse.ok("문자를 전송했습니다."));
     }
 
     @PostMapping("/verify")
@@ -37,7 +37,7 @@ public class SmsController {
         boolean isValid = smsService.verifySmsCode(request.getPhoneNumber(), request.getInputCode());
 
         if (isValid) {
-            return ResponseEntity.ok(ApiResponse.ok("인증 성공"));
+            return ResponseEntity.ok(CommonResponse.ok("인증 성공"));
         } else {
             throw new CustomException("인증번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }

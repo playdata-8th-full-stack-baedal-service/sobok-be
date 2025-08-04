@@ -1,7 +1,7 @@
 package com.sobok.postservice.post.client;
 
 import com.sobok.postservice.common.config.FeignConfig;
-import com.sobok.postservice.common.dto.ApiResponse;
+import com.sobok.postservice.common.dto.CommonResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,6 +18,6 @@ public interface ApiFeignClient {
     String registerImg(@RequestParam String url);
 
     @DeleteMapping("/api/delete-S3-image")
-    ResponseEntity<ApiResponse<String>> deleteS3Image(@RequestParam("key") String key);
+    ResponseEntity<CommonResponse<String>> deleteS3Image(@RequestParam("key") String key);
 
 }

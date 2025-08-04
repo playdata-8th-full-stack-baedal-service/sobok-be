@@ -1,6 +1,6 @@
 package com.sobok.shopservice.shop.controller;
 
-import com.sobok.shopservice.common.dto.ApiResponse;
+import com.sobok.shopservice.common.dto.CommonResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
 import com.sobok.shopservice.shop.dto.stock.StockReqDto;
 import com.sobok.shopservice.shop.dto.stock.StockResDto;
@@ -33,7 +33,7 @@ public class StockController {
     ) {
         reqDto.setShopId(userInfo.getShopId());
         StockResDto result = stockService.registerStock(reqDto);
-        return ApiResponse.response(result, "식재료 재고 등록이 정상적으로 처리되었습니다.");
+        return CommonResponse.response(result, "식재료 재고 등록이 정상적으로 처리되었습니다.");
     }
 
     /**
@@ -48,7 +48,7 @@ public class StockController {
     ) {
         reqDto.setShopId(userInfo.getShopId());
         StockResDto result = stockService.deductStock(reqDto);
-        return ApiResponse.response(result, "식재료 재고 사용이 정상적으로 처리되었습니다.");
+        return CommonResponse.response(result, "식재료 재고 사용이 정상적으로 처리되었습니다.");
     }
 
     /**
@@ -61,7 +61,7 @@ public class StockController {
     ) {
         validator.shopCheck(userInfo, shopId);
         List<StockResDto> result = stockService.getStock(shopId);
-        return ApiResponse.response(result, "가게의 모든 식재료 재고 정보를 성공적으로 조회하였습니다.");
+        return CommonResponse.response(result, "가게의 모든 식재료 재고 정보를 성공적으로 조회하였습니다.");
     }
 
     /**
@@ -73,6 +73,6 @@ public class StockController {
     ) {
         Long shopId = userInfo.getShopId();
         List<StockResDto> result = stockService.getStock(shopId);
-        return ApiResponse.response(result, "가게의 모든 식재료 재고 정보를 성공적으로 조회하였습니다.");
+        return CommonResponse.response(result, "가게의 모든 식재료 재고 정보를 성공적으로 조회하였습니다.");
     }
 }

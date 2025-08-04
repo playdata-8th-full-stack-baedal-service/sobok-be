@@ -1,6 +1,6 @@
 package com.sobok.userservice.common.exception;
 
-import com.sobok.userservice.common.dto.ApiResponse;
+import com.sobok.userservice.common.dto.CommonResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 
@@ -28,7 +27,7 @@ public class CommonExceptionHandler {
     public ResponseEntity<?> entityNotFoundHandler(EntityNotFoundException e) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
-        return new ResponseEntity<>(ApiResponse.fail(status, "엔티티를 찾을 수 없습니다."), status);
+        return new ResponseEntity<>(CommonResponse.fail(status, "엔티티를 찾을 수 없습니다."), status);
     }
 
     @ExceptionHandler(CustomException.class)
@@ -36,14 +35,14 @@ public class CommonExceptionHandler {
         HttpStatus status = e.status;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
 //        return new ResponseEntity<>(ApiResponse.fail(status, "엔티티를 찾을 수 없습니다."), status);
-        return new ResponseEntity<>(ApiResponse.fail(status, e.getMessage()), status);
+        return new ResponseEntity<>(CommonResponse.fail(status, e.getMessage()), status);
     }
 
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResponseEntity<?> customExceptionHandler(SQLIntegrityConstraintViolationException e) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
-        return new ResponseEntity<>(ApiResponse.fail(status, "sql 제약조건 위반 에러 발생!"), status);
+        return new ResponseEntity<>(CommonResponse.fail(status, "sql 제약조건 위반 에러 발생!"), status);
     }
 
     // validation 검증 예외 처리
@@ -56,7 +55,7 @@ public class CommonExceptionHandler {
                 .orElse("잘못된 요청입니다.");
 
         log.warn("유효성 검사 실패: {}", errorMessage);
-        return new ResponseEntity<>(ApiResponse.fail(status, errorMessage), status);
+        return new ResponseEntity<>(CommonResponse.fail(status, errorMessage), status);
     }
 
     @ExceptionHandler({
@@ -66,7 +65,7 @@ public class CommonExceptionHandler {
     public ResponseEntity<?> handleBadRequest(Exception ex) {
         log.info("잘못된 요청 파라미터 또는 타입 불일치 오류 발생: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.fail(HttpStatus.NOT_FOUND, "잘못된 요청 또는 리소스가 없습니다."));
+                .body(CommonResponse.fail(HttpStatus.NOT_FOUND, "잘못된 요청 또는 리소스가 없습니다."));
     }
 
     @ExceptionHandler({
@@ -76,6 +75,6 @@ public class CommonExceptionHandler {
     public ResponseEntity<?> noRequestBodyBadRequest(Exception ex) {
         log.info("request body 오류 발생: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail(HttpStatus.BAD_REQUEST, "RequestBody를 확인해 주세요."));
+                .body(CommonResponse.fail(HttpStatus.BAD_REQUEST, "RequestBody를 확인해 주세요."));
     }
 }

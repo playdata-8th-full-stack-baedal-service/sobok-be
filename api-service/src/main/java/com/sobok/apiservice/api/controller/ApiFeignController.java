@@ -3,7 +3,6 @@ package com.sobok.apiservice.api.controller;
 import com.sobok.apiservice.api.dto.address.LocationResDto;
 import com.sobok.apiservice.api.dto.google.GoogleCallResDto;
 import com.sobok.apiservice.api.dto.kakao.KakaoCallResDto;
-import com.sobok.apiservice.api.dto.kakao.OauthResDto;
 import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
@@ -12,7 +11,7 @@ import com.sobok.apiservice.api.service.socialLogin.GoogleLoginService;
 import com.sobok.apiservice.api.service.socialLogin.KakaoLoginService;
 import com.sobok.apiservice.api.service.socialLogin.SocialLoginService;
 import com.sobok.apiservice.api.service.toss.TossPayService;
-import com.sobok.apiservice.common.dto.ApiResponse;
+import com.sobok.apiservice.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +74,7 @@ public class ApiFeignController {
     @DeleteMapping("/delete-S3-image")
     public ResponseEntity<?> deleteS3Image(@RequestParam String key) {
         s3Service.deleteImage(key);
-        return ResponseEntity.ok().body(ApiResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
+        return ResponseEntity.ok().body(CommonResponse.ok(key, "S3의 파일이 성공적으로 삭제되었습니다."));
     }
 
     /**
@@ -84,7 +83,7 @@ public class ApiFeignController {
     @PutMapping("/upload-image/{category}")
     public ResponseEntity<?> putS3Image(@RequestPart MultipartFile image, @PathVariable String category) {
         String imgUrl = s3Service.uploadImage(image, category);
-        return ResponseEntity.ok().body(ApiResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
+        return ResponseEntity.ok().body(CommonResponse.ok(imgUrl, "S3에 파일이 정상적으로 업로드되었습니다."));
     }
 
     /**
@@ -117,6 +116,6 @@ public class ApiFeignController {
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmPayment(@RequestBody TossPayReqDto reqDto) {
         TossPayResDto resDto = tossPayService.confirmPayment(reqDto);
-        return ResponseEntity.ok().body(ApiResponse.ok(resDto, "정상 처리되었습니다."));
+        return ResponseEntity.ok().body(CommonResponse.ok(resDto, "정상 처리되었습니다."));
     }
 }

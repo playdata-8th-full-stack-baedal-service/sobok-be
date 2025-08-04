@@ -1,7 +1,7 @@
 package com.sobok.userservice.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sobok.userservice.common.dto.ApiResponse;
+import com.sobok.userservice.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setCharacterEncoding("UTF-8");
 
         // 공통 실패 응답 JSON으로 변환
-        String body= objectMapper.writeValueAsString(ApiResponse.fail(HttpStatus.UNAUTHORIZED,"인증되지 않은 사용자입니다."));
+        String body= objectMapper.writeValueAsString(CommonResponse.fail(HttpStatus.UNAUTHORIZED,"인증되지 않은 사용자입니다."));
         response.getWriter().write(body);
     }
 }

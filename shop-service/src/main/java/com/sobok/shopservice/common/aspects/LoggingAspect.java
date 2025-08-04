@@ -1,6 +1,6 @@
 package com.sobok.shopservice.common.aspects;
 
-import com.sobok.shopservice.common.dto.ApiResponse;
+import com.sobok.shopservice.common.dto.CommonResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -51,8 +51,8 @@ public class LoggingAspect {
         if (result instanceof ResponseEntity) {
             Object body = ((ResponseEntity<?>) result).getBody();
 
-            if (body instanceof ApiResponse) {
-                String message = ((ApiResponse<?>) body).getMessage();
+            if (body instanceof CommonResponse) {
+                String message = ((CommonResponse<?>) body).getMessage();
                 log.info("[응답 메시지] {}.{}() -> message: {}", className, methodName, message);
             } else {
                 log.info("[응답] {}.{}() -> Non-ApiResponse body: {}", className, methodName, body);

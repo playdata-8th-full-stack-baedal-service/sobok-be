@@ -1,10 +1,8 @@
 package com.sobok.authservice.auth.repository;
 
 import com.sobok.authservice.auth.entity.Auth;
-import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.security.core.userdetails.User;
 
 import java.util.List;
 import java.util.Optional;

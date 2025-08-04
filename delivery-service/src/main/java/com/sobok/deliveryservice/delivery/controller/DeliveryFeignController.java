@@ -1,8 +1,5 @@
 package com.sobok.deliveryservice.delivery.controller;
 
-import com.sobok.deliveryservice.common.dto.ApiResponse;
-import com.sobok.deliveryservice.common.dto.TokenUserInfo;
-import com.sobok.deliveryservice.common.exception.CustomException;
 import com.sobok.deliveryservice.delivery.dto.info.AuthRiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.payment.DeliveryRegisterDto;
 import com.sobok.deliveryservice.delivery.dto.payment.RiderPaymentInfoResDto;
@@ -10,19 +7,13 @@ import com.sobok.deliveryservice.delivery.dto.request.AcceptOrderReqDto;
 import com.sobok.deliveryservice.delivery.dto.request.RiderReqDto;
 import com.sobok.deliveryservice.delivery.dto.response.ByPhoneResDto;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryResDto;
-import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
-import com.sobok.deliveryservice.delivery.entity.Delivery;
-import com.sobok.deliveryservice.delivery.repository.DeliveryRepository;
-import com.sobok.deliveryservice.delivery.repository.RiderRepository;
 import com.sobok.deliveryservice.delivery.service.DeliveryService;
 import com.sobok.deliveryservice.delivery.service.RiderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

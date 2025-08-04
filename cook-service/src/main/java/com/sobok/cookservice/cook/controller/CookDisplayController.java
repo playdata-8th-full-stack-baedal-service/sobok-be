@@ -1,6 +1,6 @@
 package com.sobok.cookservice.cook.controller;
 
-import com.sobok.cookservice.common.dto.ApiResponse;
+import com.sobok.cookservice.common.dto.CommonResponse;
 import com.sobok.cookservice.cook.dto.display.BasicCookDisplay;
 import com.sobok.cookservice.cook.dto.display.DisplayParamDto;
 import com.sobok.cookservice.cook.service.CookDisplayService;
@@ -29,6 +29,6 @@ public class CookDisplayController {
                                       @RequestParam Long numOfRows)
     {
         List<BasicCookDisplay> result = service.getCooks(new DisplayParamDto(category, keyword, sort, pageNo, numOfRows));
-        return ResponseEntity.ok().body(ApiResponse.ok(result, "요청 조건에 맞는 요리가 모두 조회되었습니다."));
+        return ResponseEntity.ok().body(CommonResponse.ok(result, "요청 조건에 맞는 요리가 모두 조회되었습니다."));
     }
 }
