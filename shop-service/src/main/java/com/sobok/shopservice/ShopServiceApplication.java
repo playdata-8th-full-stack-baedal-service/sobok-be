@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableFeignClients
 public class ShopServiceApplication {
 
+    // version 1.1.2
     public static void main(String[] args) {
         SpringApplication.run(ShopServiceApplication.class, args);
     }
