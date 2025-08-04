@@ -40,11 +40,11 @@ public class SecurityConfig {
                                 "/auth/social-user-signup", "/v3/**", "/swagger-ui/**"
                         ).permitAll()
 
-                        .requestMatchers("/auth/logout", "/auth/get-info", "/auth/edit-password").hasAnyRole("USER", "RIDER", "ADMIN", "HUB")
+                        .requestMatchers("/auth/get-info", "/auth/edit-password").hasAnyRole("USER", "RIDER", "ADMIN", "HUB")
 
                         .requestMatchers("/auth/verify-password", "/auth/delete").hasRole("USER")
 
-                        .requestMatchers("/auth/shop-signup", "/auth/rider-active", "/auth/shop-signup").hasRole("ADMIN")
+                        .requestMatchers("/auth/rider-active", "/auth/shop-signup").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
