@@ -1,5 +1,6 @@
 package com.sobok.authservice.auth.service.auth;
 
+import com.sobok.authservice.auth.client.DeliveryClient;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.TokenUserInfo;
@@ -28,6 +29,7 @@ public class StatusService {
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisStringTemplate;
     private final AuthService authService;
+    private final DeliveryClient deliveryClient;
 
     /**
      * <pre>
@@ -36,7 +38,7 @@ public class StatusService {
      *     2. 사용자의 active 상태를 N으로 변경
      * </pre>
      */
-    public void delete(TokenUserInfo userInfo) {
+    public void delete(String accessToken, TokenUserInfo userInfo) {
         Auth auth = authRepository.findById(userInfo.getId())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
 
@@ -58,7 +60,7 @@ public class StatusService {
         // 로그아웃 처리
         log.info("{}번 사용자를 비활성화했습니다.", userInfo.getId());
 
-        authService.logout(userInfo);
+        authService.logout(userInfo, accessToken);
     }
 
     /**
@@ -68,11 +70,7 @@ public class StatusService {
      *     2. 있다면 활성화 상태를 Y로 바꾸고 복구용 키 삭제
      * </pre>
      */
-    public void recover(Long id, TokenUserInfo userInfo) throws EntityNotFoundException, CustomException {
-        if(!Objects.equals(userInfo.getId(), id))  {
-            throw new CustomException("복구 대상이 아닌 계정입니다.", HttpStatus.BAD_REQUEST);
-        }
-
+    public void recover(Long id) throws EntityNotFoundException, CustomException {
         // 복구 대상인지 확인
         boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + id);
         if (isRecoveryTarget) {
@@ -101,7 +99,8 @@ public class StatusService {
      * 라이더 활성화 기능
      */
     @Transactional
-    public void activeRider(Long authId) {
+    public void activeRider(Long riderId) {
+        Long authId = deliveryClient.getAuthId(riderId).getBody();
         // Id 검증
         Auth auth = authRepository.findById(authId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 유저가 없습니다."));

@@ -1,6 +1,5 @@
 package com.sobok.userservice.user.controller;
 
-import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;
@@ -58,8 +57,8 @@ public class UserFeignController {
     }
 
     @GetMapping("/user-info")
-    public ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long authId) {
-        AuthUserInfoResDto resDto = userService.getUserInfo(authId);
+    public ResponseEntity<AuthUserInfoResDto> getUserInfo(@RequestParam Long userId) {
+        AuthUserInfoResDto resDto = userService.getUserInfo(userId);
         return ResponseEntity.ok().body(resDto);
 
     }
@@ -75,8 +74,8 @@ public class UserFeignController {
     }
 
     @GetMapping("/get-user-id")
-    Long getUserId(@RequestParam Long id) {
-        return userService.getUserId(id);
+    public ResponseEntity<Long> getUserId(@RequestParam Long id) {
+        return ResponseEntity.ok().body(userService.getUserId(id));
     }
 
     /**

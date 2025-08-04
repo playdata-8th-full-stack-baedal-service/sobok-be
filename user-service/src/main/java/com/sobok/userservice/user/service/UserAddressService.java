@@ -38,9 +38,9 @@ public class UserAddressService {
      * </pre>
      */
     @Transactional
-    public void addAddress(Long authId, UserAddressReqDto reqDto) throws CustomException, EntityNotFoundException {
+    public void addAddress(Long userId, UserAddressReqDto reqDto) throws CustomException, EntityNotFoundException {
         // 사용자가 존재하는 지 확인
-        User user = userRepository.findByAuthId(authId).orElseThrow(
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("존재하는 사용자가 없습니다.")
         );
 

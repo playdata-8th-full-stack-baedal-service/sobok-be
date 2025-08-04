@@ -20,6 +20,7 @@ public class AdminPaymentResponseDto {
     private String payMethod;
     private OrderState orderState;
     private LocalDateTime createdAt;
+    private LocalDateTime completeTime;
 
     // 유저 정보
     private String loginId;

@@ -1,11 +1,10 @@
 package com.sobok.authservice.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sobok.authservice.common.dto.ApiResponse;
+import com.sobok.authservice.common.dto.CommonResponse;
 import com.sobok.authservice.common.dto.TokenUserInfo;
 import com.sobok.authservice.common.enums.Role;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -31,18 +31,17 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    @Value("${jwt.secretKey}")
-    private String secretKey;
-
+    private static final String ACCESS_TOKEN_BLACKLIST_KEY = "BLACKLIST_ACCESS_TOKEN:";
     private final ObjectMapper objectMapper;
-
+    private final RedisTemplate<String, String> redisTemplate;
     List<String> whiteList = List.of(
             "/actuator/**", "/auth/login", "/auth/reissue", "/sms/send", "/auth/recover/**", "/sms/verify",
-            "/auth/user-signup", "/auth/rider-signup", "/auth/shop-signup", "/auth/findLoginId", "/auth/verification", "/auth/reset-password",
+            "/auth/user-signup", "/auth/rider-signup", "/auth/findLoginId", "/auth/verification", "/auth/reset-password",
             "/auth/temp-token", "/auth/check-id", "/auth/check-nickname", "/auth/check-email", "/auth/check-permission", "/auth/check-shopName",
             "/auth/check-shopAddress", "/auth/social-user-signup", "/v3/**"
     );
-
+    @Value("${jwt.secretKey}")
+    private String secretKey;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -79,16 +78,25 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // 토큰 유효성 검사
             String token = authHeader.replace("Bearer ", "");
-            if (!validateToken(token)) {
-                log.warn("토큰이 만료되었습니다.");
-                throw new Exception();
-            }
 
             // 토큰에서 사용자 정보 추출
             Claims claims = getClaims(token);
 
             // 토큰에서 정보 추출
             long id = Long.parseLong(claims.getSubject());
+
+            // 블랙리스트 검사 로직
+            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + id) != null) {
+                log.warn("블랙리스트에 등록된 토큰입니다.");
+                throw new Exception("블랙리스트에 등록된 토큰입니다.");
+            }
+
+            if (!validateToken(token)) {
+                log.warn("토큰이 만료되었습니다.");
+                throw new Exception();
+            }
+
+
             Role role = Role.from(claims.get("role", String.class));
 
             // TEMP일 경우 URI 검사
@@ -125,13 +133,15 @@ public class JwtFilter extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(tokenUserInfo, "", authorities);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-        } catch (
-                Exception e) {
-            log.warn("토큰 정보가 유효하지 않습니다.");
-            onError(response);
+        } catch (Exception e) {
+            log.warn("토큰 정보가 유효하지 않습니다: {}", e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("블랙리스트")) {
+                onError(response,401, "블랙리스트에 등록된 토큰입니다.");
+            } else {
+                onError(response, 666 , "토큰 검증에 실패하였습니다.");
+            }
             return;
         }
-
         // 문제 없다면 진행
         filterChain.doFilter(request, response);
     }
@@ -183,13 +193,13 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param response
      * @throws IOException
      */
-    private void onError(HttpServletResponse response) throws IOException {
+    private void onError(HttpServletResponse response, int httpStatus, String message) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         // 공통 실패 응답 JSON으로 변환
-        String body = objectMapper.writeValueAsString(ApiResponse.fail(666, "토큰 검증에 실패하였습니다."));
+        String body = objectMapper.writeValueAsString(CommonResponse.fail(httpStatus, message));
         response.getWriter().write(body);
     }
 }

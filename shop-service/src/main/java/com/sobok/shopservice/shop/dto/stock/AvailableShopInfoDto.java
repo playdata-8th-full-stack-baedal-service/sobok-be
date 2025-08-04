@@ -16,4 +16,6 @@ public class AvailableShopInfoDto {
     private String shopName;
 
     private List<CartIngredientStock> cartIngredientStockList;
+    private boolean satisfiable;
+    private List<MissingIngredientDto> missingIngredients;
 }

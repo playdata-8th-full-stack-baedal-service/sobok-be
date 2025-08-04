@@ -3,12 +3,19 @@ name: CI/CD Pipeline - Build and Push to ECR
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 env:
   AWS_REGION: ap-northeast-2
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+
+# 권한 설정 추가
+permissions:
+  contents: read
+
+# 동시성 제어 추가
+concurrency:
+  group: build-${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   detect-changes:
@@ -131,7 +138,7 @@ jobs:
           {name: "shop-service", changed: "${{ needs.detect-changes.outputs.shop-service }}"},
           {name: "user-service", changed: "${{ needs.detect-changes.outputs.user-service }}"}
         ]
-    
+
     steps:
       - name: Skip if no changes
         if: matrix.service.changed == 'false'
@@ -151,6 +158,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # ECR 리포지토리 자동 생성 기능 추가
+      - name: Ensure ECR repository exists
+        if: matrix.service.changed == 'true'
+        run: |
+          aws ecr describe-repositories --repository-names "${{ matrix.service.name }}" >/dev/null 2>&1 \
+          || aws ecr create-repository --repository-name "${{ matrix.service.name }}" >/dev/null
+
       - name: Login to Amazon ECR
         if: matrix.service.changed == 'true'
         id: login-ecr
@@ -160,16 +174,17 @@ jobs:
         if: matrix.service.changed == 'true'
         uses: docker/setup-buildx-action@v3
 
+      # 원본과 동일한 태그 전략으로 수정
       - name: Extract metadata
+        if: matrix.service.changed == 'true'
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.ECR_REGISTRY }}/${{ matrix.service.name }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest
+            type=raw,value=${{ github.ref_name }}-latest
+            type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
 
       - name: Build and push Docker image (config-server)
         if: matrix.service.changed == 'true' && matrix.service.name == 'config-server'
@@ -199,28 +214,43 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-      - name: Update deployment status
+
+      - name: Print pushed tags
         if: matrix.service.changed == 'true'
         run: |
-          echo "🚀 Successfully built and pushed ${{ matrix.service.name }}:${{ github.sha }}"
-          echo "📦 Image: ${{ env.ECR_REGISTRY }}/${{ matrix.service.name }}:${{ github.sha }}"
+          echo "Image: ${{ env.ECR_REGISTRY }}/${{ matrix.service.name }}"
+          echo "Tags:"
+          echo "${{ steps.meta.outputs.tags }}"
+
+      # main 브랜치에 push 된 경우에만 sobok-infra values 업데이트 (조건 수정)
       - name: Install yq
-        if: matrix.service.changed == 'true'
-        run: sudo curl -L https://github.com/mikefarah/yq/releases/download/v4.43.1/yq_linux_amd64 -o /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
-
-      - name: Update Helm image tag in sobok-infra
-        if: matrix.service.changed == 'true'
+        if: matrix.service.changed == 'true' && github.event_name == 'push' && github.ref_name == 'main'
         run: |
-          git clone https://${{ secrets.INFRA_TOKEN }}@github.com/playdata-8th-full-stack-baedal-service/sobok-infra.git
-          cd sobok-infra/${{ matrix.service.name }}
-          
-          git pull --rebase origin main 
+          sudo curl -L https://github.com/mikefarah/yq/releases/download/v4.43.1/yq_linux_amd64 \
+            -o /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
 
-          yq -i '.image.tag = "${{ github.sha }}"' values.yaml
+      - name: Bump image tag in sobok-infra (main only)
+        if: matrix.service.changed == 'true' && github.event_name == 'push' && github.ref_name == 'main'
+        env:
+          PAT: ${{ secrets.INFRA_TOKEN }}
+          EMAIL: ${{ secrets.INFRA_EMAIL }}
+          NAME: ${{ secrets.INFRA_NAME }}
+        run: |
+          set -e
+          REPO_URL="https://${PAT}@github.com/playdata-8th-full-stack-baedal-service/sobok-infra.git"
+          git clone "$REPO_URL"
+          cd sobok-infra/msa-chart/charts/${{ matrix.service.name }}
 
-          git config --global user.email "${{ secrets.INFRA_EMAIL }}"
-          git config --global user.name "${{ secrets.INFRA_NAME }}"
-          git commit -am "🔄 Update image tag for ${{ matrix.service.name }} to ${{ github.sha }}"
+          # 최신 반영
+          git pull --rebase origin main || true
+
+          # values.yaml의 image.tag를 이 커밋 SHA(짧은 형태)로 교체
+          SHORT_SHA=$(git rev-parse --short $GITHUB_SHA)
+          yq -i '.image.tag = strenv(SHORT_SHA)' values.yaml
+
+          git config --global user.email "$EMAIL"
+          git config --global user.name "$NAME"
+          git commit -am "chore(${{ matrix.service.name }}): bump image.tag to ${SHORT_SHA}"
           git push origin main
 
   notify-completion:

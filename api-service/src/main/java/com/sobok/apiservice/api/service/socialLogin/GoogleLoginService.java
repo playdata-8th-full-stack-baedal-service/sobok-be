@@ -1,24 +1,15 @@
 package com.sobok.apiservice.api.service.socialLogin;
 
-import com.sobok.apiservice.api.client.AuthFeignClient;
 import com.sobok.apiservice.api.client.GoogleFeignClient;
 import com.sobok.apiservice.api.client.GoogleTokenFeignClient;
 import com.sobok.apiservice.api.dto.google.*;
 import com.sobok.apiservice.api.dto.kakao.OauthResDto;
 import com.sobok.apiservice.api.dto.social.SocialUserDto;
-import com.sobok.apiservice.api.entity.Oauth;
-import com.sobok.apiservice.api.repository.OauthRepository;
-import com.sobok.apiservice.common.dto.ApiResponse;
-import com.sobok.apiservice.common.exception.CustomException;
-import feign.FeignException;
+import com.sobok.apiservice.common.dto.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -40,9 +31,9 @@ public class GoogleLoginService {
 
     //백엔드에서 구글 로그인 화면(authorization URL)을 생성해서 프론트에 전달해주는 메서드
     //사용자가 구글 로그인을 시도할 때 구글 인증 페이지로 리다이렉션할 수 있는 URL을 만들어 주는 역할
-    public ApiResponse<String> getGoogleLoginView() {
+    public CommonResponse<String> getGoogleLoginView() {
 
-        return ApiResponse.<String>builder()
+        return CommonResponse.<String>builder()
                 .data(googleApiUrl + "client_id=" + googleClientId
                         + "&redirect_uri=" + redirectUrl
                         + "&response_type=code"

@@ -132,6 +132,9 @@ public class CartService {
         return getPaymentResDto(userInfo.getUserId(), cartCookList);
     }
 
+    public record CartIngredientKey(Long cartCookId, Long ingreId, String defaultIngre) {
+    }
+
     public PaymentResDto getPaymentResDto(Long userId, List<CartCook> cartCookList) {
         if (cartCookList.isEmpty()) {
             throw new CustomException("장바구니가 존재하지 않습니다.", HttpStatus.NOT_FOUND);
@@ -187,9 +190,9 @@ public class CartService {
 
         log.info("cartCookIngreMap: {}", cartCookIngreMap);
 
-        Map<String, Integer> cartIngreKeyMap = cartIngredients.stream()
+        Map<CartIngredientKey, Integer> cartIngreKeyMap = cartIngredients.stream()
                 .collect(Collectors.toMap(
-                        ingre -> ingre.getCartCookId() + "_" + ingre.getIngreId() + "_" + ingre.getDefaultIngre(),
+                        ingre -> new CartIngredientKey(ingre.getCartCookId(), ingre.getIngreId(), ingre.getDefaultIngre()),
                         CartIngredient::getUnitQuantity
                 ));
         log.info("cartIngreKeyMap : {}", cartIngreKeyMap);
@@ -204,13 +207,13 @@ public class CartService {
                     .map(ingreMap::get)
                     .filter(Objects::nonNull)
                     .map(ingre -> {
-                        String key = cartCook.getId() + "_" + ingre.getIngredientId() + "_Y";
+                        CartIngredientKey key = new CartIngredientKey(cartCook.getId(), ingre.getIngredientId(), "Y");
                         Integer qty = cartIngreKeyMap.get(key);
                         return qty != null
                                 ? ingre.toBuilder().unitQuantity(qty).build()
                                 : ingre;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
             // 추가 재료 매핑
             List<IngredientResDto> additionalIngredients = cartCookIngreMap.getOrDefault(cartCook.getId(), Collections.emptyList()).stream()
@@ -218,18 +221,18 @@ public class CartService {
                     .map(ingre -> {
                         IngredientResDto ingredient = ingreMap.get(ingre.getIngreId());
                         if (ingredient != null) {
-                            String key = cartCook.getId() + "_" + ingre.getIngreId() + "_N";
-                            log.info("key: {}", key);
-                            Integer cartIngredient = cartIngreKeyMap.get(key);
-                            log.info("키로 찾아온 cartIngredient: {}", cartIngredient);
-                            if (cartIngredient != null) {
-                                ingredient.setUnitQuantity(cartIngredient);
+                            CartIngredientKey key = new CartIngredientKey(cartCook.getId(), ingre.getIngreId(), "N");
+                            Integer cartIngredientQty = cartIngreKeyMap.get(key);
+                            if (cartIngredientQty != null) {
+                                ingredient = ingredient.toBuilder()
+                                        .unitQuantity(cartIngredientQty)
+                                        .build();
                             }
                         }
                         return ingredient;
                     })
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
 
             return PaymentItemResDto.builder()
                     .id(cartCook.getId())
