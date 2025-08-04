@@ -1,6 +1,6 @@
 package com.sobok.postservice.post.service;
 
-import com.sobok.postservice.common.dto.ApiResponse;
+import com.sobok.postservice.common.dto.CommonResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
 import com.sobok.postservice.common.exception.CustomException;
 import com.sobok.postservice.post.client.ApiFeignClient;
@@ -333,13 +333,13 @@ public class PostService {
     /**
      * 사용자별 게시글 조회
      */
-    public ApiResponse<PagedResponse<PostListResDto>> getUserPost(TokenUserInfo userInfo, int page, int size) {
+    public CommonResponse<PagedResponse<PostListResDto>> getUserPost(TokenUserInfo userInfo, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Page<Post> postPage = postRepository.findAllByUserId(userInfo.getUserId(), pageable);
         List<Post> posts = postPage.getContent();
 
         if (posts.isEmpty()) {
-            return ApiResponse.ok(new PagedResponse<>(
+            return CommonResponse.ok(new PagedResponse<>(
                     Collections.emptyList(), page, size, 0, 0, true
             ));
         }
@@ -373,7 +373,7 @@ public class PostService {
                     .build();
         }).toList();
 
-        return ApiResponse.ok(new PagedResponse<>(result, page, size,
+        return CommonResponse.ok(new PagedResponse<>(result, page, size,
                 postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
     }
 
@@ -484,14 +484,14 @@ public class PostService {
     /**
      * 게시글 존재 여부 확인 (버튼 제거용)
      */
-    public ApiResponse<PostRegisterCheckResDto> getRegisterCheckStatus(Long paymentId, Long cookId) {
+    public CommonResponse<PostRegisterCheckResDto> getRegisterCheckStatus(Long paymentId, Long cookId) {
         boolean exists = postRepository.existsByPaymentIdAndCookId(paymentId, cookId);
 
         String message = exists
                 ? "해당 요리에 대한 게시글이 이미 등록되어 있습니다."
                 : "해당 요리에 게시글을 등록할 수 있습니다.";
 
-        return ApiResponse.ok(new PostRegisterCheckResDto(exists), message);
+        return CommonResponse.ok(new PostRegisterCheckResDto(exists), message);
     }
 
 

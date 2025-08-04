@@ -1,6 +1,5 @@
 package com.sobok.userservice.user.controller;
 
-import com.sobok.userservice.common.dto.ApiResponse;
 import com.sobok.userservice.user.dto.info.AuthUserInfoResDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.UserSignupReqDto;

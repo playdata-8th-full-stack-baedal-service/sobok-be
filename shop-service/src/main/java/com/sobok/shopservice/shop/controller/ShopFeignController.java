@@ -1,6 +1,5 @@
 package com.sobok.shopservice.shop.controller;
 
-import com.sobok.shopservice.common.dto.ApiResponse;
 import com.sobok.shopservice.shop.dto.info.AuthShopInfoResDto;
 import com.sobok.shopservice.shop.dto.payment.ShopAssignDto;
 import com.sobok.shopservice.shop.dto.request.ShopSignupReqDto;

@@ -1,7 +1,7 @@
 package com.sobok.userservice.user.client;
 
 import com.sobok.userservice.common.config.FeignConfig;
-import com.sobok.userservice.common.dto.ApiResponse;
+import com.sobok.userservice.common.dto.CommonResponse;
 import com.sobok.userservice.user.dto.response.UserLocationResDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -16,7 +16,7 @@ public interface ApiServiceClient {
     ResponseEntity<UserLocationResDto> convertAddress(@RequestParam String roadFull);
 
     @DeleteMapping("/api/delete-S3-image")
-    ResponseEntity<ApiResponse<String>> deleteS3Image(@RequestParam String key);
+    ResponseEntity<CommonResponse<String>> deleteS3Image(@RequestParam String key);
 
     @PostMapping(value = "/api/change-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<String> changeImage(@RequestPart MultipartFile image, @RequestPart String category, @RequestPart String oldPhoto);

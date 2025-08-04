@@ -1,6 +1,6 @@
 package com.sobok.postservice.common.exception;
 
-import com.sobok.postservice.common.dto.ApiResponse;
+import com.sobok.postservice.common.dto.CommonResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
@@ -23,14 +23,14 @@ public class CommonExceptionHandler {
     public ResponseEntity<?> entityNotFoundHandler(EntityNotFoundException e) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
-        return new ResponseEntity<>(ApiResponse.fail(status, e.getMessage()), status);
+        return new ResponseEntity<>(CommonResponse.fail(status, e.getMessage()), status);
     }
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<?> customExceptionHandler(CustomException e) {
         HttpStatus status = e.status;
         log.error("예외 발생! 메세지 : {}", e.getMessage());
-        return new ResponseEntity<>(ApiResponse.fail(status, e.getMessage()), status);
+        return new ResponseEntity<>(CommonResponse.fail(status, e.getMessage()), status);
     }
 
     @ExceptionHandler({
@@ -41,6 +41,6 @@ public class CommonExceptionHandler {
     public ResponseEntity<?> handleBadRequest(Exception ex) {
         log.info("잘못된 요청 파라미터 또는 타입 불일치 오류 발생: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.fail(HttpStatus.NOT_FOUND, "잘못된 요청 또는 리소스가 없습니다."));
+                .body(CommonResponse.fail(HttpStatus.NOT_FOUND, "잘못된 요청 또는 리소스가 없습니다."));
     }
 }

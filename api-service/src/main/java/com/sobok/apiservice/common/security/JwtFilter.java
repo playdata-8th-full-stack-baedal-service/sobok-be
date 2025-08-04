@@ -1,7 +1,7 @@
 package com.sobok.apiservice.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sobok.apiservice.common.dto.ApiResponse;
+import com.sobok.apiservice.common.dto.CommonResponse;
 import com.sobok.apiservice.common.dto.TokenUserInfo;
 import com.sobok.apiservice.common.enums.Role;
 import io.jsonwebtoken.Claims;
@@ -203,7 +203,7 @@ public class JwtFilter extends OncePerRequestFilter {
         response.setCharacterEncoding("UTF-8");
 
         // 공통 실패 응답 JSON으로 변환
-        String body = objectMapper.writeValueAsString(ApiResponse.fail(httpStatus, message));
+        String body = objectMapper.writeValueAsString(CommonResponse.fail(httpStatus, message));
         response.getWriter().write(body);
     }
 }

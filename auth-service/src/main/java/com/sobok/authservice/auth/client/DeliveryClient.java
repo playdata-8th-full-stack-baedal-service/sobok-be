@@ -5,7 +5,6 @@ import com.sobok.authservice.auth.dto.request.RiderReqDto;
 import com.sobok.authservice.auth.dto.response.ByPhoneResDto;
 import com.sobok.authservice.common.config.FeignConfig;
 import com.sobok.authservice.auth.dto.response.AuthRiderResDto;
-import com.sobok.authservice.common.dto.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
