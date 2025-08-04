@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> getUsersByAuthId(Long authId);
 
     Optional<User> getUserByAuthId(Long authId);
+
+    boolean existsByPhone(String phone);
 }

@@ -93,6 +93,11 @@ public class UserService {
     public void signup(UserSignupReqDto reqDto) {
         log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
 
+        // 전화번호 중복 체크
+        if (userRepository.existsByPhone(reqDto.getPhone())) {
+            throw new CustomException("이미 등록된 전화번호입니다.", HttpStatus.BAD_REQUEST);
+        }
+
         String photoUrl = reqDto.getPhoto() == null ? ALTER_URL + "profile/default_profile.png" : reqDto.getPhoto();
 
         // 유저 객체 생성
