@@ -105,7 +105,7 @@ public class UserService {
                 .build();
 
         // user DB에 저장
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
         // 사용자 주소 저장
         if (reqDto.getRoadFull() != null) {
@@ -114,7 +114,7 @@ public class UserService {
                     .addrDetail(reqDto.getAddrDetail())
                     .build();
 
-            userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+            userAddressService.addAddress(saved.getId(), addrDto);
             log.info("성공적으로 사용자의 주소를 저장했습니다.");
         }
 
@@ -368,7 +368,7 @@ public class UserService {
                 .build();
 
         // user DB에 저장
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
         // 사용자 주소 저장
         if (reqDto.getRoadFull() != null) {
@@ -377,7 +377,7 @@ public class UserService {
                     .addrDetail(reqDto.getAddrDetail())
                     .build();
 
-            userAddressService.addAddress(reqDto.getAuthId(), addrDto);
+            userAddressService.addAddress(saved.getId(), addrDto);
             log.info("성공적으로 사용자의 주소를 저장했습니다.");
         }
 
