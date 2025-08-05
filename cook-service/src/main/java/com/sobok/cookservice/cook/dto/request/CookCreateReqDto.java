@@ -30,7 +30,7 @@ public class CookCreateReqDto {
     @NotBlank(message = "레시피는 필수입니다.")
     private String recipe;
 
-    @Schema(description = "요리 카테고리", example = "SOUP", required = true)
+    @Schema(description = "요리 카테고리", example = "KOREAN", required = true)
     @NotNull(message = "카테고리는 필수입니다.")
     private String category;
 

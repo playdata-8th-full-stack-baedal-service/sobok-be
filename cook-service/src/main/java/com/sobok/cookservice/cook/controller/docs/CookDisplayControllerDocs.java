@@ -14,70 +14,40 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 public interface CookDisplayControllerDocs {
 
-    @Operation(summary = "조건에 맞는 요리 목록 조회")
+    @Operation(
+            summary = "조건에 맞는 요리 목록 조회",
+            description = "카테고리, 키워드, 정렬 조건과 페이징 파라미터를 이용해 조건에 맞는 요리 목록을 조회합니다."
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "요리 조회 성공",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
+                {
+                  "success": true,
+                  "data": [
                     {
-                      "success": true,
-                      "data": [
-                        {
-                          "cookId": 1,
-                          "name": "감자볶음",
-                          "thumbnail": "http://example.com/image.jpg",
-                          "category": "반찬",
-                          "price": 5000
-                        }
-                      ],
-                      "message": "요청 조건에 맞는 요리가 모두 조회되었습니다.",
-                      "status": 200
+                      "cookId": 1,
+                      "name": "감자볶음",
+                      "thumbnail": "http://example.com/image.jpg",
+                      "category": "반찬",
+                      "price": 5000
                     }
-                """))),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (페이지 번호/크기/카테고리/정렬값 등 파라미터 오류)",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(value = """
-                    {
-                      "success": false,
-                      "data": null,
-                      "message": "페이지 번호나 크기가 유효하지 않습니다.",
-                      "status": 400
-                    }
-                """))),
-            @ApiResponse(responseCode = "400", description = "잘못된 카테고리 입력",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(value = """
-                    {
-                      "success": false,
-                      "data": null,
-                      "message": "잘못된 카테고리 입력입니다.",
-                      "status": 400
-                    }
-                """))),
-            @ApiResponse(responseCode = "400", description = "잘못된 정렬 조건 입력",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(value = """
-                    {
-                      "success": false,
-                      "data": null,
-                      "message": "정렬 조건이 유효하지 않습니다.",
-                      "status": 400
-                    }
+                  ],
+                  "message": "요청 조건에 맞는 요리가 모두 조회되었습니다.",
+                  "status": 200
+                }
                 """))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                      "success": false,
-                      "data": null,
-                      "message": "서버 처리 중 오류가 발생했습니다.",
-                      "status": 500
-                    }
+                {
+                  "success": false,
+                  "data": null,
+                  "message": "서버 처리 중 오류가 발생했습니다.",
+                  "status": 500
+                }
                 """))),
             @ApiResponse(responseCode = "204", description = "조건에 맞는 요리 데이터가 존재하지 않음",
                     content = @Content)

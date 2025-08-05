@@ -321,7 +321,7 @@ public interface AuthControllerDocs {
                                         "success": true,
                                         "data": {
                                             "id": 10,
-                                            "name": "홍길동",
+                                            "name": "홍길동"
                                         },
                                         "message": "라이더 회원가입 성공",
                                         "status": 200
