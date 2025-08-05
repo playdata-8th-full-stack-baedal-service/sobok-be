@@ -110,6 +110,17 @@ public interface CookControllerDocs {
                                       "status": 400
                                     }
                                     """))),
+            @ApiResponse(responseCode = "400", description = "잘못된 카테고리 입력",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "success": false,
+                                      "data": null,
+                                      "message": "잘못된 카테고리 입력입니다.",
+                                      "status": 400
+                                    }
+                                    """))),
     })
     ResponseEntity<?> getCook(
             @Parameter(description = "페이지 번호", required = true) @RequestParam Long pageNo,
@@ -237,6 +248,7 @@ public interface CookControllerDocs {
             @Parameter(description = "조회할 요리 ID", required = true) @PathVariable("id") Long cookId
     );
 
+
     @Operation(
             summary = "한달 주문량 기준 요리 페이지 조회",
             description = "한 달간 주문량을 기준으로 인기 있는 요리 목록을 페이지 단위로 조회합니다."
@@ -247,30 +259,46 @@ public interface CookControllerDocs {
                             schema = @Schema(implementation = PagedResponse.class),
                             examples = @ExampleObject(value = """
                                     {
-                                      "content": [
-                                        {
-                                          "cookId": 1,
-                                          "name": "김치찌개",
-                                          "orderCount": 150,
-                                          "thumbnailUrl": "https://example.com/images/kimchi.jpg"
-                                        },
-                                        {
-                                          "cookId": 2,
-                                          "name": "불고기",
-                                          "orderCount": 120,
-                                          "thumbnailUrl": "https://example.com/images/bulgogi.jpg"
-                                        }
-                                      ],
-                                      "page": 0,
-                                      "size": 10,
-                                      "totalPages": 5,
-                                      "totalElements": 50,
-                                      "first": true,
-                                      "last": false
+                                      "success": true,
+                                      "data": {
+                                        "content": [
+                                          {
+                                            "cookId": 1,
+                                            "name": "김치찌개",
+                                            "orderCount": 150,
+                                            "thumbnailUrl": "https://example.com/images/kimchi.jpg"
+                                          },
+                                          {
+                                            "cookId": 2,
+                                            "name": "불고기",
+                                            "orderCount": 120,
+                                            "thumbnailUrl": "https://example.com/images/bulgogi.jpg"
+                                          }
+                                        ],
+                                        "page": 0,
+                                        "size": 10,
+                                        "totalPages": 5,
+                                        "totalElements": 50,
+                                        "first": true,
+                                        "last": false
+                                      },
+                                      "message": "인기 요리 목록 조회 성공",
+                                      "status": 200
                                     }
                                     """))),
             @ApiResponse(responseCode = "204", description = "주문 데이터가 없음",
                     content = @Content),
+            @ApiResponse(responseCode = "404", description = "요리 정보를 찾을 수 없음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "success": false,
+                                      "data": null,
+                                      "message": "요리 정보가 없습니다. id=1",
+                                      "status": 404
+                                    }
+                                    """))),
             @ApiResponse(responseCode = "500", description = "payment-service 통신 실패 또는 서버 오류",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
@@ -281,10 +309,11 @@ public interface CookControllerDocs {
                                       "message": "payment-service 통신 실패",
                                       "status": 500
                                     }
-                                    """))),
+                                    """)))
     })
+    @GetMapping("/popular")
     PagedResponse<PopularCookResDto> getPopularCooks(
-            @Parameter(description = "페이지 번호", required = true) @RequestParam int page,
+            @Parameter(description = "페이지 번호 (0부터 시작)", required = true) @RequestParam int page,
             @Parameter(description = "페이지 크기", required = true) @RequestParam int size
     );
 
