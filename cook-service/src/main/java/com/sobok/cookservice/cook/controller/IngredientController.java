@@ -28,8 +28,8 @@ public class IngredientController implements IngredientControllerDocs {
      */
     @PostMapping("/register")
     public ResponseEntity<?> ingreRegister(@Valid @RequestBody IngreReqDto reqDto) {
-        ingredientService.ingreCreate(reqDto);
-        return ResponseEntity.ok().body(CommonResponse.ok(reqDto.getIngreName(), "식재료가 등록되었습니다."));
+        IngreResDto ingreResDto = ingredientService.ingreCreate(reqDto);
+        return ResponseEntity.ok().body(CommonResponse.ok(ingreResDto, "식재료가 등록되었습니다."));
     }
 
     /**
