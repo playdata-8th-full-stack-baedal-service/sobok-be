@@ -53,15 +53,15 @@ public class CookService {
                     throw new CustomException("이미 존재하는 요리 이름입니다.", HttpStatus.BAD_REQUEST);
                 });
 
-//
-//        // 사진 등록
-//        String photoUrl;
-//        try {
-//            photoUrl = apiServiceClient.registerImg(dto.getThumbnailUrl());
-//        } catch (Exception e) {
-//            log.error("사진 등록 실패", e);
-//            photoUrl = dto.getThumbnailUrl();
-//        }
+
+        // 사진 등록
+        String photoUrl;
+        try {
+            photoUrl = apiServiceClient.registerImg(dto.getThumbnailUrl());
+        } catch (Exception e) {
+            log.error("사진 등록 실패", e);
+            throw new CustomException("사진 등록 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         // 레시피 썸네일 중복 검증
         cookRepository.findByThumbnail(dto.getThumbnailUrl())
@@ -75,7 +75,7 @@ public class CookService {
                 .allergy(dto.getAllergy())
                 .recipe(dto.getRecipe())
                 .category(CookCategory.valueOf(dto.getCategory().toUpperCase()))
-                .thumbnail(dto.getThumbnailUrl())
+                .thumbnail(photoUrl)
                 .build();
 
         cookRepository.save(cook); // DB 저장

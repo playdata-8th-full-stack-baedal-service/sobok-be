@@ -3,6 +3,7 @@ package com.sobok.deliveryservice.delivery.controller;
 
 import com.sobok.deliveryservice.common.dto.CommonResponse;
 import com.sobok.deliveryservice.common.dto.TokenUserInfo;
+import com.sobok.deliveryservice.delivery.controller.docs.DeliveryControllerDocs;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryAvailOrderResDto;
 import com.sobok.deliveryservice.delivery.dto.response.DeliveryOrderResDto;
 import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
@@ -22,7 +23,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/delivery")
-public class DeliveryController {
+public class DeliveryController implements DeliveryControllerDocs {
 
     private final DeliveryService deliveryService;
     private final RiderService riderService;
