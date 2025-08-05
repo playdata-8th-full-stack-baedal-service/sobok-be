@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping("/shop")
 @Slf4j
 @RequiredArgsConstructor
-public class ShopController {
+public class ShopController implements ShopControllerDocs{
 
     private final ShopService shopService;
     private final ShopAvailabilityService shopAvailabilityService;
@@ -87,6 +87,5 @@ public class ShopController {
     public ResponseEntity<?> getAllShops(@AuthenticationPrincipal TokenUserInfo userInfo) {
         List<ShopResDto> result = shopService.getAllShops();
         return ResponseEntity.ok(CommonResponse.ok(result, "가게 전체 조회 성공"));
-
     }
 }
