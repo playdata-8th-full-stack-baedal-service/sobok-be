@@ -80,7 +80,7 @@ public class UserController implements UserControllerDocs {
     /**
      * 이메일 삭제
      */
-    @DeleteMapping("/deleteEmail")
+    @PatchMapping("/deleteEmail")
     public ResponseEntity<?> deleteEmail(@AuthenticationPrincipal TokenUserInfo userInfo) {
         userService.deleteEmail(userInfo);
         return ResponseEntity.ok().body(CommonResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 삭제하였습니다."));
