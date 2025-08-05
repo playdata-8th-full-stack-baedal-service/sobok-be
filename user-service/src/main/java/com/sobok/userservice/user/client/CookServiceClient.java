@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "cook-service", configuration = FeignConfig.class)
+@FeignClient(name = "cook-service", url = "${COOK_SERVICE_URL}", configuration = FeignConfig.class)
 public interface CookServiceClient {
 
     @GetMapping("/api/check-cook")
