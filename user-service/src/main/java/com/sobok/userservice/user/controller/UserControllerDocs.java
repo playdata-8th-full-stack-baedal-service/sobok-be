@@ -3,7 +3,10 @@ package com.sobok.userservice.user.controller;
 import com.sobok.userservice.common.dto.CommonResponse;
 import com.sobok.userservice.common.dto.TokenUserInfo;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
+import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;
+import com.sobok.userservice.user.dto.response.PreOrderUserResDto;
+import com.sobok.userservice.user.dto.response.UserLikeResDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -179,7 +182,7 @@ public interface UserControllerDocs {
                             description = "주소 목록 조회 성공",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = CommonResponse.class),
+                                    schema = @Schema(implementation = UserAddressDto.class),
                                     examples = @ExampleObject(
                                             value = """
                                                         {
@@ -565,7 +568,7 @@ public interface UserControllerDocs {
                     @ApiResponse(
                             responseCode = "200",
                             description = "즐겨찾기 삭제 성공",
-                            content = @Content(schema = @Schema(implementation = CommonResponse.class),
+                            content = @Content(schema = @Schema(implementation = UserBookmarkReqDto.class),
                                     examples = @ExampleObject(value = """
                                                 {
                                                   "success": true,
@@ -762,20 +765,20 @@ public interface UserControllerDocs {
                     @ApiResponse(
                             responseCode = "200",
                             description = "사용자 정보 조회 성공",
-                            content = @Content(schema = @Schema(implementation = CommonResponse.class),
+                            content = @Content(schema = @Schema(implementation = PreOrderUserResDto.class),
                                     examples = @ExampleObject(value = """
                                             {
                                               "success": true,
                                               "data": {
                                                 "userId": 1,
-                                                "nickname": "현지",
+                                                "nickname": "김소복",
                                                 "phone": "01012345678",
                                                 "email": "user@example.com",
                                                 "addresses": [
                                                   {
                                                     "id": 12,
                                                     "roadFull": "부산시 금정구",
-                                                    "addrDetail": "가로수길",
+                                                    "addrDetail": "1층",
                                                     "defaultAddr": true
                                                   }
                                                 ]
@@ -1000,7 +1003,7 @@ public interface UserControllerDocs {
                             description = "좋아요 등록 성공",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = CommonResponse.class),
+                                    schema = @Schema(implementation = UserLikeResDto.class),
                                     examples = @ExampleObject(value = """
                                                 {
                                                   "success": true,
@@ -1083,7 +1086,7 @@ public interface UserControllerDocs {
                             description = "좋아요 해제 성공",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = CommonResponse.class),
+                                    schema = @Schema(implementation = UserLikeResDto.class),
                                     examples = @ExampleObject(value = """
                                                 {
                                                   "success": true,

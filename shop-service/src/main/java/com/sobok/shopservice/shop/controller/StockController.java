@@ -19,7 +19,7 @@ import java.util.List;
 @RequestMapping("/stock")
 @RequiredArgsConstructor
 @Slf4j
-public class StockController {
+public class StockController implements StockControllerDocs {
     private final StockService stockService;
     private final ShopValidator validator;
 
