@@ -1,6 +1,7 @@
 package com.sobok.authservice.auth.controller;
 
 
+import com.sobok.authservice.auth.controller.docs.SmsControllerDocs;
 import com.sobok.authservice.auth.dto.request.SmsReqDto;
 import com.sobok.authservice.auth.dto.request.VerificationReqDto;
 import com.sobok.authservice.auth.service.etc.SmsService;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/sms")
 @Slf4j
 @RequiredArgsConstructor
-public class SmsController {
+public class SmsController implements SmsControllerDocs {
 
     private final SmsService smsService;
 

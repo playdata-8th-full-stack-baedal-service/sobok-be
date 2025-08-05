@@ -1,5 +1,6 @@
 package com.sobok.apiservice.api.controller;
 
+import com.sobok.apiservice.api.controller.docs.SocialLoginControllerDocs;
 import com.sobok.apiservice.api.dto.google.GoogleCallResDto;
 import com.sobok.apiservice.api.dto.kakao.KakaoCallResDto;
 import com.sobok.apiservice.api.service.socialLogin.GoogleLoginService;
@@ -20,7 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping("/social")
 @Slf4j
-public class SocialLoginController {
+public class SocialLoginController implements SocialLoginControllerDocs {
 
     private final SocialLoginService socialLoginService;
     private final KakaoLoginService kakaoLoginService;
