@@ -66,8 +66,8 @@ public interface IngredientControllerDocs {
                                       "message": "키워드로 검색한 식재료 결과입니다.",
                                       "status": 200
                                     }
-                                    """))),
-            @ApiResponse(responseCode = "204", description = "검색 결과 없음", content = @Content)
+                                    """)))
+            // 204 제거 - 서비스는 빈 리스트 반환함
     })
     ResponseEntity<?> ingreSearch(
             @Parameter(description = "검색 키워드", required = true)
@@ -94,8 +94,8 @@ public interface IngredientControllerDocs {
                                       "message": "전체 식재료 결과입니다.",
                                       "status": 200
                                     }
-                                    """))),
-            @ApiResponse(responseCode = "204", description = "식재료 없음", content = @Content)
+                                    """)))
+            // 204 제거 - 서비스는 빈 리스트 반환함
     })
     ResponseEntity<?> allSearch();
 
