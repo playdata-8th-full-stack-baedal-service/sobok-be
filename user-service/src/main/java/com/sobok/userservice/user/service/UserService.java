@@ -656,7 +656,7 @@ public class UserService {
     @Transactional
     public void deleteEmail(TokenUserInfo userInfo) {
         // 유저 조회
-        User user = userRepository.findById(userInfo.getId())
+        User user = userRepository.findById(userInfo.getUserId())
                 .orElseThrow(() -> new CustomException("존재하지 않는 사용자입니다.", HttpStatus.NOT_FOUND));
 
         // 이메일이 비어있으면 예외
@@ -665,7 +665,7 @@ public class UserService {
         }
 
         // 이메일 삭제
-        user.setEmail(null);
+        user.setEmail("");
 
         userRepository.save(user);
     }

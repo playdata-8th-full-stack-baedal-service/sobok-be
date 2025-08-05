@@ -2,6 +2,7 @@ package com.sobok.shopservice.shop.controller;
 
 import com.sobok.shopservice.common.dto.CommonResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
+import com.sobok.shopservice.shop.controller.docs.StockControllerDocs;
 import com.sobok.shopservice.shop.dto.stock.StockReqDto;
 import com.sobok.shopservice.shop.dto.stock.StockResDto;
 import com.sobok.shopservice.shop.service.ShopValidator;
@@ -19,7 +20,7 @@ import java.util.List;
 @RequestMapping("/stock")
 @RequiredArgsConstructor
 @Slf4j
-public class StockController {
+public class StockController implements StockControllerDocs {
     private final StockService stockService;
     private final ShopValidator validator;
 

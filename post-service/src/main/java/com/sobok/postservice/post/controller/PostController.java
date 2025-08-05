@@ -2,6 +2,7 @@ package com.sobok.postservice.post.controller;
 
 import com.sobok.postservice.common.dto.CommonResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
+import com.sobok.postservice.post.controller.docs.PostControllerDocs;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
 import com.sobok.postservice.post.dto.response.*;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/post")
 @RequiredArgsConstructor
-public class PostController {
+public class PostController implements PostControllerDocs {
 
     private final PostService postService;
 
@@ -22,24 +23,24 @@ public class PostController {
      * 게시글 등록
      */
     @PostMapping("/register")
-    public ResponseEntity<PostRegisterResDto> registerPost(
+    public ResponseEntity<?> registerPost(
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestBody PostRegisterReqDto dto
     ) {
         PostRegisterResDto res = postService.registerPost(dto, userInfo);
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok().body(CommonResponse.ok(res, "게시물을 등록하였습니다."));
     }
 
     /**
      * 게시글 수정
      */
     @PutMapping("/update")
-    public ResponseEntity<CommonResponse<PostUpdateResDto>> updatePost(
+    public ResponseEntity<?> updatePost(
             @AuthenticationPrincipal TokenUserInfo userInfo,
             @RequestBody PostUpdateReqDto dto
     ) {
         PostUpdateResDto res = postService.updatePost(dto, userInfo);
-        return ResponseEntity.ok(CommonResponse.ok(res, "게시글 수정 성공"));
+        return ResponseEntity.ok().body(CommonResponse.ok(res, "게시글 수정 성공"));
     }
 
     /**
