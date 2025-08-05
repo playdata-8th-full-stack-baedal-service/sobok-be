@@ -26,7 +26,7 @@ import java.util.List;
 @RequestMapping("/payment")
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentController {
+public class PaymentController implements PaymentControllerDocs {
     private final PaymentService paymentService;
     private final CartService cartService;
     private final DeliveryFeignClient deliveryFeignClient;

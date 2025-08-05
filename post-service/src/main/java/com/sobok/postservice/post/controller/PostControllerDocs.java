@@ -104,7 +104,13 @@ public interface PostControllerDocs {
     @PostMapping("/register")
     ResponseEntity<?> registerPost(
             @Parameter(hidden = true) @AuthenticationPrincipal TokenUserInfo userInfo,
-            @RequestBody @Valid PostRegisterReqDto dto
+            @RequestBody
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "게시글 등록 요청 정보",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = PostRegisterReqDto.class))
+            )
+            @Valid PostRegisterReqDto dto
     );
 
     @Operation(
@@ -219,7 +225,13 @@ public interface PostControllerDocs {
     @PutMapping("/update")
     ResponseEntity<?> updatePost(
             @Parameter(hidden = true) @AuthenticationPrincipal TokenUserInfo userInfo,
-            @RequestBody PostUpdateReqDto dto
+            @RequestBody
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "수정할 게시글 정보",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = PostUpdateReqDto.class))
+            )
+            PostUpdateReqDto dto
     );
 
     @Operation(
@@ -311,7 +323,7 @@ public interface PostControllerDocs {
     })
     @DeleteMapping("/delete/{postId}")
     ResponseEntity<CommonResponse<String>> deletePost(
-            @PathVariable Long postId,
+            @Parameter(description = "삭제할 게시물 ID", example = "12") @PathVariable Long postId,
             @AuthenticationPrincipal TokenUserInfo userInfo
     );
 
@@ -490,7 +502,7 @@ public interface PostControllerDocs {
     })
     @GetMapping("/cook-posts/{cookId}")
     ResponseEntity<CookPostGroupResDto> getCookPosts(
-            @PathVariable Long cookId,
+            @Parameter(description = "기준 요리 ID", example = "5") @PathVariable Long cookId,
             @RequestParam(defaultValue = "like") String sortBy
     );
 
@@ -788,7 +800,8 @@ public interface PostControllerDocs {
             )
     })
     @GetMapping("/detail/{postId}")
-    ResponseEntity<CommonResponse<PostDetailResDto>> getPostDetail(@PathVariable Long postId);
+    ResponseEntity<CommonResponse<PostDetailResDto>> getPostDetail(
+            @Parameter(description = "상세조회할 게시물 ID", example = "12") @PathVariable Long postId);
 
     @Operation(
             summary = "게시물 등록 여부 확인",
