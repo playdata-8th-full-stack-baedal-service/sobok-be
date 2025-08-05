@@ -2,10 +2,7 @@ package com.sobok.deliveryservice.delivery.controller.docs;
 
 import com.sobok.deliveryservice.common.dto.CommonResponse;
 import com.sobok.deliveryservice.common.dto.TokenUserInfo;
-import com.sobok.deliveryservice.delivery.dto.response.DeliveryAvailOrderResDto;
-import com.sobok.deliveryservice.delivery.dto.response.DeliveryOrderResDto;
-import com.sobok.deliveryservice.delivery.dto.response.RiderInfoResDto;
-import com.sobok.deliveryservice.delivery.dto.response.RiderResDto;
+import com.sobok.deliveryservice.delivery.dto.response.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,8 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
 
 public interface DeliveryControllerDocs {
 
@@ -44,7 +39,6 @@ public interface DeliveryControllerDocs {
                                     "status": 400
                                 }
                             """)))
-
     })
     ResponseEntity<?> checkPermission(@Parameter(description = "면허 번호", required = true)
                                       @RequestParam String permission);
@@ -75,8 +69,40 @@ public interface DeliveryControllerDocs {
                                     "message": "배달 가능한 주문 목록을 조회하였습니다.",
                                     "status": 200
                                 }
+                            """))),
+            @ApiResponse(responseCode = "400", description = "잘못된 페이지 번호 또는 위도/경도 정보",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": null,
+                                    "message": "페이지 번호 또는 위도/경도 정보가 올바르지 않습니다.",
+                                    "status": 400
+                                }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "주변 가게 정보가 없거나 배달 가능한 주문이 없음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": [],
+                                    "message": "근처 가게 정보 또는 배달 가능한 주문이 없습니다.",
+                                    "status": 404
+                                }
+                            """))),
+            @ApiResponse(responseCode = "500", description = "shop-service, payment-service 또는 user-service 통신 실패",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": null,
+                                    "message": "외부 서비스 통신 오류가 발생했습니다.",
+                                    "status": 500
+                                }
                             """)))
-
     })
     ResponseEntity<?> getAllOrders(
             @Parameter(hidden = true) TokenUserInfo userInfo,
@@ -109,8 +135,29 @@ public interface DeliveryControllerDocs {
                                     "message": "배달 중인 목록을 조회하였습니다.",
                                     "status": 200
                                 }
+                            """))),
+            @ApiResponse(responseCode = "400", description = "잘못된 페이지 번호",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": null,
+                                    "message": "페이지 번호가 올바르지 않습니다.",
+                                    "status": 400
+                                }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "해당 라이더의 배달 중인 주문이 없음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": [],
+                                    "message": "배달 중인 주문이 없습니다.",
+                                    "status": 404
+                                }
                             """)))
-
     })
     ResponseEntity<?> getDeliveringOrders(
             @Parameter(hidden = true) TokenUserInfo userInfo,
@@ -141,8 +188,29 @@ public interface DeliveryControllerDocs {
                                     "message": "배달 전체 목록을 조회하였습니다.",
                                     "status": 200
                                 }
+                            """))),
+            @ApiResponse(responseCode = "400", description = "잘못된 페이지 번호",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": null,
+                                    "message": "페이지 번호가 올바르지 않습니다.",
+                                    "status": 400
+                                }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "해당 라이더의 배달 목록이 없음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": [],
+                                    "message": "배달 목록이 없습니다.",
+                                    "status": 404
+                                }
                             """)))
-
     })
     ResponseEntity<?> getDeliveryOrders(
             @Parameter(hidden = true) TokenUserInfo userInfo,
@@ -172,8 +240,18 @@ public interface DeliveryControllerDocs {
                                     "message": "전체 라이더 정보 조회 성공",
                                     "status": 200
                                 }
+                            """))),
+            @ApiResponse(responseCode = "401", description = "권한 없음 또는 인증 실패",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": null,
+                                    "message": "권한이 없거나 인증에 실패했습니다.",
+                                    "status": 401
+                                }
                             """)))
-
     })
     ResponseEntity<?> getAllRiders(@Parameter(hidden = true) TokenUserInfo userInfo);
 
@@ -197,8 +275,18 @@ public interface DeliveryControllerDocs {
                                     "message": "비활성화된 라이더 정보 조회 성공.",
                                     "status": 200
                                 }
+                            """))),
+            @ApiResponse(responseCode = "401", description = "권한 없음 또는 인증 실패",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "success": false,
+                                    "data": null,
+                                    "message": "권한이 없거나 인증에 실패했습니다.",
+                                    "status": 401
+                                }
                             """)))
-
     })
     ResponseEntity<?> getPendingRiders(@Parameter(hidden = true) TokenUserInfo userInfo);
 }
