@@ -12,6 +12,19 @@ spring:
           default-label: deploy
           username: ${GIT_USERNAME}
           password: ${GIT_PASSWORD}
+
+
+  # === RabbitMQ (Amazon MQ) : Config Server 자신도 Bus에 붙어야 함 ===
+  rabbitmq:
+    # 단일 브로커면 host/port, 멀티AZ면 addresses 사용
+    host: b-52bde74b-789f-4821-868a-48a2f828f871.mq.ap-northeast-2.on.aws
+    port: 5671
+    username: ${RABBITMQ_USERNAME}   # K8s Secret/Env로 주입
+    password: ${RABBITMQ_PASSWORD}   # K8s Secret/Env로 주입
+    virtual-host: /
+    ssl:
+      enabled: true
+
 management:
   endpoints:
     web:
