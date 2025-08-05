@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Tag(name = "토스페이 결제", description = "토스페이 결제 관련 API")
 public interface TossControllerDocs {
 
-    @Operation(summary = "토스페이 결제 요청", description = "토스페이 결제를 승인하고 주문 정보를 등록합니다.")
+    @Operation(
+            summary = "토스페이 결제 요청",
+            description = "토스페이 결제를 승인하고 주문 정보를 등록합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "결제 성공",
                     content = @Content(

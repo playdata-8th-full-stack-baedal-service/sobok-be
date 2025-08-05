@@ -17,7 +17,10 @@ import jakarta.validation.Valid;
 
 public interface SmsControllerDocs {
 
-    @Operation(summary = "문자 인증번호 전송", description = "입력된 전화번호로 인증번호를 문자로 발송합니다.")
+    @Operation(
+            summary = "문자 인증번호 전송",
+            description = "입력된 전화번호로 인증번호를 문자로 발송합니다."
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "문자 전송 성공",
                     content = @Content(mediaType = "application/json",
@@ -48,7 +51,10 @@ public interface SmsControllerDocs {
             @Parameter(description = "전화번호 입력 DTO", required = true)
             @RequestBody @Valid SmsReqDto smsReqDto);
 
-    @Operation(summary = "문자 인증번호 검증", description = "전화번호와 인증번호를 비교하여 인증을 검증합니다.")
+    @Operation(
+            summary = "문자 인증번호 검증",
+            description = "전화번호와 인증번호를 비교하여 인증을 검증합니다."
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "인증 성공",
                     content = @Content(mediaType = "application/json",
