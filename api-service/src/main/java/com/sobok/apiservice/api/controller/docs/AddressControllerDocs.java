@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
@@ -18,7 +19,8 @@ public interface AddressControllerDocs {
 
     @Operation(
             summary = "도로명 주소 -> 좌표 변환",
-            description = "도로명 주소를 위도, 경도로 변환합니다."
+            description = "도로명 주소를 위도, 경도로 변환합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "좌표 변환 성공",

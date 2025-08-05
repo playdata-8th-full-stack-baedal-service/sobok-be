@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,8 @@ public interface CookControllerDocs {
 
     @Operation(
             summary = "요리 등록",
-            description = "새로운 요리를 등록합니다. 요리 이름, 카테고리, 썸네일, 기본 식재료 등을 포함하여 등록할 수 있습니다."
+            description = "새로운 요리를 등록합니다. 요리 이름, 카테고리, 썸네일, 기본 식재료 등을 포함하여 등록할 수 있습니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "요리 등록 성공",
