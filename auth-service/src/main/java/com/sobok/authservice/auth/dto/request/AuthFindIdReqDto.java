@@ -8,6 +8,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "아이디 찾기 요청 DTO")
 public class AuthFindIdReqDto {
 
     @Pattern(

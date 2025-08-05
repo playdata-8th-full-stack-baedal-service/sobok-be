@@ -6,6 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@Schema(description = "가게 인증 정보 응답 DTO")
 public class AuthShopInfoResDto extends AuthBaseInfoResDto {
 
     @Schema(description = "가게 이름", example = "소복마트")

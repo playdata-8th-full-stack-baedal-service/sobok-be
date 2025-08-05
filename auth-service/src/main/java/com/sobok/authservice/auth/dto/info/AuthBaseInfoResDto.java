@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@Schema(description = "인증 기본 정보 응답 DTO")
 public abstract class AuthBaseInfoResDto {
 
     @Schema(description = "인증 정보 ID", example = "1")

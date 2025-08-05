@@ -10,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
+@Schema(description = "가게 등록 요청 DTO")
 public class AuthShopReqDto {
 
     @NotBlank(message = "아이디는 필수 입니다.")

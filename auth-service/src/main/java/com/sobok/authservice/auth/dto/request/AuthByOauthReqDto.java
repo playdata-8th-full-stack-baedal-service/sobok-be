@@ -11,6 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Schema(description = "OAuth 기반 인증 요청 DTO")
 public class AuthByOauthReqDto {
 
     @Schema(description = "소셜 OAuth 식별자", example = "1001")

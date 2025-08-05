@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "로그인 요청 DTO")
 public class AuthLoginReqDto {
     @Pattern(regexp = "^[a-zA-Z0-9_]{4,20}$", message = "아이디 형식이 유효하지 않습니다.")
     @Schema(description = "로그인 아이디", example = "user123", required = true)

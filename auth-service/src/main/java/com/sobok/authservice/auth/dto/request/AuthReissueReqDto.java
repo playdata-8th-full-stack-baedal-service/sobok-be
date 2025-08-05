@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Schema(description = "토큰 재발급 요청 DTO")
 public class AuthReissueReqDto {
 
     @Schema(description = "사용자 고유 ID", example = "1", required = true)

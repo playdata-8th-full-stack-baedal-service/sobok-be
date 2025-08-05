@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@Schema(description = "사용자 인증 정보 응답 DTO")
 public class AuthUserInfoResDto extends AuthBaseInfoResDto {
 
     @Schema(description = "유저 별명 (닉네임)", example = "배달왕자")

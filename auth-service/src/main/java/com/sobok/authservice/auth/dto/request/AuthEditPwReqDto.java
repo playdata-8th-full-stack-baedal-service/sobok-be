@@ -11,6 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
+@Schema(description = "비밀번호 변경 요청 DTO")
 public class AuthEditPwReqDto {
 
     @NotBlank(message = "비밀번호는 필수 입니다.")

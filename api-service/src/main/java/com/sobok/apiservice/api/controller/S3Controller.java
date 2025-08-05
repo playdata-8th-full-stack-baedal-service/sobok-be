@@ -1,5 +1,6 @@
 package com.sobok.apiservice.api.controller;
 
+import com.sobok.apiservice.api.controller.docs.S3ControllerDocs;
 import com.sobok.apiservice.api.service.s3.S3Service;
 import com.sobok.apiservice.common.dto.CommonResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @RequestMapping("/s3")
 @Slf4j
-public class S3Controller {
+public class S3Controller implements S3ControllerDocs {
 
     private final S3Service s3Service;
 

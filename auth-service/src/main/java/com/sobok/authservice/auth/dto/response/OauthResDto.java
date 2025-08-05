@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@Schema(description = "OAuth 인증 관련 응답 DTO")
 public class OauthResDto {
 
     @Schema(description = "OAuth 식별자", example = "1001")

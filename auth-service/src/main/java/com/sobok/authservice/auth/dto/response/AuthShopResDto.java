@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Schema(description = "가게 기본 정보 DTO")
 public class AuthShopResDto {
 
     @Schema(description = "가게 ID", example = "2001")

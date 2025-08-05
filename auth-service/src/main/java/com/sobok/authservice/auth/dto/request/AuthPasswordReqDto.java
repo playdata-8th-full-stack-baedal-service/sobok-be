@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Schema(description = "현재 비밀번호 검증 요청 DTO")
 public class AuthPasswordReqDto {
 
     @Schema(description = "검증할 현재 비밀번호", example = "Test@1234", required = true)

@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Schema(description = "전화번호 기반 내부 사용자 정보 DTO")
 public class ByPhoneResDto {
 
     @Schema(description = "내부 식별자 ID", example = "123")

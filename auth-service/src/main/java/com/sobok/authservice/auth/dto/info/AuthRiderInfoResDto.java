@@ -6,6 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@Schema(description = "라이더 인증 정보 응답 DTO")
 public class AuthRiderInfoResDto extends AuthBaseInfoResDto {
 
     @Schema(description = "라이더 이름", example = "홍길동")

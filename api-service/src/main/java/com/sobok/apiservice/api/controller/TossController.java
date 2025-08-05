@@ -1,5 +1,6 @@
 package com.sobok.apiservice.api.controller;
 
+import com.sobok.apiservice.api.controller.docs.TossControllerDocs;
 import com.sobok.apiservice.api.dto.toss.TossPayReqDto;
 import com.sobok.apiservice.api.dto.toss.TossPayResDto;
 import com.sobok.apiservice.api.service.toss.TossPayService;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/toss")
 @Slf4j
-public class TossController {
+public class TossController implements TossControllerDocs {
 
     private final TossPayService tossPayService;
 

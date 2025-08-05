@@ -11,6 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Schema(description = "라이더 회원가입 요청 DTO")
 public class AuthRiderReqDto {
 
     @NotBlank(message = "아이디는 필수 입니다.")

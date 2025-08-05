@@ -10,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
+@Schema(description = "라이더 인증 정보 응답 DTO")
 public class AuthRiderInfoResDto {
     @Schema(description = "인증 아이디", example = "101")
     private Long authId;

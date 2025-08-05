@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "로그인 응답 DTO")
 public class AuthLoginResDto {
     @Schema(description = "사용자 ID", example = "1")
     Long id;

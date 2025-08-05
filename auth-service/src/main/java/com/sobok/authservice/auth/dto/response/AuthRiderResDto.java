@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
+@Schema(description = "라이더 기본 정보 DTO")
 public class AuthRiderResDto {
 
     @Schema(description = "라이더 ID", example = "1001")

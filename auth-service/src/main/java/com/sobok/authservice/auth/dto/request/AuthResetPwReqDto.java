@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "비밀번호 재설정 요청 DTO")
 public class AuthResetPwReqDto {
 
     @Schema(description = "비밀번호를 재설정할 사용자 ID", example = "42")
