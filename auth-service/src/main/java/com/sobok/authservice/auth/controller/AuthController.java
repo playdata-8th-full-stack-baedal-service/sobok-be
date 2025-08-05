@@ -18,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -121,8 +122,8 @@ public class AuthController implements AuthControllerDocs {
      * 사용자 복구
      */
     @PostMapping("/recover/{id}")
-    public ResponseEntity<?> recover(@PathVariable Long id) throws EntityNotFoundException, CustomException {
-        statusService.recover(id);
+    public ResponseEntity<?> recover(@PathVariable Long id, @RequestBody RecoverReqDto reqDto) throws EntityNotFoundException, CustomException {
+        statusService.recover(id, reqDto);
         return ResponseEntity.ok().body(CommonResponse.ok(id, "사용자의 계정이 정상적으로 복구되었습니다."));
     }
 

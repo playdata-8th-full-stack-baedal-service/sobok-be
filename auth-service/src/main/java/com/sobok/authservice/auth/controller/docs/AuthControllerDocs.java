@@ -266,7 +266,7 @@ public interface AuthControllerDocs {
             @RequestHeader("Authorization") String authorizationHeader,
             @Parameter(hidden = true) TokenUserInfo userInfo);
 
-    @Operation(summary = "사용자 복구", description = "비활성화된 사용자 계정 복구")
+    @Operation(summary = "사용자 복구", description = "비활성화된 사용자 계정을 비밀번호 확인 후 복구합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "복구 성공",
                     content = @Content(mediaType = "application/json",
@@ -280,14 +280,26 @@ public interface AuthControllerDocs {
                                     }
                                     """)
                     )),
-            @ApiResponse(responseCode = "404", description = "사용자 없음",
+            @ApiResponse(responseCode = "400", description = "비밀번호 불일치 또는 잘못된 요청",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                         "success": false,
                                         "data": null,
-                                        "message": "사용자를 찾을 수 없습니다.",
+                                        "message": "비밀번호가 일치하지 않습니다.",
+                                        "status": 400
+                                    }
+                                    """)
+                    )),
+            @ApiResponse(responseCode = "404", description = "사용자 없음 또는 복구 대상 아님",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "success": false,
+                                        "data": null,
+                                        "message": "복구 대상이 아닌 계정입니다.",
                                         "status": 404
                                     }
                                     """)
@@ -295,7 +307,9 @@ public interface AuthControllerDocs {
     })
     ResponseEntity<?> recover(
             @Parameter(description = "복구할 사용자 ID", required = true)
-            @PathVariable Long id);
+            @PathVariable Long id,
+            @RequestBody RecoverReqDto reqDto);
+
 
     @Operation(summary = "라이더 회원가입", description = "새 라이더 회원가입")
     @ApiResponses({
