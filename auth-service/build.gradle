@@ -25,6 +25,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 //    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
 
 //    // Circuit Breaker (추후 도입시 주석 해제)
 //    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
