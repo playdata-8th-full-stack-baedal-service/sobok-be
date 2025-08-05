@@ -34,4 +34,8 @@ public interface UserServiceClient {
 
     @GetMapping("/api/get-user-id")
     ResponseEntity<Long> getUserId(@RequestParam Long id);
+
+    // 전화번호 중복 검증
+    @GetMapping("/api/exists-by-phone")
+    Boolean existsByPhone(@RequestParam String phone);
 }
