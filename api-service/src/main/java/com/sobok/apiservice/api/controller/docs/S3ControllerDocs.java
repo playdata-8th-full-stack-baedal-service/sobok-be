@@ -87,7 +87,15 @@ public interface S3ControllerDocs {
             ),
             @ApiResponse(responseCode = "500", description = "서버 에러",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class)
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(value = """
+                                     {
+                                      "success": false,
+                                      "data": null,
+                                      "message": "서버 내부 오류가 발생했습니다.",
+                                      "status": 500
+                                    }
+                                    """)
                     )
             )
     })

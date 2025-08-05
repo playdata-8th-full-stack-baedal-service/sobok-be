@@ -26,6 +26,7 @@ import static com.sobok.authservice.common.util.Constants.*;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthService {
+    private static final String ACCESS_TOKEN_BLACKLIST_KEY = "BLACKLIST_ACCESS_TOKEN:";
     private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -33,7 +34,6 @@ public class AuthService {
     private final UserServiceClient userServiceClient;
     private final ShopServiceClient shopServiceClient;
     private final DeliveryClient deliveryClient;
-    private static final String ACCESS_TOKEN_BLACKLIST_KEY = "BLACKLIST_ACCESS_TOKEN:";
     private final RedisTemplate<String, String> redisTemplate;
 
 
@@ -54,6 +54,10 @@ public class AuthService {
 
         // 사용자이면서 활성화 상태가 아니라면 복구 가능한지 Redis 체크
         if ("N".equals(auth.getActive())) {
+            if (!passwordEncoder.matches(reqDto.getPassword(), auth.getPassword())) {
+                log.warn("비활성화 계정");
+                throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+            }
             // 복구 가능한 역할은 사용자만으로 제한
             if (auth.getRole() == Role.USER) {
                 // 복구 가능하다면 recoveryTarget = true로 넘겨주자
