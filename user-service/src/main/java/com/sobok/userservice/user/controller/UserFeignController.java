@@ -206,4 +206,14 @@ public class UserFeignController {
         return ResponseEntity.ok("좋아요 등록 완료");
     }
 
+    /**
+     * 전화번호 중복 검증
+     */
+    @GetMapping("/exists-by-phone")
+    public ResponseEntity<Boolean> existsByPhone(@RequestParam String phone) {
+        boolean exists = userService.existsByPhone(phone);
+        return ResponseEntity.ok(exists);
+    }
+
+
 }

@@ -2,6 +2,7 @@ package com.sobok.userservice.user.controller;
 
 
 import com.sobok.userservice.common.dto.CommonResponse;
+import com.sobok.userservice.user.controller.docs.UserControllerDocs;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;
@@ -26,7 +27,7 @@ import java.util.List;
 @RequestMapping("/user")
 @Slf4j
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserControllerDocs {
 
     private final UserService userService;
     private final UserAddressService userAddressService;
@@ -79,7 +80,7 @@ public class UserController {
     /**
      * 이메일 삭제
      */
-    @DeleteMapping("/deleteEmail")
+    @PatchMapping("/deleteEmail")
     public ResponseEntity<?> deleteEmail(@AuthenticationPrincipal TokenUserInfo userInfo) {
         userService.deleteEmail(userInfo);
         return ResponseEntity.ok().body(CommonResponse.ok(userInfo.getId(), "사용자의 이메일을 성공적으로 삭제하였습니다."));

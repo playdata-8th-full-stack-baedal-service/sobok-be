@@ -1,6 +1,7 @@
 package com.sobok.cookservice.cook.controller;
 
 import com.sobok.cookservice.common.dto.CommonResponse;
+import com.sobok.cookservice.cook.controller.docs.CookDisplayControllerDocs;
 import com.sobok.cookservice.cook.dto.display.BasicCookDisplay;
 import com.sobok.cookservice.cook.dto.display.DisplayParamDto;
 import com.sobok.cookservice.cook.service.CookDisplayService;
@@ -18,7 +19,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/cooks")
-public class CookDisplayController {
+public class CookDisplayController implements CookDisplayControllerDocs {
     private final CookDisplayService service;
 
     @GetMapping()

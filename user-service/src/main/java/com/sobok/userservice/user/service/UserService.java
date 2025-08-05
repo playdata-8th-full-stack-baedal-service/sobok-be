@@ -93,6 +93,11 @@ public class UserService {
     public void signup(UserSignupReqDto reqDto) {
         log.info("사용자 회원가입 시작 : {}", reqDto.getAuthId());
 
+        // 전화번호 중복 체크
+        if (userRepository.existsByPhone(reqDto.getPhone())) {
+            throw new CustomException("이미 등록된 전화번호입니다.", HttpStatus.BAD_REQUEST);
+        }
+
         String photoUrl = reqDto.getPhoto() == null ? ALTER_URL + "profile/default_profile.png" : reqDto.getPhoto();
 
         // 유저 객체 생성
@@ -162,6 +167,10 @@ public class UserService {
                 () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
         );
 
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new CustomException("이미 사용중인 이메일입니다.", HttpStatus.BAD_REQUEST);
+        }
+
         // 이메일 넣기
         user.setEmail(reqDto.getEmail());
 
@@ -174,6 +183,12 @@ public class UserService {
         User user = userRepository.findByAuthId(userInfo.getId()).orElseThrow(
                 () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
         );
+
+        // 전화번호 중복 검증
+        if (!user.getPhone().equals(userPhoneDto.getPhone()) &&
+                userRepository.existsByPhone(userPhoneDto.getPhone())) {
+            throw new CustomException("이미 사용 중인 전화번호입니다.", HttpStatus.BAD_REQUEST);
+        }
 
         // 인증번호 확인
         String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + userPhoneDto.getPhone());
@@ -641,7 +656,7 @@ public class UserService {
     @Transactional
     public void deleteEmail(TokenUserInfo userInfo) {
         // 유저 조회
-        User user = userRepository.findById(userInfo.getId())
+        User user = userRepository.findById(userInfo.getUserId())
                 .orElseThrow(() -> new CustomException("존재하지 않는 사용자입니다.", HttpStatus.NOT_FOUND));
 
         // 이메일이 비어있으면 예외
@@ -650,7 +665,7 @@ public class UserService {
         }
 
         // 이메일 삭제
-        user.setEmail(null);
+        user.setEmail("");
 
         userRepository.save(user);
     }
@@ -661,6 +676,13 @@ public class UserService {
         );
 
         return userByUserId.getAuthId();
+    }
+
+    /**
+     * 전화번호 중복 검증
+     */
+    public boolean existsByPhone(String phone) {
+        return userRepository.existsByPhone(phone);
     }
 
 }
