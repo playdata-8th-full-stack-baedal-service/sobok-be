@@ -22,24 +22,24 @@ public interface IngredientControllerDocs {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                      "success": true,
-                      "data": "감자",
-                      "message": "식재료가 등록되었습니다.",
-                      "status": 200
-                    }
-                """))),
+                                    {
+                                      "success": true,
+                                      "data": "감자",
+                                      "message": "식재료가 등록되었습니다.",
+                                      "status": 200
+                                    }
+                                    """))),
             @ApiResponse(responseCode = "400", description = "이미 등록된 재료",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                      "success": false,
-                      "data": null,
-                      "message": "이미 등록된 재료입니다.",
-                      "status": 400
-                    }
-                """)))
+                                    {
+                                      "success": false,
+                                      "data": null,
+                                      "message": "이미 등록된 재료입니다.",
+                                      "status": 400
+                                    }
+                                    """)))
     })
     ResponseEntity<?> ingreRegister(
             @Parameter(description = "등록할 식재료 DTO", required = true)
@@ -52,21 +52,21 @@ public interface IngredientControllerDocs {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                      "success": true,
-                      "data": [
-                        {
-                          "id": 1,
-                          "ingreName": "감자",
-                          "price": 1000,
-                          "origin": "국산",
-                          "unit": 1
-                        }
-                      ],
-                      "message": "키워드로 검색한 식재료 결과입니다.",
-                      "status": 200
-                    }
-                """))),
+                                    {
+                                      "success": true,
+                                      "data": [
+                                        {
+                                          "id": 1,
+                                          "ingreName": "감자",
+                                          "price": 1000,
+                                          "origin": "국산",
+                                          "unit": 1
+                                        }
+                                      ],
+                                      "message": "키워드로 검색한 식재료 결과입니다.",
+                                      "status": 200
+                                    }
+                                    """))),
             @ApiResponse(responseCode = "204", description = "검색 결과 없음", content = @Content)
     })
     ResponseEntity<?> ingreSearch(
@@ -80,21 +80,21 @@ public interface IngredientControllerDocs {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                      "success": true,
-                      "data": [
-                        {
-                          "id": 1,
-                          "ingreName": "감자",
-                          "price": 1000,
-                          "origin": "국산",
-                          "unit": 1
-                        }
-                      ],
-                      "message": "전체 식재료 결과입니다.",
-                      "status": 200
-                    }
-                """))),
+                                    {
+                                      "success": true,
+                                      "data": [
+                                        {
+                                          "id": 1,
+                                          "ingreName": "감자",
+                                          "price": 1000,
+                                          "origin": "국산",
+                                          "unit": 1
+                                        }
+                                      ],
+                                      "message": "전체 식재료 결과입니다.",
+                                      "status": 200
+                                    }
+                                    """))),
             @ApiResponse(responseCode = "204", description = "식재료 없음", content = @Content)
     })
     ResponseEntity<?> allSearch();
@@ -105,24 +105,24 @@ public interface IngredientControllerDocs {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                      "success": true,
-                      "data": 1,
-                      "message": "해당 식재료 정보가 수정되었습니다.",
-                      "status": 200
-                    }
-                """))),
+                                    {
+                                      "success": true,
+                                      "data": 1,
+                                      "message": "해당 식재료 정보가 수정되었습니다.",
+                                      "status": 200
+                                    }
+                                    """))),
             @ApiResponse(responseCode = "400", description = "존재하지 않는 식재료 ID",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
-                    {
-                      "success": false,
-                      "data": null,
-                      "message": "해당 식재료가 존재하지 않습니다.",
-                      "status": 400
-                    }
-                """)))
+                                    {
+                                      "success": false,
+                                      "data": null,
+                                      "message": "해당 식재료가 존재하지 않습니다.",
+                                      "status": 400
+                                    }
+                                    """)))
     })
     ResponseEntity<?> ingreEdit(
             @Parameter(description = "수정할 식재료 정보 DTO", required = true)
