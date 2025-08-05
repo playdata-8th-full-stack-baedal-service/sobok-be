@@ -48,6 +48,7 @@ public interface CartControllerDocs {
                     responseCode = "400",
                     description = "잘못된 요청 (유효하지 않은 수량 등)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -65,6 +66,7 @@ public interface CartControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 장바구니 요리 ID",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -82,6 +84,7 @@ public interface CartControllerDocs {
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -132,6 +135,7 @@ public interface CartControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 장바구니 요리 ID",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -149,6 +153,7 @@ public interface CartControllerDocs {
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -198,6 +203,7 @@ public interface CartControllerDocs {
                     responseCode = "400",
                     description = "유효하지 않은 요청 (빈 리스트 또는 잘못된 형식)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -215,6 +221,7 @@ public interface CartControllerDocs {
                     responseCode = "403",
                     description = "결제 완료된 장바구니 항목에 대한 접근",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -232,6 +239,7 @@ public interface CartControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 장바구니 요리 ID 포함",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -249,6 +257,7 @@ public interface CartControllerDocs {
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """

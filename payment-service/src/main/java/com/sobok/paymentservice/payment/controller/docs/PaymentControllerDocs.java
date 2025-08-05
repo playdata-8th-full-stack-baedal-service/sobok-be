@@ -59,6 +59,7 @@ public interface PaymentControllerDocs {
                     responseCode = "400",
                     description = "잘못된 요청 (장바구니 요리 정보 없음)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -76,6 +77,7 @@ public interface PaymentControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 주소 ID 또는 장바구니 항목",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -132,6 +134,7 @@ public interface PaymentControllerDocs {
                     responseCode = "400",
                     description = "요청 형식 오류 또는 유효성 검증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -149,6 +152,7 @@ public interface PaymentControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 요리 또는 재료 ID",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -166,6 +170,7 @@ public interface PaymentControllerDocs {
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -261,6 +266,7 @@ public interface PaymentControllerDocs {
                     responseCode = "404",
                     description = "장바구니가 비어 있는 경우",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -278,6 +284,7 @@ public interface PaymentControllerDocs {
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -325,6 +332,7 @@ public interface PaymentControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 주문 ID",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -342,6 +350,7 @@ public interface PaymentControllerDocs {
                     responseCode = "400",
                     description = "이미 취소되었거나 완료된 주문",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -375,6 +384,7 @@ public interface PaymentControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 주문 ID",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -392,6 +402,7 @@ public interface PaymentControllerDocs {
                     responseCode = "400",
                     description = "잘못된 요청 (결제 정보 없음 또는 카트 정보 없음)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -519,6 +530,7 @@ public interface PaymentControllerDocs {
                     responseCode = "400",
                     description = "잘못된 요청 (요리 정보 조회 실패)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -536,6 +548,7 @@ public interface PaymentControllerDocs {
                     responseCode = "403",
                     description = "접근 권한 없음 (사용자 검증 실패)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -553,6 +566,7 @@ public interface PaymentControllerDocs {
                     responseCode = "500",
                     description = "내부 서버 오류 (요리 정보 누락)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -589,36 +603,53 @@ public interface PaymentControllerDocs {
                                     name = "주문 상세 조회 성공 예시",
                                     value = """
                                             {
-                                              "success": true,
-                                              "status": 200,
-                                              "message": "주문 상세 내역이 조회되었습니다.",
-                                              "data": {
-                                                "paymentId": 101,
-                                                "orderId": "20250801x6ATP328",
-                                                "totalPrice": 39000,
-                                                "orderState": "DELIVERY_COMPLETE",
-                                                "createdAt": "2025-08-01T15:23:01",
-                                                "payMethod": "카드결제",
-                                                "riderRequest": "문 앞에 놓아주세요.",
-                                                "items": [
-                                                  {
-                                                    "id": 24,
-                                                    "cookId": 17,
-                                                    "cookName": "오이샐러드",
-                                                    "thumbnail": "https://example.com/images/food1.jpg",
-                                                    "active": "Y",
-                                                    "quantity": 1,
-                                                    "baseIngredients": [...],
-                                                    "additionalIngredients": [...],
-                                                    "paymentId": 101
-                                                  }
-                                                ],
-                                                "roadFull": "서울시 강남구 테헤란로 123",
-                                                "addrDetail": "101동 202호",
-                                                "shopName": "소복 강남지점",
-                                                "shopAddress": "서울시 강남구 역삼동 456-7",
-                                                "completeTime": "2025-08-01T16:15:00"
-                                              }
+                                                "success": true,
+                                                "data": {
+                                                    "paymentId": 8,
+                                                    "orderId": "20250729x1c5uydN",
+                                                    "totalPrice": 16100,
+                                                    "orderState": "DELIVERY_COMPLETE",
+                                                    "createdAt": "2011-09-21T10:32:02.216484",
+                                                    "payMethod": "간편결제",
+                                                    "riderRequest": "X",
+                                                    "items": [
+                                                        {
+                                                            "id": 13,
+                                                            "cookId": 3,
+                                                            "cookName": "프렌치 토스트",
+                                                            "thumbnail": "https://...png",
+                                                            "active": "Y",
+                                                            "quantity": 1,
+                                                            "baseIngredients": [
+                                                                {
+                                                                    "ingredientId": 11,
+                                                                    "ingreName": "계란",
+                                                                    "unitQuantity": 8,
+                                                                    "unit": 5,
+                                                                    "price": 100,
+                                                                    "origin": "국내산"
+                                                                },
+                                                                {
+                                                                    "ingredientId": 12,
+                                                                    "ingreName": "식빵",
+                                                                    "unitQuantity": 1,
+                                                                    "unit": 10,
+                                                                    "price": 1000,
+                                                                    "origin": "호주"
+                                                                },
+                                                            ],
+                                                            "additionalIngredients": [],
+                                                            "paymentId": 8
+                                                        }
+                                                    ],
+                                                    "roadFull": "서울시 강남구 테헤란로",
+                                                    "addrDetail": "13층 1301호",
+                                                    "shopName": "당근가게",
+                                                    "shopAddress": "서초동 1660-27",
+                                                    "completeTime": "2025-08-04T10:41:46.843057"
+                                                },
+                                                "message": "주문 상세 내역이 조회되었습니다.",
+                                                "status": 200
                                             }
                                             """
                             )
@@ -628,6 +659,7 @@ public interface PaymentControllerDocs {
                     responseCode = "400",
                     description = "잘못된 요청 (주문 정보 없음, 카트 정보 없음, 배달 정보 조회 실패, 역할 접근 권한 없음)",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """

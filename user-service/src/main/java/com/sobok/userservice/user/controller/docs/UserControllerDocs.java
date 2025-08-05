@@ -831,13 +831,17 @@ public interface UserControllerDocs {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     description = "즐겨찾기 삭제 요청 (cookId 필수)",
-                    content = @Content(schema = @Schema(implementation = UserBookmarkReqDto.class))
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserBookmarkReqDto.class))
             ),
             responses = {
                     @ApiResponse(
                             responseCode = "200",
                             description = "즐겨찾기 삭제 성공",
-                            content = @Content(schema = @Schema(implementation = UserBookmarkReqDto.class),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserBookmarkReqDto.class),
                                     examples = @ExampleObject(value = """
                                                 {
                                                   "success": true,
@@ -852,7 +856,9 @@ public interface UserControllerDocs {
                     @ApiResponse(
                             responseCode = "401",
                             description = "인증 실패",
-                            content = @Content(schema = @Schema(implementation = CommonResponse.class),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                                 {
                                                   "success": false,
@@ -864,7 +870,9 @@ public interface UserControllerDocs {
                     @ApiResponse(
                             responseCode = "404",
                             description = "즐겨찾기 항목을 찾을 수 없음",
-                            content = @Content(schema = @Schema(implementation = CommonResponse.class),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                                 {
                                                   "success": false,
@@ -888,6 +896,7 @@ public interface UserControllerDocs {
                             responseCode = "200",
                             description = "즐겨찾기 요리 조회 성공",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                             {
@@ -914,6 +923,7 @@ public interface UserControllerDocs {
                             responseCode = "204",
                             description = "즐겨찾기 요리 없음",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                             {
@@ -929,6 +939,7 @@ public interface UserControllerDocs {
                             responseCode = "401",
                             description = "인증 실패 (유효하지 않은 토큰 등)",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                             {
@@ -943,6 +954,7 @@ public interface UserControllerDocs {
                             responseCode = "500",
                             description = "서버 내부 오류",
                             content = @Content(
+                                    mediaType = "application/json",
                                     schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                             {
@@ -1056,7 +1068,9 @@ public interface UserControllerDocs {
                     @ApiResponse(
                             responseCode = "200",
                             description = "사용자 정보 조회 성공",
-                            content = @Content(schema = @Schema(implementation = PreOrderUserResDto.class),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = PreOrderUserResDto.class),
                                     examples = @ExampleObject(value = """
                                             {
                                               "success": true,
@@ -1082,7 +1096,9 @@ public interface UserControllerDocs {
                     @ApiResponse(
                             responseCode = "401",
                             description = "인증 실패 (토큰 누락 또는 유효하지 않음)",
-                            content = @Content(schema = @Schema(implementation = CommonResponse.class),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                             {
                                               "success": false,
@@ -1094,7 +1110,9 @@ public interface UserControllerDocs {
                     @ApiResponse(
                             responseCode = "404",
                             description = "사용자 정보 조회 실패",
-                            content = @Content(schema = @Schema(implementation = CommonResponse.class),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = CommonResponse.class),
                                     examples = @ExampleObject(value = """
                                             {
                                               "success": false,

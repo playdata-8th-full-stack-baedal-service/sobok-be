@@ -60,6 +60,7 @@ public interface PostControllerDocs {
                     responseCode = "400",
                     description = "요청 형식 오류 또는 검증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = {
                                     @ExampleObject(
@@ -102,6 +103,7 @@ public interface PostControllerDocs {
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -119,6 +121,7 @@ public interface PostControllerDocs {
                     responseCode = "403",
                     description = "주문 미완료로 인한 게시글 작성 불가",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -188,6 +191,7 @@ public interface PostControllerDocs {
                     responseCode = "400",
                     description = "요청 형식 오류 또는 유효성 검사 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     name = "유효성 실패 예시",
@@ -206,6 +210,7 @@ public interface PostControllerDocs {
                     responseCode = "403",
                     description = "작성자가 아닌 사용자의 수정 시도",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     name = "권한 없음 예시",
@@ -224,6 +229,7 @@ public interface PostControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 게시글 ID",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     name = "게시글 없음 예시",
@@ -280,6 +286,7 @@ public interface PostControllerDocs {
                     responseCode = "401",
                     description = "인증 실패",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
@@ -314,6 +321,7 @@ public interface PostControllerDocs {
                     responseCode = "404",
                     description = "존재하지 않는 게시글",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(
                                     value = """
