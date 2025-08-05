@@ -13,11 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "주소 변환", description = "도로명 주소 → 좌표 변환 API")
+@Tag(name = "주소 변환", description = "도로명 주소 -> 좌표 변환 API")
 public interface AddressControllerDocs {
 
     @Operation(
-            summary = "도로명 주소 → 좌표 변환",
+            summary = "도로명 주소 -> 좌표 변환",
             description = "도로명 주소를 위도, 경도로 변환합니다."
     )
     @ApiResponses({
