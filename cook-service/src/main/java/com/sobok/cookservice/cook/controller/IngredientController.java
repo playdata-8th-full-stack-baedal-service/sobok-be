@@ -1,6 +1,7 @@
 package com.sobok.cookservice.cook.controller;
 
 import com.sobok.cookservice.common.dto.CommonResponse;
+import com.sobok.cookservice.cook.controller.docs.IngredientControllerDocs;
 import com.sobok.cookservice.cook.dto.request.IngreEditReqDto;
 import com.sobok.cookservice.cook.dto.request.IngreReqDto;
 import com.sobok.cookservice.cook.dto.response.IngreResDto;
@@ -18,7 +19,7 @@ import java.util.List;
 @RequestMapping("/ingredient")
 @RequiredArgsConstructor
 @Slf4j
-public class IngredientController {
+public class IngredientController implements IngredientControllerDocs {
 
     private final IngredientService ingredientService;
 
@@ -27,8 +28,8 @@ public class IngredientController {
      */
     @PostMapping("/register")
     public ResponseEntity<?> ingreRegister(@Valid @RequestBody IngreReqDto reqDto) {
-        ingredientService.ingreCreate(reqDto);
-        return ResponseEntity.ok().body(CommonResponse.ok(reqDto.getIngreName(), "식재료가 등록되었습니다."));
+        IngreResDto ingreResDto = ingredientService.ingreCreate(reqDto);
+        return ResponseEntity.ok().body(CommonResponse.ok(ingreResDto, "식재료가 등록되었습니다."));
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.sobok.apiservice.api.controller;
 
+import com.sobok.apiservice.api.controller.docs.AddressControllerDocs;
 import com.sobok.apiservice.api.dto.address.LocationResDto;
 import com.sobok.apiservice.api.service.address.ConvertAddressService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/address")
 @Slf4j
-public class AddressController {
+public class AddressController implements AddressControllerDocs {
 
     private final ConvertAddressService convertAddressService;
 

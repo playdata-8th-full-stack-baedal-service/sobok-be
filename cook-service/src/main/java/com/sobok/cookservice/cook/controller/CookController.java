@@ -1,6 +1,7 @@
 package com.sobok.cookservice.cook.controller;
 
 import com.sobok.cookservice.common.dto.CommonResponse;
+import com.sobok.cookservice.cook.controller.docs.CookControllerDocs;
 import com.sobok.cookservice.cook.dto.request.CookCreateReqDto;
 import com.sobok.cookservice.cook.dto.response.*;
 import com.sobok.cookservice.cook.service.CookService;
@@ -16,7 +17,7 @@ import java.util.List;
 @RequestMapping("/cook")
 @RequiredArgsConstructor
 @Slf4j
-public class CookController {
+public class CookController implements CookControllerDocs {
     private final CookService cookService;
 
     /**

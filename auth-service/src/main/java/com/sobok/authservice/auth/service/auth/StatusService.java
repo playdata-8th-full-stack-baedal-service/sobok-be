@@ -1,6 +1,7 @@
 package com.sobok.authservice.auth.service.auth;
 
 import com.sobok.authservice.auth.client.DeliveryClient;
+import com.sobok.authservice.auth.dto.request.RecoverReqDto;
 import com.sobok.authservice.auth.entity.Auth;
 import com.sobok.authservice.auth.repository.AuthRepository;
 import com.sobok.authservice.common.dto.TokenUserInfo;
@@ -70,7 +71,7 @@ public class StatusService {
      *     2. 있다면 활성화 상태를 Y로 바꾸고 복구용 키 삭제
      * </pre>
      */
-    public void recover(Long id) throws EntityNotFoundException, CustomException {
+    public void recover(Long id, RecoverReqDto reqDto) throws EntityNotFoundException, CustomException {
         // 복구 대상인지 확인
         boolean isRecoveryTarget = redisStringTemplate.hasKey(RECOVERY_KEY + id);
         if (isRecoveryTarget) {
@@ -78,6 +79,11 @@ public class StatusService {
             Auth auth = authRepository.findById(id).orElseThrow(
                     () -> new EntityNotFoundException("존재하지 않는 사용자입니다.")
             );
+
+            // 비밀번호 검증
+            if (!passwordEncoder.matches(reqDto.getPassword(), auth.getPassword())) {
+                throw new CustomException("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+            }
 
             // 활성화 상태 Y로 바꾸기
             auth.changeActive(true);

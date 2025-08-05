@@ -1,6 +1,7 @@
 package com.sobok.authservice.auth.controller;
 
 
+import com.sobok.authservice.auth.controller.docs.AuthControllerDocs;
 import com.sobok.authservice.auth.dto.info.AuthBaseInfoResDto;
 import com.sobok.authservice.auth.dto.request.*;
 import com.sobok.authservice.auth.dto.response.*;
@@ -22,7 +23,7 @@ import java.util.List;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @Slf4j
-public class AuthController {
+public class AuthController implements AuthControllerDocs {
 
     private final AuthService authService;
     private final AccountService accountService;
@@ -121,8 +122,8 @@ public class AuthController {
      * 사용자 복구
      */
     @PostMapping("/recover/{id}")
-    public ResponseEntity<?> recover(@PathVariable Long id) throws EntityNotFoundException, CustomException {
-        statusService.recover(id);
+    public ResponseEntity<?> recover(@PathVariable Long id, @RequestBody RecoverReqDto reqDto) throws EntityNotFoundException, CustomException {
+        statusService.recover(id, reqDto);
         return ResponseEntity.ok().body(CommonResponse.ok(id, "사용자의 계정이 정상적으로 복구되었습니다."));
     }
 

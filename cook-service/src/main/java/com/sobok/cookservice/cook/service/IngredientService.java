@@ -33,7 +33,7 @@ public class IngredientService {
     /**
      * 관리자 재료 등록
      */
-    public void ingreCreate(IngreReqDto reqDto) {
+    public IngreResDto ingreCreate(IngreReqDto reqDto) {
 
         log.info("컨트롤러 통과");
         // 재료 이름으로 db에 있는지 확인
@@ -50,8 +50,15 @@ public class IngredientService {
                 .unit(reqDto.getUnit())
                 .build();
 
-        ingredientRepository.save(ingredient);
+        Ingredient save = ingredientRepository.save(ingredient);
 
+        return IngreResDto.builder()
+                .id(save.getId())
+                .ingreName(save.getIngreName())
+                .price(save.getPrice())
+                .origin(save.getOrigin())
+                .unit(save.getUnit())
+                .build();
     }
 
     /**
