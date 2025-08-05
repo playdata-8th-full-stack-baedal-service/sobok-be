@@ -38,39 +38,6 @@ public interface CookDisplayControllerDocs {
                   "status": 200
                 }
                 """))),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (페이지 번호/크기/카테고리/정렬값 등 파라미터 오류)",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(value = """
-                {
-                  "success": false,
-                  "data": null,
-                  "message": "페이지 번호나 크기가 유효하지 않습니다.",
-                  "status": 400
-                }
-                """))),
-            @ApiResponse(responseCode = "400", description = "잘못된 카테고리 입력",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(value = """
-                {
-                  "success": false,
-                  "data": null,
-                  "message": "잘못된 카테고리 입력입니다.",
-                  "status": 400
-                }
-                """))),
-            @ApiResponse(responseCode = "400", description = "잘못된 정렬 조건 입력",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(value = """
-                {
-                  "success": false,
-                  "data": null,
-                  "message": "정렬 조건이 유효하지 않습니다.",
-                  "status": 400
-                }
-                """))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
