@@ -2,6 +2,7 @@ package com.sobok.postservice.post.controller;
 
 import com.sobok.postservice.common.dto.CommonResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
+import com.sobok.postservice.post.controller.docs.PostControllerDocs;
 import com.sobok.postservice.post.dto.request.PostRegisterReqDto;
 import com.sobok.postservice.post.dto.request.PostUpdateReqDto;
 import com.sobok.postservice.post.dto.response.*;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/post")
 @RequiredArgsConstructor
-public class PostController implements PostControllerDocs{
+public class PostController implements PostControllerDocs {
 
     private final PostService postService;
 

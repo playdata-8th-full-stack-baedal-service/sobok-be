@@ -1,4 +1,4 @@
-package com.sobok.shopservice.shop.controller;
+package com.sobok.shopservice.shop.controller.docs;
 
 import com.sobok.shopservice.common.dto.CommonResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
@@ -71,17 +71,41 @@ public interface StockControllerDocs {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(
-                                    name = "유효성 검증 실패 예시",
-                                    value = """
-                                            {
-                                              "success": false,
-                                              "status": 400,
-                                              "message": "재고 수량은 0 이상이어야 합니다.",
-                                              "data": null
-                                            }
-                                            """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "유효성 검증 실패 예시",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "잘못된 재고량 입력입니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "중복 식재료 예시",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "이미 존재하는 식재료가 있습니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "식재료 없음 예시",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "해당 식재료는 존재하지 않습니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @ApiResponse(
@@ -164,17 +188,30 @@ public interface StockControllerDocs {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(
-                                    name = "유효성 검증 실패 예시",
-                                    value = """
-                                            {
-                                              "success": false,
-                                              "status": 400,
-                                              "message": "재고 수량은 0 이상이어야 합니다.",
-                                              "data": null
-                                            }
-                                            """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "유효성 검증 실패 예시",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "잘못된 재고량 입력 입니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "식재료 없음 예시",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "존재하는 식재료가 없습니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @ApiResponse(
@@ -198,21 +235,34 @@ public interface StockControllerDocs {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "재고 부족 등 비즈니스 오류",
+                    description = "분산락 충돌 등 비즈니스 오류",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(
-                                    name = "재고 부족 예시",
-                                    value = """
-                                            {
-                                              "success": false,
-                                              "status": 409,
-                                              "message": "재고가 부족합니다.",
-                                              "data": null
-                                            }
-                                            """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "분산락 충돌 예시",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 409,
+                                                      "message": "분산락 충돌 발생.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "가게 승인 중 예시",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 409,
+                                                      "message": "다른 가게가 승인 중입니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             )
     })
@@ -309,7 +359,7 @@ public interface StockControllerDocs {
                                             {
                                               "success": false,
                                               "status": 403,
-                                              "message": "해당 가게에 대한 접근 권한이 없습니다.",
+                                              "message": "정상적인 접근이 아닙니다.",
                                               "data": null
                                             }
                                             """

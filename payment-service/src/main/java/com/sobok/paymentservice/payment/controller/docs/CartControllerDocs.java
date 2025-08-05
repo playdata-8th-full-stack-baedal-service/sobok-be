@@ -1,4 +1,4 @@
-package com.sobok.paymentservice.payment.controller;
+package com.sobok.paymentservice.payment.controller.docs;
 
 import com.sobok.paymentservice.common.dto.CommonResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
@@ -21,22 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public interface CartControllerDocs {
     @Operation(
             summary = "장바구니 요리 수량 수정",
-            description = """
-                    장바구니에 담긴 특정 요리의 수량을 수정합니다.
-                    
-                    ### 요청 정보
-                    - 인증 필요 (Bearer Token)
-                    - `id` 경로 변수로 장바구니 요리 ID를 전달합니다.
-                    - `count` 쿼리 파라미터로 변경할 수량을 전달합니다.
-                    
-                    ### 응답 정보
-                    - 변경된 장바구니 요리 ID 반환
-                    
-                    ### 예외
-                    - 존재하지 않는 장바구니 요리 ID
-                    - 잘못된 수량 값 (0 이하 등)
-                    - 인증 실패
-                    """,
+            description = "장바구니에 담긴 특정 요리의 수량을 수정합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
@@ -86,7 +71,7 @@ public interface CartControllerDocs {
                                             {
                                               "success": false,
                                               "status": 404,
-                                              "message": "해당 장바구니 항목을 찾을 수 없습니다.",
+                                              "message": "해당하는 장바구니 요리가 없습니다.",
                                               "data": null
                                             }
                                             """
@@ -120,20 +105,7 @@ public interface CartControllerDocs {
 
     @Operation(
             summary = "장바구니 요리 삭제",
-            description = """
-                    장바구니에 담긴 특정 요리를 삭제합니다.
-                    
-                    ### 요청 정보
-                    - 인증 필요 (Bearer Token)
-                    - `id` 경로 변수로 삭제할 장바구니 요리 ID를 전달합니다.
-                    
-                    ### 응답 정보
-                    - 삭제된 장바구니 요리 ID 반환
-                    
-                    ### 예외
-                    - 존재하지 않는 장바구니 요리 ID
-                    - 인증 실패
-                    """,
+            description = "장바구니에 담긴 특정 요리를 삭제합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
@@ -199,28 +171,7 @@ public interface CartControllerDocs {
 
     @Operation(
             summary = "장바구니 다중 요리 삭제",
-            description = """
-                    장바구니에 담긴 여러 요리를 한 번에 삭제합니다.
-                    
-                    ### 요청 정보
-                    - 인증 필요 (Bearer Token)
-                    - 요청 본문에 삭제할 `cartCookIdList` 전달
-                    
-                    ### 요청 예시
-                    ```json
-                    {
-                      "cartCookIdList": [12, 15, 18]
-                    }
-                    ```
-                    
-                    ### 응답 정보
-                    - 요청한 사용자의 ID 반환 (`userId`)
-                    
-                    ### 예외
-                    - 빈 ID 리스트 전달
-                    - 존재하지 않는 ID 포함
-                    - 인증 실패
-                    """,
+            description = "장바구니에 담긴 여러 요리를 한 번에 삭제합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
@@ -253,7 +204,24 @@ public interface CartControllerDocs {
                                             {
                                               "success": false,
                                               "status": 400,
-                                              "message": "삭제할 항목이 존재하지 않습니다.",
+                                              "message": "삭제할 항목이 없습니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "결제 완료된 장바구니 항목에 대한 접근",
+                    content = @Content(
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "status": 403,
+                                              "message": "잘못된 접근입니다.",
                                               "data": null
                                             }
                                             """
@@ -305,6 +273,4 @@ public interface CartControllerDocs {
             )
             @RequestBody DeleteCartReqDto reqDto
     );
-
-
 }

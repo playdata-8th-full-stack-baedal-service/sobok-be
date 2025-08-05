@@ -2,6 +2,7 @@ package com.sobok.shopservice.shop.controller;
 
 import com.sobok.shopservice.common.dto.CommonResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
+import com.sobok.shopservice.shop.controller.docs.StockControllerDocs;
 import com.sobok.shopservice.shop.dto.stock.StockReqDto;
 import com.sobok.shopservice.shop.dto.stock.StockResDto;
 import com.sobok.shopservice.shop.service.ShopValidator;

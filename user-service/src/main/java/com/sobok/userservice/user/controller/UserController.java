@@ -2,6 +2,7 @@ package com.sobok.userservice.user.controller;
 
 
 import com.sobok.userservice.common.dto.CommonResponse;
+import com.sobok.userservice.user.controller.docs.UserControllerDocs;
 import com.sobok.userservice.user.dto.email.UserEmailDto;
 import com.sobok.userservice.user.dto.info.UserAddressDto;
 import com.sobok.userservice.user.dto.request.*;

@@ -1,4 +1,4 @@
-package com.sobok.shopservice.shop.controller;
+package com.sobok.shopservice.shop.controller.docs;
 
 import com.sobok.shopservice.common.dto.CommonResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
@@ -27,16 +27,9 @@ public interface ShopControllerDocs {
             summary = "지점명 중복 확인",
             description = """
                     입력한 지점명(shopName)의 중복 여부를 확인합니다.
-                    
                     ### 요청 형식
                     - 쿼리 파라미터로 `shopName`을 전달해야 합니다.
                     - 로그인한 사용자의 토큰 필요 (보안 인증 필요)
-                    
-                    ### 응답 형식
-                    - `200 OK`: 사용 가능한 지점명
-                    - `400 Bad Request`: 잘못된 요청 (지점명이 비어 있거나 유효하지 않은 경우)
-                    - `409 Conflict`: 이미 존재하는 지점명
-                    - `401 Unauthorized`: 인증 실패
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -90,8 +83,8 @@ public interface ShopControllerDocs {
                                     value = """
                                             {
                                               "success": false,
-                                              "status": 409,
-                                              "message": "이미 사용 중인 지점명입니다.",
+                                              "status": 400,
+                                              "message": "이미 등록된 지점명 입니다.",
                                               "data": null
                                             }
                                             """
@@ -125,16 +118,9 @@ public interface ShopControllerDocs {
             summary = "지점 주소 중복 확인",
             description = """
                     입력한 지점 주소(shopAddress)가 사용 가능한지 확인합니다.
-                    
                     ### 요청 형식
                     - 쿼리 파라미터로 shopAddress 전달
                     - 로그인(인증) 필요할 경우 JWT 토큰 필요
-                    
-                    ### 응답 형식
-                    - 200 OK: 사용 가능한 주소일 경우
-                    - 400 Bad Request: 잘못된 요청 (예: shopAddress 누락)
-                    - 409 Conflict: 이미 사용 중인 주소
-                    - 401 Unauthorized: 인증 실패
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -185,8 +171,8 @@ public interface ShopControllerDocs {
                                     value = """
                                             {
                                               "success": false,
-                                              "status": 409,
-                                              "message": "이미 사용 중인 주소입니다.",
+                                              "status": 400,
+                                              "message": "중복된 가게 주소 입니다.",
                                               "data": null
                                             }
                                             """
@@ -219,14 +205,8 @@ public interface ShopControllerDocs {
             summary = "모든 주문 목록 조회",
             description = """
                     로그인한 사용자의 모든 주문 목록을 조회합니다.
-                    
                     ### 요청 형식
                     - 인증된 사용자 토큰 필요
-                    
-                    ### 응답 형식
-                    - `200 OK`: 주문 목록 존재 시 반환
-                    - `204 No Content`: 주문 목록이 없을 경우
-                    - `401 Unauthorized`: 인증 실패
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -309,16 +289,9 @@ public interface ShopControllerDocs {
             summary = "주문 상태별 필터링 조회",
             description = """
                     로그인한 사용자의 주문 목록을 주문 상태(orderState) 기준으로 필터링하여 조회합니다.
-                    
                     ### 요청 형식
                     - 인증된 사용자 토큰 필요
                     - 쿼리 파라미터로 유효한 orderState 값 전달 필요
-                    
-                    ### 응답 형식
-                    - `200 OK`: 주문 목록 존재 시 주문 리스트 반환
-                    - `204 No Content`: 해당 상태의 주문이 없을 경우
-                    - `400 Bad Request`: 잘못된 주문 상태값
-                    - `401 Unauthorized`: 인증 실패
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -424,14 +397,9 @@ public interface ShopControllerDocs {
             summary = "가능한 가게 조회",
             description = """
                     사용자의 주소 ID와 재료 목록을 기반으로 주문 가능한 가게 목록을 조회합니다.
-                    
                     ### 요청 형식
                     - 주소 ID는 쿼리 파라미터로 전달
                     - 요청 본문에는 재료 ID, 수량, 가게 ID가 포함된 리스트 전달
-                    
-                    ### 응답 형식
-                    - `200 OK`: 가능한 가게 목록 반환
-                    - `400 Bad Request`: 필수 필드 누락 혹은 잘못된 형식
                     """,
             parameters = {
                     @Parameter(
@@ -532,6 +500,25 @@ public interface ShopControllerDocs {
                                             """
                             )
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "주소를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(
+                                    name = "주소 없음 예시",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "status": 404,
+                                              "message": "주소를 찾을 수 없습니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
             )
     })
     @PostMapping("/available")
@@ -544,13 +531,8 @@ public interface ShopControllerDocs {
             summary = "전체 가게 조회",
             description = """
                     설정한 주소를 기준으로 주문 가능한 가게 목록을 조회합니다.
-                    
                     ### 요청 형식
                     - 인증된 사용자 토큰 필요
-                    
-                    ### 응답 형식
-                    - `200 OK`: 전체 가게 목록 반환
-                    - `401 Unauthorized`: 인증 실패
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -602,6 +584,25 @@ public interface ShopControllerDocs {
                                               "success": false,
                                               "status": 401,
                                               "message": "인증되지 않은 사용자입니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "권한 없음 (관리자만 접근 가능)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(
+                                    name = "권한 없음 예시",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "status": 403,
+                                              "message": "접근 권한이 없습니다. 관리자만 접근 가능합니다.",
                                               "data": null
                                             }
                                             """

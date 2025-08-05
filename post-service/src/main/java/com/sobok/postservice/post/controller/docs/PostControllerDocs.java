@@ -1,4 +1,4 @@
-package com.sobok.postservice.post.controller;
+package com.sobok.postservice.post.controller.docs;
 
 import com.sobok.postservice.common.dto.CommonResponse;
 import com.sobok.postservice.common.dto.TokenUserInfo;
@@ -27,20 +27,10 @@ public interface PostControllerDocs {
             summary = "게시물 등록",
             description = """
                     게시판에 게시물을 등록합니다. 사용자는 결제한 요리를 기반으로 후기를 남길 수 있습니다.
-                    
                     ### 요청 정보
                     - 인증 필요 (Bearer Token)
                     - 요청 본문에는 게시물의 제목, 내용, 요리 ID, 결제 ID, 이미지 목록 포함
-                    
-                    ### 응답 정보
-                    - 게시물 ID 및 요리 이름 반환
-                    
-                    ### 예외
-                    - 유효하지 않은 요청 형식
-                    - 결제 내역과 일치하지 않는 요리 ID
-                    - 인증 실패
-                    """
-            ,
+                    """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
@@ -71,16 +61,41 @@ public interface PostControllerDocs {
                     description = "요청 형식 오류 또는 검증 실패",
                     content = @Content(
                             schema = @Schema(implementation = CommonResponse.class),
-                            examples = @ExampleObject(
-                                    value = """
-                                            {
-                                              "success": false,
-                                              "status": 400,
-                                              "message": "요청 정보가 유효하지 않습니다.",
-                                              "data": null
-                                            }
-                                            """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "유효성 검사 실패",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "요청 정보가 유효하지 않습니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "스크립트 태그 포함",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "해당 내용의 게시물은 등록할 수 없습니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "중복 게시글",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "status": 400,
+                                                      "message": "이미 해당 요리에 대한 게시글이 등록되어 있습니다.",
+                                                      "data": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @ApiResponse(
@@ -94,6 +109,23 @@ public interface PostControllerDocs {
                                               "success": false,
                                               "status": 401,
                                               "message": "로그인이 필요합니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "주문 미완료로 인한 게시글 작성 불가",
+                    content = @Content(
+                            schema = @Schema(implementation = CommonResponse.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "status": 403,
+                                              "message": "주문이 완료되지 않아 게시글을 작성할 수 없습니다.",
                                               "data": null
                                             }
                                             """
@@ -115,22 +147,7 @@ public interface PostControllerDocs {
 
     @Operation(
             summary = "게시글 수정",
-            description = """
-                    기존에 작성한 게시글의 제목, 내용, 이미지 목록을 수정합니다.
-                    
-                    ### 요청 정보
-                    - 인증 필요 (Bearer Token)
-                    - 요청 본문에는 수정할 게시글 ID(postId), 제목, 내용, 이미지 목록 포함
-                    
-                    ### 응답 정보
-                    - 수정된 게시글의 ID, 제목, 내용, 이미지 목록 반환
-                    
-                    ### 예외
-                    - 존재하지 않는 게시글 ID
-                    - 본인이 작성하지 않은 게시글 수정 시도
-                    - 요청 데이터 유효성 실패
-                    - 인증 실패
-                    """,
+            description = "기존에 작성한 게시글의 제목, 내용, 이미지 목록을 수정합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
@@ -196,7 +213,7 @@ public interface PostControllerDocs {
                                             {
                                               "success": false,
                                               "status": 403,
-                                              "message": "게시글 수정 권한이 없습니다.",
+                                              "message": "해당 게시글을 수정할 권한이 없습니다.",
                                               "data": null
                                             }
                                             """
@@ -214,7 +231,7 @@ public interface PostControllerDocs {
                                             {
                                               "success": false,
                                               "status": 404,
-                                              "message": "해당 게시글을 찾을 수 없습니다.",
+                                              "message": "게시글이 존재하지 않습니다.",
                                               "data": null
                                             }
                                             """
@@ -236,17 +253,7 @@ public interface PostControllerDocs {
 
     @Operation(
             summary = "게시글 삭제",
-            description = """
-                    사용자가 자신의 게시글을 삭제합니다.
-                    
-                    ### 요청 정보
-                    - 인증 필요 (Bearer Token)
-                    - 경로 변수로 삭제할 게시글 ID를 전달합니다.
-                    
-                    ### 응답 정보
-                    - 성공 시: 게시글 삭제 성공 메시지 반환
-                    - 실패 시: 인증 실패 또는 게시글 권한 없음 등의 에러 발생
-                    """,
+            description = "사용자가 자신의 게시글을 삭제합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
@@ -296,7 +303,7 @@ public interface PostControllerDocs {
                                             {
                                               "success": false,
                                               "status": 403,
-                                              "message": "게시글을 삭제할 권한이 없습니다.",
+                                              "message": "해당 게시글에 대한 권한이 없습니다.",
                                               "data": null
                                             }
                                             """
@@ -313,7 +320,7 @@ public interface PostControllerDocs {
                                             {
                                               "success": false,
                                               "status": 404,
-                                              "message": "해당 게시글을 찾을 수 없습니다.",
+                                              "message": "게시글이 존재하지 않습니다.",
                                               "data": null
                                             }
                                             """
@@ -331,14 +338,10 @@ public interface PostControllerDocs {
             summary = "게시물 전체 목록 조회",
             description = """
                     게시판의 전체 게시글을 페이지네이션과 정렬 조건을 기준으로 조회합니다.
-                    
                     ### 요청 정보
                     - `page` : 페이지 번호 (기본값: 0)
                     - `size` : 페이지 크기 (기본값: 10)
-                    - `sortBy` : 정렬 기준 (기본값: updated, 예: updated, like 등)
-                    
-                    ### 응답 정보
-                    - 페이징 처리된 게시물 리스트와 페이지 정보 반환
+                    - `sortBy` : 정렬 기준 (기본값: updated, 예: updatedAt, like 등)
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -411,15 +414,10 @@ public interface PostControllerDocs {
             summary = "특정 요리 게시글 목록 조회",
             description = """
                     특정 요리에 대해 작성된 게시글들을 정렬 조건에 따라 조회합니다.
-                    
                     ### 요청 파라미터
                     - `cookId` (Path): 조회할 요리 ID
                     - `sortBy` (Query, optional): 정렬 기준 (기본값: like)
-                        - 예: like, updated
-                    
-                    ### 응답 데이터 구조
-                    - `cookId`: 요리 ID
-                    - `posts`: 게시물 요약 리스트 (postId, title, thumbnail, likeCount, updatedAt 포함)
+                        - 예: like, updatedAt
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -510,19 +508,11 @@ public interface PostControllerDocs {
             summary = "사용자 게시글 조회",
             description = """
                     로그인한 사용자의 게시글 목록을 페이지 단위로 조회합니다.
-                    
                     ### 요청 정보
                     - 인증 필요 (Bearer Token)
                     - 쿼리 파라미터
                       - `page`: 조회할 페이지 번호 (기본값 없음, 필수)
                       - `size`: 한 페이지에 표시할 게시글 수 (기본값 없음, 필수)
-                    
-                    ### 응답 정보
-                    - `200 OK`: 페이지네이션된 게시글 목록 반환
-                    
-                    ### 예외
-                    - `400 Bad Request`: 잘못된 쿼리 파라미터
-                    - `401 Unauthorized`: 인증 실패
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -614,19 +604,11 @@ public interface PostControllerDocs {
             summary = "좋아요한 게시글 목록 조회",
             description = """
                     로그인한 사용자가 좋아요한 게시글 목록을 페이지 단위로 조회합니다.
-                    
                     ### 요청 정보
                     - 인증 필요 (Bearer Token)
                     - 쿼리 파라미터
                       - `page`: 조회할 페이지 번호 (필수)
                       - `size`: 한 페이지에 표시할 게시글 수 (필수)
-                    
-                    ### 응답 정보
-                    - `200 OK`: 페이지네이션된 좋아요 게시글 목록 반환
-                    
-                    ### 예외
-                    - `400 Bad Request`: 잘못된 쿼리 파라미터
-                    - `401 Unauthorized`: 인증 실패
                     """,
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -716,18 +698,7 @@ public interface PostControllerDocs {
 
     @Operation(
             summary = "게시글 상세 조회",
-            description = """
-                    게시글 ID로 상세 정보를 조회합니다.
-                    
-                    ### 요청 정보
-                    - 경로 변수로 게시글 ID 전달
-                    
-                    ### 응답 정보
-                    - 게시글 상세 정보 반환
-                    
-                    ### 예외
-                    - `404 Not Found`: 존재하지 않는 게시글 ID
-                    """,
+            description = "게시글 ID로 상세 정보를 조회합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
@@ -791,7 +762,7 @@ public interface PostControllerDocs {
                                             {
                                               "success": false,
                                               "status": 404,
-                                              "message": "해당 게시글을 찾을 수 없습니다.",
+                                              "message": "게시글이 존재하지 않습니다.",
                                               "data": null
                                             }
                                             """

@@ -4,6 +4,7 @@ package com.sobok.shopservice.shop.controller;
 import com.sobok.shopservice.common.dto.CommonResponse;
 import com.sobok.shopservice.common.dto.TokenUserInfo;
 
+import com.sobok.shopservice.shop.controller.docs.ShopControllerDocs;
 import com.sobok.shopservice.shop.dto.response.ShopResDto;
 import com.sobok.shopservice.shop.dto.stock.AvailableShopInfoDto;
 import com.sobok.shopservice.shop.dto.stock.IngredientIdListDto;
@@ -23,7 +24,7 @@ import java.util.List;
 @RequestMapping("/shop")
 @Slf4j
 @RequiredArgsConstructor
-public class ShopController implements ShopControllerDocs{
+public class ShopController implements ShopControllerDocs {
 
     private final ShopService shopService;
     private final ShopAvailabilityService shopAvailabilityService;

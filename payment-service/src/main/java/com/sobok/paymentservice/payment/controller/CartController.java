@@ -2,6 +2,7 @@ package com.sobok.paymentservice.payment.controller;
 
 import com.sobok.paymentservice.common.dto.CommonResponse;
 import com.sobok.paymentservice.common.dto.TokenUserInfo;
+import com.sobok.paymentservice.payment.controller.docs.CartControllerDocs;
 import com.sobok.paymentservice.payment.dto.cart.DeleteCartReqDto;
 import com.sobok.paymentservice.payment.service.cart.CartCookService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/cart")
 @Slf4j
 @RequiredArgsConstructor
-public class CartController implements CartControllerDocs{
+public class CartController implements CartControllerDocs {
     private final CartCookService cartService;
 
     @PatchMapping("/{id}")
