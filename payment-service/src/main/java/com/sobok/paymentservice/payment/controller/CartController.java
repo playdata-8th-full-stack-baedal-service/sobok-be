@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/cart")
 @Slf4j
 @RequiredArgsConstructor
-public class CartController {
+public class CartController implements CartControllerDocs{
     private final CartCookService cartService;
 
     @PatchMapping("/{id}")
