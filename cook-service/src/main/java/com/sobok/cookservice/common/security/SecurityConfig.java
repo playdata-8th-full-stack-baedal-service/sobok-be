@@ -41,7 +41,7 @@ public class SecurityConfig {
                                 ,"/ingredient/all-search"
                         ).permitAll()
                         .requestMatchers("/cook/cook-register", "/ingredient/register",
-                                "/ingredient/all-search", "/ingredient/edit").hasRole("ADMIN")
+                                 "/ingredient/edit").hasRole("ADMIN")
                         .requestMatchers("/cook/**", "/ingredient/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
