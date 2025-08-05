@@ -180,6 +180,12 @@ public class UserService {
                 () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
         );
 
+        // 전화번호 중복 검증
+        if(!user.getPhone().equals(userPhoneDto.getPhone()) &&
+        userRepository.existsByPhone(userPhoneDto.getPhone())) {
+            throw new CustomException("이미 사용 중인 전화번호입니다.", HttpStatus.BAD_REQUEST);
+        }
+
         // 인증번호 확인
         String verifyCode = redisTemplate.opsForValue().get("auth:verify:" + userPhoneDto.getPhone());
         if (verifyCode == null || !verifyCode.equals(userPhoneDto.getUserInputCode())) {
@@ -666,6 +672,13 @@ public class UserService {
         );
 
         return userByUserId.getAuthId();
+    }
+
+    /**
+     * 전화번호 중복 검증
+     */
+    public boolean existsByPhone(String phone) {
+        return userRepository.existsByPhone(phone);
     }
 
 }
