@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@FeignClient(name = "api-service", url = "${DELIVERY_SERVICE_URL}", configuration = FeignConfig.class)
+@FeignClient(name = "api-service", url = "${API_SERVICE_URL}", configuration = FeignConfig.class)
 public interface ApiServiceClient {
 
     @GetMapping("/api/convert-addr")
