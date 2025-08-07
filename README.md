@@ -27,13 +27,12 @@ SOBOK은 Spring Cloud 기반의 마이크로서비스 아키텍처로 구축된 
 | ![프로필이미지](https://avatars.githubusercontent.com/u/190397026?v=4) | ![프로필이미지](https://avatars.githubusercontent.com/u/105274024?v=4) | ![프로필이미지](https://avatars.githubusercontent.com/u/135014484?v=4) | ![프로필이미지](https://avatars.githubusercontent.com/u/199694687?v=4) | ![프로필이미지](https://avatars.githubusercontent.com/u/199499470?v=4)
 | [https://github.com/Devy17](https://github.com/Devy17) | [https://github.com/vbnmopas](https://github.com/vbnmopas) | [https://github.com/HanJongKyun](https://github.com/HanJongKyun) | [https://github.com/SUEYOUNG14](https://github.com/SUEYOUNG14) | [https://github.com/youthdonut](https://github.com/youthdonut) |
 | **Infra** | **Backend** | **Backend** | **Frontend** | **Frontend** |
-<br>
-<br>
 
 - 백엔드 마이크로서비스 아키텍처 설계 및 구현
 - Spring Cloud 기반 분산 시스템 구축
 - RESTful API 설계 및 문서화
 
+<br>
 
 ## 🎯 프로젝트 개요
 
@@ -240,6 +239,7 @@ http://localhost:8000/webjars/swagger-ui/index.html
 ## 🗄️ 데이터베이스 설계
 
 ### ERD
+![img.png](img.png)
 프로젝트 루트의 `sobok.erd.json` 파일에서 전체 데이터베이스 설계를 확인할 수 있습니다.
 
 
