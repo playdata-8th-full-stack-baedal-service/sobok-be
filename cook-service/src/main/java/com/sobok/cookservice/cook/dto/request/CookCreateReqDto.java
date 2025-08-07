@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Schema(description = "요리 생성 요청 DTO")
 public class CookCreateReqDto {
 
@@ -31,7 +33,7 @@ public class CookCreateReqDto {
     private String recipe;
 
     @Schema(description = "요리 카테고리", example = "KOREAN", required = true)
-    @NotNull(message = "카테고리는 필수입니다.")
+    @NotBlank(message = "카테고리는 필수입니다.")
     private String category;
 
     @Schema(description = "썸네일 이미지 URL", example = "http://example.com/thumbnail.jpg", required = true)

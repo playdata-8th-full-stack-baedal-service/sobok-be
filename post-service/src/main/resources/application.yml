@@ -10,4 +10,4 @@ server:
 
 openapi:
   service:
-    url: https://localhost:8000/post-service
+    url: http://localhost:8000/post-service

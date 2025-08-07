@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +19,8 @@ public interface S3ControllerDocs {
 
     @Operation(
             summary = "S3 이미지 삭제",
-            description = "S3에 저장된 이미지 파일을 삭제합니다. 삭제할 파일의 key를 전달해야 합니다."
+            description = "S3에 저장된 이미지 파일을 삭제합니다. 삭제할 파일의 key를 전달해야 합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "삭제 성공",
@@ -56,7 +58,8 @@ public interface S3ControllerDocs {
 
     @Operation(
             summary = "S3 이미지 업로드",
-            description = "이미지를 S3에 임시 업로드합니다. 10분 이내에 register 과정을 거쳐야 합니다."
+            description = "이미지를 S3에 임시 업로드합니다. 10분 이내에 register 과정을 거쳐야 합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "업로드 성공",
