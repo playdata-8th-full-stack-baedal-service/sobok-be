@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,8 @@ public interface CookControllerDocs {
 
     @Operation(
             summary = "요리 등록",
-            description = "새로운 요리를 등록합니다. 요리 이름, 카테고리, 썸네일, 기본 식재료 등을 포함하여 등록할 수 있습니다."
+            description = "새로운 요리를 등록합니다. 요리 이름, 카테고리, 썸네일, 기본 식재료 등을 포함하여 등록할 수 있습니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "요리 등록 성공",
@@ -83,21 +85,28 @@ public interface CookControllerDocs {
                                       "success": true,
                                       "data": [
                                         {
-                                          "cookId": 1,
+                                          "id": 1,
                                           "name": "김치찌개",
-                                          "category": "한식",
-                                          "thumbnailUrl": "https://example.com/images/kimchi.jpg"
+                                          "allergy": "밀가루",
+                                          "recipe": "<p>돼지고기와 김치를 함께 볶아 깊은 맛을 내고, 물을 부어 푹 끓입니다.</p><img src=\\"https://d3c5012dwkvoyc.cloudfront.net/food/e932603d-ed88-4940-adea-9bff1bcb9432cat.jpg\\"><p>보글보글 끓인 후 파를 넣고 마무리하세요.</p>",
+                                          "category": "KOREAN",
+                                          "thumbnail": "https://example.com/images/kimchi.jpg",
+                                          "active": "Y"
                                         },
                                         {
-                                          "cookId": 2,
+                                          "id": 2,
                                           "name": "불고기",
-                                          "category": "한식",
-                                          "thumbnailUrl": "https://example.com/images/bulgogi.jpg"
+                                          "allergy": "양파",
+                                          "recipe": "<p>얇게 썬 소고기를 양념장에 재워 숙성시킨 후, 양파와 함께 볶아줍니다.</p><img src=\\"https://d3c5012dwkvoyc.cloudfront.net/food/0c2abad5-1129-4949-8e57-e5d0b75ecb06cat.jpg\\"><p>참기름과 깨소금으로 마무리하면 풍미가 살아납니다.</p>",
+                                          "category": "KOREAN",
+                                          "thumbnail": "https://example.com/images/bulgogi.jpg",
+                                          "active": "Y"
                                         }
                                       ],
-                                      "message": "요리 목록 조회 성공",
+                                      "message": "페이징으로 요청한 모든 요리가 정상적으로 조회되었습니다.",
                                       "status": 200
                                     }
+                                    
                                     """))),
             @ApiResponse(responseCode = "400", description = "잘못된 페이지 번호 또는 항목 수",
                     content = @Content(mediaType = "application/json",
@@ -219,18 +228,42 @@ public interface CookControllerDocs {
                             schema = @Schema(implementation = CommonResponse.class),
                             examples = @ExampleObject(value = """
                                     {
-                                      "success": true,
-                                      "data": {
-                                        "cookId": 1,
-                                        "name": "김치찌개",
-                                        "category": "한식",
-                                        "description": "매콤한 김치와 돼지고기를 넣은 찌개",
-                                        "thumbnailUrl": "https://example.com/images/kimchi.jpg",
-                                        "allergens": ["돼지고기", "대두"]
-                                      },
-                                      "message": "요리 상세 조회 성공",
-                                      "status": 200
-                                    }
+                                           "success": true,
+                                           "data": {
+                                             "cookId": 1,
+                                             "cookName": "김치찌개",
+                                             "allergy": "돼지고기, 대두",
+                                             "category": "KOREAN",
+                                             "recipe": "<p>신김치와 돼지고기를 함께 볶다가 물을 넣고 푹 끓입니다.</p><img src=\\"https://example.com/images/kimchi-cook.jpg\\"><p>두부와 대파를 넣고 한소끔 더 끓이면 완성입니다.</p>",
+                                             "thumbnail": "https://example.com/images/kimchi.jpg",
+                                             "ingredientList": [
+                                               {
+                                                 "ingredientId": 1,
+                                                 "ingredientName": "김치",
+                                                 "price": 200,
+                                                 "unit": 100,
+                                                 "unitQuantity": 2
+                                               },
+                                               {
+                                                 "ingredientId": 2,
+                                                 "ingredientName": "돼지고기",
+                                                 "price": 500,
+                                                 "unit": 100,
+                                                 "unitQuantity": 1
+                                               },
+                                               {
+                                                 "ingredientId": 3,
+                                                 "ingredientName": "두부",
+                                                 "price": 300,
+                                                 "unit": 100,
+                                                 "unitQuantity": 1
+                                               }
+                                             ]
+                                           },
+                                           "message": "입력한 요리 아이디에 맞는 요리 정보가 조회되었습니다.",
+                                           "status": 200
+                                         }
+                                    
                                     """))),
             @ApiResponse(responseCode = "404", description = "해당 요리가 존재하지 않음",
                     content = @Content(mediaType = "application/json",

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -44,8 +45,10 @@ public interface DeliveryControllerDocs {
     ResponseEntity<?> checkPermission(@Parameter(description = "면허 번호", required = true)
                                       @RequestParam String permission);
 
-    @Operation(summary = "배달 가능 주문 목록 조회",
-            description = "현재 라이더 위치 기준으로 배달 가능한 주문 목록을 페이지 단위로 조회합니다.")
+    @Operation(
+            summary = "배달 가능 주문 목록 조회",
+            description = "현재 라이더 위치 기준으로 배달 가능한 주문 목록을 페이지 단위로 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "배달 가능 주문 조회 성공",
                     content = @Content(mediaType = "application/json",
@@ -114,8 +117,10 @@ public interface DeliveryControllerDocs {
             @Parameter(description = "페이지당 항목 수", required = true) @RequestParam Long numOfRows
     );
 
-    @Operation(summary = "배달 중인 주문 목록 조회",
-            description = "현재 라이더가 배달 중인 주문 목록을 페이지 단위로 조회합니다.")
+    @Operation(
+            summary = "배달 중인 주문 목록 조회",
+            description = "현재 라이더가 배달 중인 주문 목록을 페이지 단위로 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "배달 중인 주문 조회 성공",
                     content = @Content(mediaType = "application/json",
@@ -168,8 +173,10 @@ public interface DeliveryControllerDocs {
             @Parameter(description = "페이지당 항목 수", required = true) @RequestParam Long numOfRows
     );
 
-    @Operation(summary = "라이더 배달 전체 목록 조회",
-            description = "해당 라이더가 완료한 배달을 포함한 전체 배달 목록을 페이지 단위로 조회합니다.")
+    @Operation(
+            summary = "라이더 배달 전체 목록 조회",
+            description = "해당 라이더가 완료한 배달을 포함한 전체 배달 목록을 페이지 단위로 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "전체 배달 조회 성공",
                     content = @Content(mediaType = "application/json",
@@ -222,8 +229,10 @@ public interface DeliveryControllerDocs {
             @Parameter(description = "페이지당 항목 수", required = true) @RequestParam Long numOfRows
     );
 
-    @Operation(summary = "전체 라이더 목록 조회 (관리자 전용)",
-            description = "관리자 권한으로 모든 라이더 정보를 조회합니다.")
+    @Operation(
+            summary = "전체 라이더 목록 조회 (관리자 전용)",
+            description = "관리자 권한으로 모든 라이더 정보를 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "전체 라이더 조회 성공",
                     content = @Content(mediaType = "application/json",
@@ -260,8 +269,10 @@ public interface DeliveryControllerDocs {
     })
     ResponseEntity<?> getAllRiders(@Parameter(hidden = true) TokenUserInfo userInfo);
 
-    @Operation(summary = "승인 대기중인 라이더 조회 (관리자 전용)",
-            description = "관리자 권한으로 승인 대기 중인 비활성 라이더 목록을 조회합니다.")
+    @Operation(
+            summary = "승인 대기중인 라이더 조회 (관리자 전용)",
+            description = "관리자 권한으로 승인 대기 중인 비활성 라이더 목록을 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "비활성 라이더 조회 성공",
                     content = @Content(mediaType = "application/json",
