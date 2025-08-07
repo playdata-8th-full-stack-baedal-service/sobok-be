@@ -2,7 +2,9 @@
 
 > **Team 3 - Microservices Architecture Food Delivery Platform**
 
-SOBOK은 Spring Cloud 기반의 마이크로서비스 아키텍처로 구축된 식재료 큐레이션 배달 중개 플랫폼입니다. 고객, 가게 사장, 배달 라이더, 관리자의 다양한 역할을 지원하며, 실시간 배달 추적, 재고 관리, 커뮤니티 기능을 제공합니다.
+SOBOK은 Spring Cloud 기반의 마이크로서비스 아키텍처로 구축된 식재료 큐레이션 배달 중개 플랫폼입니다.
+요리하고 싶지만 장보기의 번거로움이나 식재료 낭비로 고민하는 1인 가구를 위해, 필요한 식재료만 선별해 배달해주는 서비스를 제공합니다.
+고객, 가게 사장, 라이더, 관리자 역할을 지원하며, 실시간 배달 추적, 재고 관리, 커뮤니티 등의 기능을 포함합니다.
 
 ## 📋 목차
 - [팀소개](#팀소개)
@@ -19,7 +21,7 @@ SOBOK은 Spring Cloud 기반의 마이크로서비스 아키텍처로 구축된 
 
 ## 👥 팀소개
 
-**Team 3 - Full Stack Developers**
+**Team 3**
 <br>
 <br>
 | 강하늘 <br> (Devy17) | 김현지 <br> (vbnmopas) | 한종균 <br> (HanJongKyun) | 김수영 <br> (SUEYOUNG14) | 유승현 <br> (youthdonut) |
@@ -52,7 +54,7 @@ SOBOK은 Spring Cloud 기반의 마이크로서비스 아키텍처로 구축된 
 
 ```
 ┌─────────────────┐    ┌─────────────────┐     ┌──────────────────┐
-│   Client Apps   │────│  Gateway Service │────│ Discovery Service│
+│   Client Apps   │────│ Gateway Service │──── │ Discovery Service│
 └─────────────────┘    └─────────────────┘     └──────────────────┘
                                 │                       │
                        ┌────────┴────────┐              │
@@ -124,7 +126,7 @@ SOBOK은 Spring Cloud 기반의 마이크로서비스 아키텍처로 구축된 
 | **cook-service** | 요리 관리 | 메뉴 관리, 레시피 정보, 캐싱 |
 | **payment-service** | 결제 관리 | 주문 생성, 결제 처리, 상태 관리 |
 | **delivery-service** | 배달 관리 | 라이더 관리, 배달 매칭, 실시간 추적 |
-| **post-service** | 커뮤니티 | 게시글, 리뷰, 이미지 업로드 |
+| **post-service** | 커뮤니티 | 게시글, 이미지 업로드 |
 | **api-service** | API 통합 | 프론트엔드 전용 API, 데이터 집계 |
 
 ## ✨ 주요 기능
@@ -240,17 +242,18 @@ http://localhost:8000/webjars/swagger-ui/index.html
 
 ### ERD
 ![img.png](img.png)
-프로젝트 루트의 `sobok.erd.json` 파일에서 전체 데이터베이스 설계를 확인할 수 있습니다.
+
 
 
 ### 주요 엔티티
 - **User**: 사용자 기본 정보
 - **Shop**: 가게 정보 및 위치
 - **Cook**: 요리/메뉴 정보
-- **Ingredient**: 재고/식재료 정보
+- **Ingredient**: 식재료 정보
+- **Stock**: 가게 식재료 재고 정보
 - **Payment**: 주문 및 결제 정보
 - **Delivery**: 배달 정보
-- **Post**: 게시글 및 리뷰
+- **Post**: 게시글
 
 ### 데이터베이스 연결 설정
 ```yaml
