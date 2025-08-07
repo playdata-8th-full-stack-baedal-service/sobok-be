@@ -20,7 +20,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public interface AuthControllerDocs {
 
-    @Operation(summary = "사용자 회원가입", description = "사용자 신규 회원가입 요청")
+    @Operation(
+            summary = "사용자 회원가입",
+            description = "사용자 신규 회원가입 요청"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "회원가입 성공",
                     content = @Content(mediaType = "application/json",
@@ -55,7 +58,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "회원가입 요청 DTO", required = true)
             @Valid @RequestBody AuthUserReqDto authUserReqDto);
 
-    @Operation(summary = "아이디 중복 확인", description = "로그인 아이디 중복 여부 확인")
+    @Operation(
+            summary = "아이디 중복 확인",
+            description = "로그인 아이디 중복 여부 확인"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "사용 가능한 아이디",
                     content = @Content(mediaType = "application/json",
@@ -86,7 +92,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "중복 확인할 로그인 아이디", required = true)
             @RequestParam String loginId);
 
-    @Operation(summary = "임시 토큰 발급", description = "임시 토큰을 발급합니다.")
+    @Operation(
+            summary = "임시 토큰 발급",
+            description = "임시 토큰을 발급합니다."
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "임시 토큰 발급 성공",
                     content = @Content(mediaType = "application/json",
@@ -103,7 +112,10 @@ public interface AuthControllerDocs {
     })
     ResponseEntity<?> getTempToken();
 
-    @Operation(summary = "통합 로그인", description = "아이디, 비밀번호로 로그인 처리")
+    @Operation(
+            summary = "통합 로그인",
+            description = "아이디, 비밀번호로 로그인 처리"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그인 성공",
                     content = @Content(mediaType = "application/json",
@@ -138,8 +150,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "로그인 요청 DTO", required = true)
             @Valid @RequestBody AuthLoginReqDto reqDto);
 
-    @Operation(summary = "통합 로그아웃", description = "로그아웃 처리",
-            security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(
+            summary = "통합 로그아웃", description = "로그아웃 처리",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그아웃 성공",
                     content = @Content(mediaType = "application/json",
@@ -170,7 +184,10 @@ public interface AuthControllerDocs {
             @RequestHeader("Authorization") String authorizationHeader,
             @Parameter(hidden = true) TokenUserInfo userInfo);
 
-    @Operation(summary = "토큰 재발급", description = "만료 토큰 재발급")
+    @Operation(
+            summary = "토큰 재발급",
+            description = "만료 토큰 재발급"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "재발급 성공",
                     content = @Content(mediaType = "application/json",
@@ -201,8 +218,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "재발급 요청 DTO", required = true)
             @RequestBody AuthReissueReqDto reqDto);
 
-    @Operation(summary = "비밀번호 검증", description = "현재 비밀번호 확인",
-            security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(
+            summary = "비밀번호 검증", description = "현재 비밀번호 확인",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "검증 성공",
                     content = @Content(mediaType = "application/json",
@@ -234,8 +253,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "비밀번호 검증 DTO", required = true)
             @RequestBody AuthPasswordReqDto reqDto);
 
-    @Operation(summary = "사용자 비활성화 (탈퇴)", description = "계정 비활성화 처리",
-            security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(
+            summary = "사용자 비활성화 (탈퇴)", description = "계정 비활성화 처리",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "비활성화 성공",
                     content = @Content(mediaType = "application/json",
@@ -266,7 +287,10 @@ public interface AuthControllerDocs {
             @RequestHeader("Authorization") String authorizationHeader,
             @Parameter(hidden = true) TokenUserInfo userInfo);
 
-    @Operation(summary = "사용자 복구", description = "비활성화된 사용자 계정을 비밀번호 확인 후 복구합니다.")
+    @Operation(
+            summary = "사용자 복구",
+            description = "비활성화된 사용자 계정을 비밀번호 확인 후 복구합니다."
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "복구 성공",
                     content = @Content(mediaType = "application/json",
@@ -311,7 +335,10 @@ public interface AuthControllerDocs {
             @RequestBody RecoverReqDto reqDto);
 
 
-    @Operation(summary = "라이더 회원가입", description = "새 라이더 회원가입")
+    @Operation(
+            summary = "라이더 회원가입",
+            description = "새 라이더 회원가입"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "회원가입 성공",
                     content = @Content(mediaType = "application/json",
@@ -345,8 +372,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "라이더 회원가입 요청 DTO", required = true)
             @Valid @RequestBody AuthRiderReqDto authRiderReqDto);
 
-    @Operation(summary = "가게 회원가입", description = "새 가게 회원가입",
-            security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(
+            summary = "가게 회원가입", description = "새 가게 회원가입",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "회원가입 성공",
                     content = @Content(mediaType = "application/json",
@@ -394,7 +423,10 @@ public interface AuthControllerDocs {
             @Valid @RequestBody AuthShopReqDto authShopReqDto,
             @Parameter(hidden = true) TokenUserInfo userInfo);
 
-    @Operation(summary = "사용자 아이디 찾기", description = "전화번호와 인증번호로 아이디 조회")
+    @Operation(
+            summary = "사용자 아이디 찾기",
+            description = "전화번호와 인증번호로 아이디 조회"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "아이디 조회 성공",
                     content = @Content(mediaType = "application/json",
@@ -425,7 +457,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "아이디 찾기 요청 DTO", required = true)
             @RequestBody AuthFindIdReqDto authFindReqDto);
 
-    @Operation(summary = "비밀번호 찾기 - 인증번호 발송", description = "비밀번호 찾기 인증번호 요청")
+    @Operation(
+            summary = "비밀번호 찾기 - 인증번호 발송",
+            description = "비밀번호 찾기 인증번호 요청"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "인증번호 발송 성공",
                     content = @Content(mediaType = "application/json",
@@ -456,7 +491,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "인증번호 요청 DTO", required = true)
             @RequestBody AuthVerifyReqDto authVerifyReqDto);
 
-    @Operation(summary = "비밀번호 재설정", description = "임시 비밀번호로 재설정")
+    @Operation(
+            summary = "비밀번호 재설정",
+            description = "임시 비밀번호로 재설정"
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "비밀번호 재설정 성공",
                     content = @Content(mediaType = "application/json",
@@ -487,8 +525,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "비밀번호 재설정 DTO", required = true)
             @RequestBody AuthResetPwReqDto authResetPwReqDto);
 
-    @Operation(summary = "비밀번호 변경", description = "로그인 사용자 비밀번호 변경",
-            security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(
+            summary = "비밀번호 변경", description = "로그인 사용자 비밀번호 변경",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공",
                     content = @Content(mediaType = "application/json",
@@ -520,8 +560,10 @@ public interface AuthControllerDocs {
             @Parameter(description = "비밀번호 변경 DTO", required = true)
             @Valid @RequestBody AuthEditPwReqDto authEditPwReqDto);
 
-    @Operation(summary = "회원 정보 조회", description = "로그인 사용자 정보 조회",
-            security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(
+            summary = "회원 정보 조회", description = "로그인 사용자 정보 조회",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(mediaType = "application/json",
@@ -566,7 +608,11 @@ public interface AuthControllerDocs {
             @Parameter(description = "소셜 회원가입 DTO", required = true)
             @Valid @RequestBody AuthByOauthReqDto authByOauthReqDto);
 
-    @Operation(summary = "라이더 회원가입 승인 요청", description = "라이더 계정 활성화 처리")
+    @Operation(
+            summary = "라이더 회원가입 승인 요청",
+            description = "라이더 계정 활성화 처리",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "라이더 활성화 성공",
                     content = @Content(mediaType = "application/json",

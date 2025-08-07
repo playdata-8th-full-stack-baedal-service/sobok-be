@@ -167,7 +167,7 @@ public class UserService {
                 () -> new CustomException("해당하는 사용자가 없습니다.", HttpStatus.NOT_FOUND)
         );
 
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (userRepository.existsByEmail(reqDto.getEmail())) {
             throw new CustomException("이미 사용중인 이메일입니다.", HttpStatus.BAD_REQUEST);
         }
 

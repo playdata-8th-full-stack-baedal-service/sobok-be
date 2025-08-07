@@ -86,7 +86,7 @@ public class RegisterService {
 
         //sms 인증번호 검증
         if (!smsService.verifySmsCode(dto.getPhone(), dto.getInputCode())) {
-            throw new CustomException("인증된 전화번호가 아닙니다.", HttpStatus.BAD_REQUEST);
+            throw new CustomException("인증번호를 확인해주세요!", HttpStatus.BAD_REQUEST);
         }
 
         // 사진 등록
