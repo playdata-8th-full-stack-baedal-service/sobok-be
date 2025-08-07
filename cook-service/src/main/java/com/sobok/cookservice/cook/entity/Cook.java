@@ -26,7 +26,8 @@ public class Cook extends BaseTimeEntity {
 
     private String allergy;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "MEDIUMTEXT")
+    @Lob
     private String recipe;
 
     @Enumerated(EnumType.STRING)
