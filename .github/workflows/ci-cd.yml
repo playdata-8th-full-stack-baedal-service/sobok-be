@@ -61,7 +61,7 @@ jobs:
               CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
             fi
           fi
-#          fi
+          # fi
           
           # Validate that we have changed files data
           if [ -z "$CHANGED_FILES" ]; then
