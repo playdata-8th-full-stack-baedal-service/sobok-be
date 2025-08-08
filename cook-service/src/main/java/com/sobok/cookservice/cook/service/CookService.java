@@ -17,6 +17,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,8 @@ import static com.sobok.cookservice.cook.entity.QIngredient.*;
 @Slf4j
 @RequiredArgsConstructor
 public class CookService {
+    @Value("${cloudfront.alter}")
+    private String ALTER_URL;
 
 
     private final CookRepository cookRepository;
@@ -69,11 +72,15 @@ public class CookService {
                     throw new CustomException("이미 사용 중인 썸네일입니다.", HttpStatus.BAD_REQUEST);
                 });
 
+        // temp 제거
+        String recipe = dto.getRecipe().replace(ALTER_URL + "temp/", ALTER_URL);
+        recipe = cleanXss(recipe);
+
         // 요리 저장
         Cook cook = Cook.builder()
                 .name(dto.getName())
                 .allergy(dto.getAllergy())
-                .recipe(dto.getRecipe())
+                .recipe(recipe)
                 .category(CookCategory.valueOf(dto.getCategory().toUpperCase()))
                 .thumbnail(photoUrl)
                 .build();
@@ -102,6 +109,23 @@ public class CookService {
         return new CookCreateResDto(cook.getId());
     }
 
+    /**
+     * XSS(Cross-Site Scripting) 공격을 방지하기 위해 입력값을 정화하는 메서드
+     * 
+     * @param value 정화할 문자열
+     * @return 정화된 문자열
+     */
+    private String cleanXss(String value) {
+        return value
+                .replaceAll("<", "&lt;")                                          // HTML 태그 시작 문자를 HTML 엔티티로 변환
+                .replaceAll(">", "&gt;")                                          // HTML 태그 종료 문자를 HTML 엔티티로 변환
+                .replaceAll("\\(", "&#40;")                                       // 괄호 열기를 HTML 엔티티로 변환 (함수 호출 방지)
+                .replaceAll("\\)", "&#41;")                                       // 괄호 닫기를 HTML 엔티티로 변환 (함수 호출 방지)
+                .replaceAll("'", "&#39;")                                         // 작은따옴표를 HTML 엔티티로 변환 (문자열 이스케이프 방지)
+                .replaceAll("eval\\((.*)\\)", "")                                 // eval() 함수 호출 완전 제거
+                .replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"")  // javascript: 프로토콜 제거
+                .replaceAll("script", "");                                        // script 문자열 완전 제거
+    }
 
     public List<CookResDto> getCook(Long pageNo, Long numOfRows) {
         // 전체 조회
@@ -148,7 +172,7 @@ public class CookService {
                 .collect(Collectors.toMap(Cook::getId, Function.identity()));
 
         // 조합을 cookId 기준으로 그룹화
-        List<Combination> allCombinations = combinationRepository.  findByCookIdIn(cookIds);
+        List<Combination> allCombinations = combinationRepository.findByCookIdIn(cookIds);
         Map<Long, List<Combination>> combinationMap = allCombinations.stream()
                 .collect(Collectors.groupingBy(Combination::getCookId));
 
@@ -473,4 +497,3 @@ public class CookService {
                 .getThumbnail();
     }
 }
-
