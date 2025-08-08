@@ -53,7 +53,6 @@ jobs:
             echo "⚠️  Initial commit or new branch detected - checking all files"
             CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
           else
-            echo "📝 Comparing with previous commit: ${{ github.event.before }}"
             # Check if the before commit exists
             if git cat-file -e ${{ github.event.before }} 2>/dev/null; then
               CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
@@ -62,7 +61,6 @@ jobs:
               CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
             fi
           fi
-#          fi
           
           # Validate that we have changed files data
           if [ -z "$CHANGED_FILES" ]; then
