@@ -42,11 +42,11 @@ jobs:
       - name: Detect changed services
         id: changes
         run: |
-#           Get list of changed files with error handling
-#          if [ "${{ github.event_name }}" == "pull_request" ]; then
-#            echo "🔍 Pull Request detected - comparing with base branch"
-#            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-#          else
+          # Get list of changed files with error handling
+          #   if [ "${{ github.event_name }}" == "pull_request" ]; then
+          #     echo "🔍 Pull Request detected - comparing with base branch"
+          #     CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          #   else
           echo "🔍 Push event detected - analyzing changes"
           # Handle special cases for push events
           if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
