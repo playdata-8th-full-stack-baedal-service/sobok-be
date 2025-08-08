@@ -3,8 +3,8 @@ name: CI/CD Pipeline - Build and Push to ECR
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+#  pull_request:
+#    branches: [ main ]
 
 env:
   AWS_REGION: ap-northeast-2
@@ -42,27 +42,27 @@ jobs:
       - name: Detect changed services
         id: changes
         run: |
-          # Get list of changed files with error handling
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "🔍 Pull Request detected - comparing with base branch"
-            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+#           Get list of changed files with error handling
+#          if [ "${{ github.event_name }}" == "pull_request" ]; then
+#            echo "🔍 Pull Request detected - comparing with base branch"
+#            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+#          else
+          echo "🔍 Push event detected - analyzing changes"
+          # Handle special cases for push events
+          if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
+            echo "⚠️  Initial commit or new branch detected - checking all files"
+            CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
           else
-            echo "🔍 Push event detected - analyzing changes"
-            # Handle special cases for push events
-            if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
-              echo "⚠️  Initial commit or new branch detected - checking all files"
-              CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
+            echo "📝 Comparing with previous commit: ${{ github.event.before }}"
+            # Check if the before commit exists
+            if git cat-file -e ${{ github.event.before }} 2>/dev/null; then
+              CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
             else
-              echo "📝 Comparing with previous commit: ${{ github.event.before }}"
-              # Check if the before commit exists
-              if git cat-file -e ${{ github.event.before }} 2>/dev/null; then
-                CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-              else
-                echo "⚠️  Previous commit not found - treating as initial commit"
-                CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
-              fi
+              echo "⚠️  Previous commit not found - treating as initial commit"
+              CHANGED_FILES=$(git ls-tree -r --name-only HEAD)
             fi
           fi
+#          fi
           
           # Validate that we have changed files data
           if [ -z "$CHANGED_FILES" ]; then
