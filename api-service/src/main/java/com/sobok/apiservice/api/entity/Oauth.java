@@ -15,9 +15,9 @@ public class Oauth {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String socialId;
 
-    @Column(unique = true)
+    @Column(nullable = false)
     private String socialProvider; // GOOGLE, KAKAO, NAVER, null
 }
