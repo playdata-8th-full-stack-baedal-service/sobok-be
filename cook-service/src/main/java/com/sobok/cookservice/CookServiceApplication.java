@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class CookServiceApplication {
 
-    // version 1.2.0
+    // version 1.3.0
     public static void main(String[] args) {
         SpringApplication.run(CookServiceApplication.class, args);
     }
