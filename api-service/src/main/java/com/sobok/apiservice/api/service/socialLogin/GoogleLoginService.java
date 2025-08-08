@@ -48,7 +48,7 @@ public class GoogleLoginService {
                 .clientId(googleClientId)
                 .clientSecret(googleClientPw)
                 .code(code)
-                .redirectUri("https://sobok.shop/api-service/api/google-login")
+                .redirectUri("https://api.sobok.shop/api-service/api/google-login")
                 .grantType("authorization_code")
                 .build()).getBody();
 
