@@ -76,6 +76,7 @@ public class CookService {
         String recipe = dto.getRecipe().replace(ALTER_URL + "temp/", ALTER_URL);
 //        recipe = cleanXss(recipe);
 
+
         // 요리 저장
         Cook cook = Cook.builder()
                 .name(dto.getName())
@@ -127,6 +128,7 @@ public class CookService {
 //                .replaceAll("script", "");                                        // script 문자열 완전 제거
 //    }
 //
+
     public List<CookResDto> getCook(Long pageNo, Long numOfRows) {
         // 전체 조회
         return searchCook("", pageNo, numOfRows);
