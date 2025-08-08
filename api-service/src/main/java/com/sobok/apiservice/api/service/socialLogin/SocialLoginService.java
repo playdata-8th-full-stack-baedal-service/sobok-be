@@ -118,10 +118,10 @@ public class SocialLoginService {
                                             role: '%s',
                                             recoveryTarget: '%s',
                                             provider: '%s'
-                                        }, 'http://localhost:5173');
+                                        }, 'https://sobok.shop');
                                         window.close();
                                     } else {
-                                        window.location.href = 'http://localhost:5173';
+                                        window.location.href = 'https://sobok.shop';
                                     }
                                 </script>
                                 <p>%s 로그인 처리 중...</p>
@@ -133,7 +133,7 @@ public class SocialLoginService {
             String encodedNickname = URLEncoder.encode(res.getNickname(), StandardCharsets.UTF_8);
             String encodedEmail = URLEncoder.encode(res.getEmail(), StandardCharsets.UTF_8);
             String redirectUrl = String.format(
-                    "http://localhost:5173/auth/signup/social-user-signup?provider=%s&oauthId=%s&nickname=%s&email=%s",
+                    "https://sobok.shop/auth/signup/social-user-signup?provider=%s&oauthId=%s&nickname=%s&email=%s",
                     provider, res.getOauthId(), encodedNickname, encodedEmail
             );
             html = String.format("""
@@ -149,7 +149,7 @@ public class SocialLoginService {
                                     nickname: '%s',
                                     email: '%s',
                                     provider: '%s'
-                                }, 'http://localhost:5173');
+                                }, 'https://sobok.shop');
                                 window.close();
                             } else {
                                 window.location.href = '%s';
