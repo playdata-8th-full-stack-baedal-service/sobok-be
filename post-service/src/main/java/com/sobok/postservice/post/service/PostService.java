@@ -407,9 +407,19 @@ public class PostService {
 
         // 외부 정보 조회
         Map<Long, Long> likeCountMap = userClient.getLikeCountMap(postIds).getBody();
-        Map<Long, String> cookNameMap = getListResponseEntity(cookIds).stream()
-                .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
         Map<Long, UserInfoResDto> userInfoMap = userClient.getUserInfos(userIds).getBody();
+
+        Map<Long, String> cookNameMap;
+        if (!cookIds.isEmpty()) {
+            try { // cookIds에 있는 요리 Id 들로부터 요리 이름 목록을 조회해서, 각 요리 Id와 요리 이름을 저장
+                cookNameMap = getListResponseEntity(cookIds).stream()
+                        .collect(Collectors.toMap(CookNameResDto::getCookId, CookNameResDto::getCookName));
+            } catch (Exception e) { // 요리 정보 에러
+                throw new CustomException("요리 정보를 불러오지 못했습니다.", HttpStatus.NOT_FOUND);
+            }
+        } else { // cookIds가 없을 때, 빈 맵을 만들어 저장
+            cookNameMap = Collections.emptyMap();
+        }
 
         List<PostListResDto> result = posts.stream().map(post -> {
             Long postId = post.getId();
@@ -419,7 +429,7 @@ public class PostService {
             return PostListResDto.builder()
                     .postId(postId)
                     .title(post.getTitle())
-                    .cookName(cookNameMap.get(cookId))
+                    .cookName(cookNameMap.getOrDefault(cookId, "삭제된 요리"))
                     .userId(userId)
                     .nickName(userInfoMap.get(userId).getNickname())
                     .likeCount(likeCountMap.getOrDefault(postId, 0L))
