@@ -3,5 +3,5 @@
 
 spring:
   profiles:
-#    default: dev
-    default: prod
+    default: dev
+#    default: prod
