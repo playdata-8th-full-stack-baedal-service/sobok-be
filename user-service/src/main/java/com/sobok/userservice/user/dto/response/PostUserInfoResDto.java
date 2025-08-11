@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class PostUserInfoResDto {
     private Long userId;
     private String nickname;
+    private String photo;
 }

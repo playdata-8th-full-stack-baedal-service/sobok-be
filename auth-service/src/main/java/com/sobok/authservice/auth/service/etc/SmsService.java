@@ -36,10 +36,10 @@ public class SmsService {
 
     public void SendSms(SmsReqDto smsReqDto) {
 
-        // 전화번호 중복 검증
-        if (userServiceClient.existsByPhone(smsReqDto.getPhone())) {
-            throw new CustomException("이미 사용 중인 전화번호입니다.", HttpStatus.BAD_REQUEST);
-        }
+        // 전화번호 중복 검증 -> 아이디 찾기에서도 사용되기 때문에 주석 처리하겠습니다.
+//        if (userServiceClient.existsByPhone(smsReqDto.getPhone())) {
+//            throw new CustomException("이미 사용 중인 전화번호입니다.", HttpStatus.BAD_REQUEST);
+//        }
 
         String certificationCode = Integer.toString((int) (Math.random() * (999999 - 100000 + 1)) + 100000); // 6자리 인증 코드를 랜덤으로 생성
         // 3분 동안 Redis에 인증번호 저장
