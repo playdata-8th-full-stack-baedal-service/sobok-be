@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
         name = "stock",
         indexes = {
                 // 조회 순서는 반드시 이 순서대로 해주세요.
-                @Index(name = "idx_stock", columnList = "shopId, ingredientId, quantity")
+                @Index(name = "idx_stock", columnList = "shopId, ingredientId")
         }
 )
 public class Stock extends BaseTimeEntity {

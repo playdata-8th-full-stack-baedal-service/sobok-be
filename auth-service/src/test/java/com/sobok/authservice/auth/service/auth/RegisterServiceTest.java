@@ -61,7 +61,7 @@ class RegisterServiceTest {
                     .loginId("testrider0" + i / 10 + i % 10)
                     .password("Password123!")
                     .name(names.get(i - 1))
-                    .phone("010000001" + i / 10 + i % 10)
+                    .phone("010060001" + i / 10 + i % 10)
                     .permissionNumber("1234567890" + i / 10 + i % 10)
                     .build();
 
