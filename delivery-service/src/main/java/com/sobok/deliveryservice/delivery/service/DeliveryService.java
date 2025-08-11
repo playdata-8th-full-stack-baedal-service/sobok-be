@@ -263,7 +263,7 @@ public class DeliveryService {
                             .shopRoadFull(shop.getRoadFull())
                             .roadFull(address != null ? address.getRoadFull() : null)
                             .addrDetail(address != null ? address.getAddrDetail() : null)
-                            .completeTime(delivery.getCompleteTime())
+                            .completeTime(payment.getUpdatedAt())
                             .build();
                 })
                 .filter(dto -> dto.getShopName() != null && dto.getRoadFull() != null)
