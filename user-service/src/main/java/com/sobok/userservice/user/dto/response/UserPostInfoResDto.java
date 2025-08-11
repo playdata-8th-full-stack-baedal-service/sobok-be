@@ -14,4 +14,5 @@ public class UserPostInfoResDto {
     private Long userId;
     private String nickname;
     private Long authId;
+    private String photo;
 }

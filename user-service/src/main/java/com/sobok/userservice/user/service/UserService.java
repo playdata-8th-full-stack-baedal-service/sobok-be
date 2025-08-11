@@ -484,6 +484,7 @@ public class UserService {
                 .userId(user.getId())
                 .nickname(user.getNickname())
                 .authId(user.getAuthId())
+                .photo(user.getPhoto())
                 .build();
     }
 
@@ -616,7 +617,7 @@ public class UserService {
         return userRepository.findAllById(userIds).stream()
                 .collect(Collectors.toMap(
                         User::getId,
-                        user -> new PostUserInfoResDto(user.getId(), user.getNickname())
+                        user -> new PostUserInfoResDto(user.getId(), user.getNickname(), user.getPhoto())
                 ));
     }
 
