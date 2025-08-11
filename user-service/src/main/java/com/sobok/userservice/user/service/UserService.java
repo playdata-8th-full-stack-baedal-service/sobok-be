@@ -484,6 +484,7 @@ public class UserService {
                 .userId(user.getId())
                 .nickname(user.getNickname())
                 .authId(user.getAuthId())
+                .photo(user.getPhoto())
                 .build();
     }
 

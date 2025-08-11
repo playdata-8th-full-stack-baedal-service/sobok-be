@@ -483,6 +483,7 @@ public class PostService {
                 .nickname(userInfo.getNickname())
                 .userId(post.getUserId())
                 .authId(userInfo.getAuthId())
+                .photo(userInfo.getPhoto())
                 .likeCount(likeCount)
                 .images(imagePaths)
                 .updatedAt(post.getUpdatedAt())
