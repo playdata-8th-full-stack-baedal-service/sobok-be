@@ -43,7 +43,7 @@ public class CookQueryRepository {
         long offset = (params.getPageNo() - 1) * params.getNumOfRows();
         long limit = params.getNumOfRows();
 
-        return factory.select(
+        return factory.selectDistinct(
                         Projections.constructor(
                                 BasicCookDisplay.class,
                                 cook.id,
