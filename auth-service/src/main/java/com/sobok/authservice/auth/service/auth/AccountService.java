@@ -56,9 +56,9 @@ public class AccountService {
 
             // 모든 서비스에 요청보내서 유효한 값만 리스트에 담기
             List<ResponseEntity<ByPhoneResDto>> response = Stream.of(
-                            userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
-//                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
-//                            deliveryClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
+                            userServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber()),
+                            shopServiceClient.findByPhone(authFindIdReqDto.getUserPhoneNumber()),
+                            deliveryClient.findByPhone(authFindIdReqDto.getUserPhoneNumber())
                     ).filter(resp -> resp != null && resp.getBody() != null)
                     .toList();
 
