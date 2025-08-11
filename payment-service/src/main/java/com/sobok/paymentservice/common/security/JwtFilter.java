@@ -89,7 +89,7 @@ public class JwtFilter extends OncePerRequestFilter {
             // 블랙리스트 검사 로직
             // Redis에서 현재 토큰이 블랙리스트에 등록되어 있는지 확인
 
-            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + id) != null) {
+            if (token.equals(redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + id))) {
                 log.warn("블랙리스트에 등록된 토큰으로 접근 시도. 토큰: {}", token);
                 onError(response,401, "블랙리스트에 등록된 토큰입니다.");
                 return;

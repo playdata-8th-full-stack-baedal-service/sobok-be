@@ -185,7 +185,7 @@ public class JwtTokenProvider {
             if (remainingTime > 0) { // 액세스 토큰이 유효 기간이 남았는지 확인 0보다 크면 블랙리스트 등록
                 redisTemplate.opsForValue().set( // redis에 저장
                         ACCESS_TOKEN_BLACKLIST_KEY + authId,
-                        "logout",
+                        accessToken,
                         remainingTime,
                         TimeUnit.MILLISECONDS // 블랙리스트 항목의 만료시간 (액세스 토큰 유효기간이 남는동안만 동작하도록)
                 );
@@ -193,7 +193,6 @@ public class JwtTokenProvider {
             }
         } catch (Exception e) {
             log.error("로그아웃 처리 중 액세스 토큰을 블랙리스트에 추가하는데 실패");
-
         }
     }
 
