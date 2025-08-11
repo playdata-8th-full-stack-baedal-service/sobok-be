@@ -86,7 +86,7 @@ public class JwtFilter extends OncePerRequestFilter {
             long id = Long.parseLong(claims.getSubject());
 
             // 블랙리스트 검사 로직
-            if (redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + id) != null) {
+            if (token.equals(redisTemplate.opsForValue().get(ACCESS_TOKEN_BLACKLIST_KEY + id))) {
                 log.warn("블랙리스트에 등록된 토큰입니다.");
                 throw new Exception("블랙리스트에 등록된 토큰입니다.");
             }
