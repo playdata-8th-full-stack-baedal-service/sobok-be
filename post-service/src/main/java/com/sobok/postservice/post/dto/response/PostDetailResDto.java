@@ -35,6 +35,9 @@ public class PostDetailResDto {
     @Schema(description = "작성자 사용자 ID", example = "1")
     private Long userId;
 
+    @Schema(description = "사용자 프로필", example = "https://example.com/image1.png")
+    private String photo;
+
     @Schema(description = "작성자 권한 ID", example = "123")
     private Long authId;
 

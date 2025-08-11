@@ -216,6 +216,7 @@ public class PostService {
             List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
             Map<Long, UserInfoResDto> userMap = userClient.getUserInfos(userIds).getBody();
 
+
             return new PagedResponse<>(
                     buildPostListRes(posts, likeMap, cookNameMap, userMap),
                     page, size,
@@ -281,6 +282,7 @@ public class PostService {
                     .cookName(cookName)
                     .userId(user.getUserId())
                     .nickName(user.getNickname())
+                    .photo(user.getPhoto())
                     .likeCount(likeMap.getOrDefault(post.getId(), 0L))
                     .thumbnail(thumbnail)
                     .updatedAt(post.getUpdatedAt())
@@ -481,6 +483,7 @@ public class PostService {
                 .nickname(userInfo.getNickname())
                 .userId(post.getUserId())
                 .authId(userInfo.getAuthId())
+                .photo(userInfo.getPhoto())
                 .likeCount(likeCount)
                 .images(imagePaths)
                 .updatedAt(post.getUpdatedAt())
