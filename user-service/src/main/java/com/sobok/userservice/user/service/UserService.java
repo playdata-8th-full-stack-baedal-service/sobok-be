@@ -616,7 +616,7 @@ public class UserService {
         return userRepository.findAllById(userIds).stream()
                 .collect(Collectors.toMap(
                         User::getId,
-                        user -> new PostUserInfoResDto(user.getId(), user.getNickname())
+                        user -> new PostUserInfoResDto(user.getId(), user.getNickname(), user.getPhoto())
                 ));
     }
 

@@ -39,4 +39,7 @@ public class PostListResDto {
 
     @Schema(description = "마지막 수정 시간", example = "2025-08-05T15:30:00")
     private LocalDateTime updatedAt;
+
+    @Schema(description = "작성자 프로필 이미지 URL", example = "https://example.com/user/profile.jpg")
+    private String photo;
 }
