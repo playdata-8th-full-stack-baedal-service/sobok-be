@@ -207,7 +207,7 @@ public class CartService {
                         CartIngredientKey key = new CartIngredientKey(cartCook.getId(), ingre.getIngredientId(), "Y");
                         Integer qty = cartIngreKeyMap.get(key);
                         return qty != null
-                                ? ingre.toBuilder().unitQuantity(qty * cartCook.getCount()).build()
+                                ? ingre.toBuilder().unitQuantity(qty).build()
                                 : ingre;
                     })
                     .toList();
