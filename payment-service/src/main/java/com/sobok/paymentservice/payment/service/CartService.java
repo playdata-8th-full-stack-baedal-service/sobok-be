@@ -100,7 +100,7 @@ public class CartService {
                     .cartCookId(cartCook.getId())
                     .ingreId(key)
                     .defaultIngre("Y")
-                    .unitQuantity(defaultIngreList.get(key) * reqDto.getCount())
+                    .unitQuantity(defaultIngreList.get(key))
                     .build();
             cartIngreRepository.save(cartIngre);
         }
@@ -130,9 +130,6 @@ public class CartService {
         List<CartCook> cartCookList = cartCookRepository.findByUserIdAndPaymentIdIsNull(userInfo.getUserId());
 
         return getPaymentResDto(userInfo.getUserId(), cartCookList);
-    }
-
-    public record CartIngredientKey(Long cartCookId, Long ingreId, String defaultIngre) {
     }
 
     public PaymentResDto getPaymentResDto(Long userId, List<CartCook> cartCookList) {
@@ -210,7 +207,7 @@ public class CartService {
                         CartIngredientKey key = new CartIngredientKey(cartCook.getId(), ingre.getIngredientId(), "Y");
                         Integer qty = cartIngreKeyMap.get(key);
                         return qty != null
-                                ? ingre.toBuilder().unitQuantity(qty).build()
+                                ? ingre.toBuilder().unitQuantity(qty * cartCook.getCount()).build()
                                 : ingre;
                     })
                     .toList();
@@ -273,6 +270,9 @@ public class CartService {
                 .offset(PageRequest.of(page, size).getOffset()) // 페이징
                 .limit(size)
                 .fetch();
+    }
+
+    public record CartIngredientKey(Long cartCookId, Long ingreId, String defaultIngre) {
     }
 
 }

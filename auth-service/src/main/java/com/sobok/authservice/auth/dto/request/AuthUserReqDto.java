@@ -27,6 +27,8 @@ public class AuthUserReqDto {
     private String password;
 
     @NotBlank(message = "별명은 필수 입니다.")
+    @Pattern(regexp = "^(?![_-])(?!.*[_-]$)(?!.*[_-]{2})[가-힣a-zA-Z0-9_-]{2,12}$",
+            message = "닉네임은 한글/영문/숫자 및 _- 사용 가능(시작/끝 불가, 연속 사용 불가), 2~12자")
     @Schema(description = "유저 별명 (닉네임)", example = "배달왕자", required = true)
     private String nickname;
 
